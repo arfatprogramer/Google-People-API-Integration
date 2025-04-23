@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\AjaxRequestController;
 use App\Http\Controllers\clientController;
 use App\Http\Controllers\googleSyncController;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -18,3 +20,20 @@ Route::get('google/redirect',[googleSyncController::class, 'redirectToGoogle'])-
 Route::get('google/sync/callback',[googleSyncController::class, 'handleGoogleCallback'])->name('client.callback');
 
 Route::get('test',[googleSyncController::class, 'test']);
+
+
+
+
+
+// Only for Testing Purpose
+Route::get('sync',[AjaxRequestController::class,'index'])->name('ajax.index');
+Route::get('refreshUrl',[AjaxRequestController::class,'refreshReq'])->name('ajax.request');
+Route::get('pushToGoogle',[AjaxRequestController::class,'pushToGoogle'])->name('ajax.pushToGoogle');
+Route::get('syncStatus',[AjaxRequestController::class,'syncStatus'])->name('ajax.syncStatus');
+
+Route::get('test',[AjaxRequestController::class,'pushToGoogle']);
+
+Route::get('/sync/progress', function () {
+    return Cache::get('sync_progress', ['total' => 0, 'synced' => 0]);
+});
+

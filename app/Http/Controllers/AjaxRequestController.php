@@ -2,64 +2,174 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
+use App\Jobs\pushToGoogleJob;
 use App\Models\client;
 use App\Models\GoogleAuth;
 use Carbon\Carbon;
-use DateTime;
 use Exception;
-use Google_Client;
 use Google\Service\PeopleService;
 use Google\Service\PeopleService\Person;
+use Google_Client;
+use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
-use PhpParser\Node\Stmt\TryCatch;
 
-class googleSyncController extends Controller
+class AjaxRequestController extends Controller
 {
-    public function index()
-    {
+    private $isProcessing=false;
+    private $updateCountToGoogle=0;
+    private $createCountToGoogle=0;
+    private $updateCountToCrm=0;
+    private $createCountToCrm=0;
+
+    public function index(){
         try {
-            // CRM data operation
-            $totalClients = client::count();
-            $pendingForSync = Client::whereNull('resourceName')->count();
-            $pendingForUpdate = Client::whereColumn('updated_at', '>', 'updateFlag')->count();
-            $pending = $pendingForSync + $pendingForUpdate;
-            $synchData = $totalClients - $pending;
 
-            $crmData = [
-                'total' => $totalClients,
-                'pending' => $pending,
-                'sync' => $synchData,
-            ];
+            return view('client.enjayDesign');
 
-            //Google Contact Related realted operation
-            $GoogleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
-            //If table is empty then sign in user
-            if (!$GoogleToken || $GoogleToken == null) {
-                return redirect()->route('client.redirect');
+        } catch (\Throwable $th) {
+            dd($th);
+        }
+
+    }
+
+    public function refreshReq(){
+        try {
+
+        $crmTotalClient=client::count();
+        $google=2345;
+        $data=['crm'=>$crmTotalClient,
+                'google'=>$google,
+                'pending'=>$crmTotalClient,
+                'error'=>$crmTotalClient,
+                'lastSync'=>"April 7, 2024 at 1:20 AM"
+        ];
+
+        return response()->json([
+                'status'=>true,
+                'message'=>"Refreshed",
+                'error'=>true,
+                'data'=>$data,
+            ]);
+             //code...
+        } catch (Exception $e) {
+            return response()->json([
+                'status'=>false,
+                'error'=>true,
+                'massage'=>$e,
+                'data'=>[],
+            ]);
+        }
+    }
+
+    // Push To Google Function Ready
+    public function pushToGoogle(){
+        try {
+            $this->isProcessing=true;
+            $delay=1;
+            $googleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
+            $createIdList = Client::whereNull('resourceName')->pluck('id')->toArray();
+            $updateIdList = Client::whereColumn('updated_at', '>', 'updateFlag')->pluck('id')->toArray();
+
+            $chunks1 = array_chunk($createIdList, 40);
+            $chunks2=array_chunk($updateIdList,40);
+
+            // Create equal pairs from both chunks
+            $maxChunks = max(count($createIdList), count($updateIdList));
+
+            for ($i = 0; $i < $maxChunks; $i++) {
+                $createChunk = $chunks1[$i] ?? [];
+                $updateChunk = $chunks2[$i] ?? [];
+
+                if ($i>=1) {
+                    pushToGoogleJob::dispatch($googleToken, $createChunk, $updateChunk)
+                    ->delay(now()->addMinutes($delay));
+                    $delay++; // Avoid rate limit
+                }else{
+                    pushToGoogleJob::dispatch($googleToken, $createChunk, $updateChunk);
+                }
             }
 
-            //Get Google Contact
-            $contacts = $this->getContacts($GoogleToken, 1,['names']);
-
-            $googleClient = $contacts->totalPeople;
-            $googlePending = $googleClient - $synchData;
-            $googlesync = $synchData;
-            //Pass that data to view
-            $googleContact = [
-                'total' => $googleClient,
-                'pending' => $googlePending,
-                'sync' => $googlesync,
+        $data=[
+            'isProcessing'=>$this->isProcessing,
+            'UpdatingToGoogle'=>count($updateIdList),
+            'CreatingToGoogle'=>count($createIdList),
             ];
-            return view('client.googleSync', ['contacts' => [], 'googleContact' => $googleContact, 'crmData' => $crmData]);
+
+
+        return response()->json([
+                'status'=>true,
+                'message'=>"Push To Google Stared",
+                'error'=>true,
+                'data'=>$data,
+            ]);
+             //code...
         } catch (Exception $e) {
-            dd($e);
+            return response()->json([
+                'status'=>false,
+                'error'=>true,
+                'massage'=>$e,
+                'data'=>[],
+            ]);
+        }
+    }
+
+    // This for Dispaly Process Bar
+     public function syncStatus(){
+        try {
+            $this->createCountToCrm;
+            $this->createCountToGoogle;
+            $this->updateCountToCrm;
+            $this->updateCountToGoogle;
+            $isProcessing=$this->isProcessing;
+
+        $data=[
+            'isProcessing'=>$isProcessing,
+        ];
+
+        return response()->json([
+                'status'=>true,
+                'message'=>"Sync Status",
+                'error'=>true,
+                'data'=>$data,
+            ]);
+             //code...
+        } catch (Exception $e) {
+            return response()->json([
+                'status'=>false,
+                'error'=>true,
+                'massage'=>$e,
+                'data'=>[],
+            ]);
+        }
+    }
+
+    // This is Layout for Function
+    public function layout(){
+        try {
+
+        $data=[];
+
+        return response()->json([
+                'status'=>true,
+                'message'=>"Refreshed",
+                'error'=>true,
+                'data'=>$data,
+            ]);
+             //code...
+        } catch (Exception $e) {
+            return response()->json([
+                'status'=>false,
+                'error'=>true,
+                'massage'=>$e,
+                'data'=>[],
+            ]);
         }
     }
 
 
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  this Section for Genral Function Use By Many Function <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<   Copy from Other Controller >>>>>>>>>>>>>>>>>>>>>>>>>
+
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  this Section for Genral Function Use By Many Function <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     //genrate google and people client
     public function getGoogleCient($googleToken)
@@ -116,6 +226,7 @@ class googleSyncController extends Controller
             dd($e);
         }
     }
+
 
      // get contact list ushing access token
       /***
@@ -343,7 +454,7 @@ class googleSyncController extends Controller
             //following both will be user to create and update contact from crm to google
             // $reatedCound=$this->createContactToGoogle($GoogleToken);
             // $UpdatedCound=$this->updateContactToGoogle($GoogleToken);
-            
+
             unset($googleMap);
             return view('client.process');
         } catch (Exception $th) {
@@ -427,17 +538,6 @@ class googleSyncController extends Controller
         return (['status' => 'CRM to Google contacts sync completed', 'code'=>200, 'count' => $count]);
     }
 
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  this Section for Testing Purpose <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    // for test somthing
-    public function test()
-    {
-        try {
-             $GoogleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
-           $result= $this->updateContactToGoogle($GoogleToken);
-            dd($result);
-        } catch (\Throwable $th) {
-            throw $th;
-        }
-    }
 }
+
+
