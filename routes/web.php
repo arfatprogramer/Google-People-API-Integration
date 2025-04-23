@@ -16,3 +16,5 @@ Route::get('google/sync',[googleSyncController::class, 'index'])->name('client.s
 Route::get('google/syncProcess',[googleSyncController::class, 'syncGoogleContacts'])->name('client.syncProcess');
 Route::get('google/redirect',[googleSyncController::class, 'redirectToGoogle'])->name('client.redirect');
 Route::get('google/sync/callback',[googleSyncController::class, 'handleGoogleCallback'])->name('client.callback');
+
+Route::get('test',[googleSyncController::class, 'test']);

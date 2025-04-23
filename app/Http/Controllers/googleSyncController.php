@@ -7,22 +7,24 @@ use Illuminate\Http\Request;
 use App\Models\client;
 use App\Models\GoogleAuth;
 use Carbon\Carbon;
+use DateTime;
 use Exception;
-use Google\Service\AuthorizedBuyersMarketplace\Contact;
 use Google_Client;
 use Google\Service\PeopleService;
+use Google\Service\PeopleService\Person;
 use Laravel\Socialite\Facades\Socialite;
 use PhpParser\Node\Stmt\TryCatch;
 
 class googleSyncController extends Controller
 {
-    function index()
+    public function index()
     {
         try {
             // CRM data operation
             $totalClients = client::count();
-            $notSynPending = Client::whereNull('resourceName')->count();
-            $pending = $notSynPending;
+            $pendingForSync = Client::whereNull('resourceName')->count();
+            $pendingForUpdate = Client::whereColumn('updated_at', '>', 'updateFlag')->count();
+            $pending = $pendingForSync + $pendingForUpdate;
             $synchData = $totalClients - $pending;
 
             $crmData = [
@@ -33,14 +35,10 @@ class googleSyncController extends Controller
 
             //Google realted Operaton
             $GoogleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
-            //    dd($GoogleToken);
             //If table is empty then sign in user
-
             if (!$GoogleToken || $GoogleToken == null) {
                 return redirect()->route('client.redirect');
             }
-
-
 
             //if access token Expire then Regenrate
             $created = Carbon::parse($GoogleToken->updated_at)->timestamp;
@@ -52,9 +50,6 @@ class googleSyncController extends Controller
             } else {
                 //Get Google Contact
                 $contacts = $this->getContacts($GoogleToken);
-
-
-
                 $googleClient = $contacts->totalPeople;
                 $googlePending = $googleClient - $synchData;
                 $googlesync = $synchData;
@@ -177,7 +172,7 @@ class googleSyncController extends Controller
     }
 
 
-    //2 Way google synch controler
+    //2 Way google synch function CRM <=> Google contact
 
     public function syncGoogleContacts()
     {
@@ -194,7 +189,6 @@ class googleSyncController extends Controller
                 'people/me',
                 ['personFields' => 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies']
             )->getConnections();
-
 
             $googleMap = collect($googleContacts)->mapWithKeys(function ($person) {
                 $customFields = collect($person->getUserDefined())->mapWithKeys(function ($field) {
@@ -280,9 +274,8 @@ class googleSyncController extends Controller
                 $contact->save();
             }
 
-
-            // update CRM data To Google
-            $this->syncCRMToGoogleContacts($GoogleToken);
+            $this->createContactToGoogle($GoogleToken);
+            $this->updateContactToGoogle($GoogleToken);
 
             return view('client.process');
         } catch (Exception $th) {
@@ -290,77 +283,175 @@ class googleSyncController extends Controller
         }
     }
 
-    public function syncCRMToGoogleContacts($GoogleToken)
-{
-    $client = $this->getGoogleCient($GoogleToken);
-    $peopleService = new PeopleService($client);
+    //for update contact form Crm to google contct
+    public function updateContactToGoogle($GoogleToken)
+    {
+        $client = $this->getGoogleCient($GoogleToken);
+        $peopleService = new PeopleService($client);
 
-    //Modfy according to prevent un neseeory anpi requests
-    $crmContacts = client::all();
+        //Modfy according to prevent un neseeory anpi requests
+        $crmContacts = Client::whereColumn('updated_at', '>', 'updateFlag')->get();
+        dd($crmContacts);
+        foreach ($crmContacts as $contact) {
+            try {
+                $person = new Person();
 
-    foreach ($crmContacts as $contact) {
-        try {
-            $person = new PeopleService\Person([
-                'names' => [[
-                    'givenName' => $contact->FirstName,
-                    'familyName' => $contact->lastName,
-                ]],
-                'emailAddresses' => [[
-                    'value' => $contact->email,
-                ]],
-                'phoneNumbers' => [[
-                    'value' => $contact->number,
-                ]],
-                'organizations' => [[
-                    'name' => $contact->familyOrOrgnization,
-                ]],
-                'biographies' => [[
-                    'value' => $contact->comments,
-                ]],
-                'userDefined' => [
-                    ['key' => 'panCardNumber', 'value' => $contact->panCardNumber],
-                    ['key' => 'aadharCardNumber', 'value' => $contact->aadharCardNumber],
-                    ['key' => 'occupation', 'value' => $contact->occupation],
-                    ['key' => 'kycStatus', 'value' => $contact->kycStatus],
-                    ['key' => 'anulIncome', 'value' => $contact->anulIncome],
-                    ['key' => 'referredBy', 'value' => $contact->referredBy],
-                    ['key' => 'totalInvestment', 'value' => $contact->totalInvestment],
-                    ['key' => 'relationshipManager', 'value' => $contact->relationshipManager],
-                    ['key' => 'serviceRM', 'value' => $contact->serviceRM],
-                    ['key' => 'totalSIP', 'value' => $contact->totalSIP],
-                    ['key' => 'primeryContactPerson', 'value' => $contact->primeryContactPerson],
-                    ['key' => 'meetinSchedule', 'value' => $contact->meetinSchedule],
-                    ['key' => 'firstMeetingDate', 'value' => $contact->firstMeetingDate],
-                    ['key' => 'typeOfRelation', 'value' => $contact->typeOfRelation],
-                    ['key' => 'maritalStatus', 'value' => $contact->maritalStatus],
-                ]
-            ]);
+                // Set name
+                $name = new PeopleService\Name();
+                $name->setGivenName($contact->FirstName);
+                $name->setFamilyName($contact->lastName);
+                $person->setNames([$name]);
 
-            if ($contact->resourceName) {
-                // Update existing contact
+                // Set email
+                $email = new PeopleService\EmailAddress();
+                $email->setValue($contact->email);
+                $person->setEmailAddresses([$email]);
 
-                $updated = $peopleService->people->updateContact($contact->resourceName, $person, [
-                    'updatePersonFields' => 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'
-                ]);
+                // Set phone
+                $phone = new PeopleService\PhoneNumber();
+                $phone->setValue($contact->number);
+                $person->setPhoneNumbers([$phone]);
 
-                $contact->update(['etag' => $updated->etag]);
+                // Set userDefined fields
+                $userDefinedFields = [];
 
-            } else {
-                // Create new contact
-                $new = $peopleService->people->createContact($person);
-                $contact->update([
-                    'resource_name' => $new->resourceName,
-                    'etag' => $new->etag,
-                    'source' => 'crm',
-                ]);
+                $userDefinedPairs = [
+                    'panCardNumber' => $contact->panCardNumber,
+                    'aadharCardNumber' => $contact->aadharCardNumber,
+                    'occupation' => $contact->occupation,
+                    'kycStatus' => $contact->kycStatus,
+                    'anulIncome' => (string)$contact->anulIncome,
+                    'referredBy' => $contact->referredBy,
+                    'totalInvestment' => (string)$contact->totalInvestment,
+                    'relationshipManager' => $contact->relationshipManager,
+                    'serviceRM' => $contact->serviceRM,
+                    'totalSIP' => (string)$contact->totalSIP,
+                    'primeryContactPerson' => $contact->primeryContactPerson,
+                    'meetinSchedule' => $contact->meetinSchedule,
+                    'firstMeetingDate' => $contact->firstMeetingDate,
+                    'typeOfRelation' => $contact->typeOfRelation,
+                    'maritalStatus' => $contact->maritalStatus,
+                ];
+
+                foreach ($userDefinedPairs as $key => $value) {
+                    if (!empty($value)) {
+                        $field = new PeopleService\UserDefined();
+                        $field->setKey($key);
+                        $field->setValue($value);
+                        $userDefinedFields[] = $field;
+                    }
+                }
+
+                $person->setUserDefined($userDefinedFields);
+
+                    // Update existing contact
+                    $person->setEtag($contact->etag);
+                    $updated = $peopleService->people->updateContact($contact->resourceName, $person, [
+                        'updatePersonFields' => 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies',
+                    ]);
+
+                    $updateDate = client::where('resourceName', $contact->resourceName)->first();
+                        $updateDate->etag = $updated->etag;
+                        $updateDate->updateFlag = Carbon::now();
+                        $updateDate->save();
+
+            } catch (\Exception $e) {
+                //Log::error("Google sync failed for CRM ID {$contact->id}: " . $e->getMessage());
+                dd($e);
             }
-
-        } catch (\Exception $e) {
-            // Log::error("Google sync failed for CRM ID {$contact->id}: " . $e->getMessage());
         }
+
+        return response()->json(['status' => 'CRM to Google contacts sync completed']);
     }
 
-    return response()->json(['status' => 'CRM to Google contacts sync completed']);
-}
+    //for Create contact form Crm to google contct
+    public function createContactToGoogle($GoogleToken)
+    {
+        $client = $this->getGoogleCient($GoogleToken);
+        $peopleService = new PeopleService($client);
 
+        //Modfy according to prevent un neseeory anpi requests
+        $crmContacts = client::whereNull('resourceName')->get();
+
+        foreach ($crmContacts as $contact) {
+            try {
+                $person = new Person();
+
+                // Set name
+                $name = new PeopleService\Name();
+                $name->setGivenName($contact->FirstName);
+                $name->setFamilyName($contact->lastName);
+                $person->setNames([$name]);
+
+                // Set email
+                $email = new PeopleService\EmailAddress();
+                $email->setValue($contact->email);
+                $person->setEmailAddresses([$email]);
+
+                // Set phone
+                $phone = new PeopleService\PhoneNumber();
+                $phone->setValue($contact->number);
+                $person->setPhoneNumbers([$phone]);
+
+                // Set userDefined fields
+                $userDefinedFields = [];
+
+                $userDefinedPairs = [
+                    'panCardNumber' => $contact->panCardNumber,
+                    'aadharCardNumber' => $contact->aadharCardNumber,
+                    'occupation' => $contact->occupation,
+                    'kycStatus' => $contact->kycStatus,
+                    'anulIncome' => (string)$contact->anulIncome,
+                    'referredBy' => $contact->referredBy,
+                    'totalInvestment' => (string)$contact->totalInvestment,
+                    'relationshipManager' => $contact->relationshipManager,
+                    'serviceRM' => $contact->serviceRM,
+                    'totalSIP' => (string)$contact->totalSIP,
+                    'primeryContactPerson' => $contact->primeryContactPerson,
+                    'meetinSchedule' => $contact->meetinSchedule,
+                    'firstMeetingDate' => $contact->firstMeetingDate,
+                    'typeOfRelation' => $contact->typeOfRelation,
+                    'maritalStatus' => $contact->maritalStatus,
+                ];
+
+                foreach ($userDefinedPairs as $key => $value) {
+                    if (!empty($value)) {
+                        $field = new PeopleService\UserDefined();
+                        $field->setKey($key);
+                        $field->setValue($value);
+                        $userDefinedFields[] = $field;
+                    }
+                }
+                $person->setUserDefined($userDefinedFields);
+                    // Update existing contact
+                    $person->setEtag($contact->etag);
+                    $updated = $peopleService->people->updateContact($contact->resourceName, $person, [
+                        'updatePersonFields' => 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies',
+                    ]);
+
+                    $updateDate = client::where('resourceName', $contact->resourceName)->first();
+                        $updateDate->etag = $updated->etag;
+                        $updateDate->updateFlag = Carbon::now();
+                        $updateDate->save();
+
+            } catch (\Exception $e) {
+                //Log::error("Google sync failed for CRM ID {$contact->id}: " . $e->getMessage());
+                dd($e);
+            }
+        }
+
+        return back();
+    }
+
+    // for test somthing
+    public function test(){
+        try {
+            $result=$GoogleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
+            // dd($result);
+        $this->updateContactToGoogle($GoogleToken);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+
+    }
 }
