@@ -32,6 +32,7 @@ class googleSyncController extends Controller
                 'pending' => $pending,
                 'sync' => $synchData,
             ];
+            
 
             //Google Contact Related realted operation
             $GoogleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
@@ -343,7 +344,7 @@ class googleSyncController extends Controller
             //following both will be user to create and update contact from crm to google
             // $reatedCound=$this->createContactToGoogle($GoogleToken);
             // $UpdatedCound=$this->updateContactToGoogle($GoogleToken);
-            
+
             unset($googleMap);
             return view('client.process');
         } catch (Exception $th) {
@@ -433,9 +434,20 @@ class googleSyncController extends Controller
     public function test()
     {
         try {
-             $GoogleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
-           $result= $this->updateContactToGoogle($GoogleToken);
-            dd($result);
+            $userToken = 'abc123xyz789';
+$contactList = ['John Doe', 'Jane Smith', 'Alice Johnson'];
+$tempFilePath = '/tmp/upload_6453.tmp';
+$apiResponse = '{"status":"success","data":[] }';
+$orderAmount = 2499.99;
+$sessionStatus = true;
+$productCount = 42;
+$randomIndex = rand(0, 100);
+$emailSubject = 'Welcome to Our Platform!';
+$taskDeadline = '2025-05-01 18:00:00';
+
+            $bytes = memory_get_usage();
+            $megabytes = $bytes / 1048576; // 1024 * 1024
+            echo round($megabytes, 2) . ' MB';
         } catch (\Throwable $th) {
             throw $th;
         }

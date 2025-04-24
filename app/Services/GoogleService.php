@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\GoogleAuth;
 use Carbon\Carbon;
 use Exception;
+use Google\Service\PeopleService;
 use Google\Service\PeopleService\EmailAddress;
 use Google_Client;
 use Google\Service\PeopleService\Person;
@@ -130,6 +131,32 @@ class GoogleService
         $person->setUserDefined($userDefinedFields);
 
         return $person;
+     }
+
+     public function getContacts($googleToken, $pageSize, $personFields, $nextPageToken = null): object
+     {
+         try {
+             $client = $this->getGoogleCient($googleToken);
+             $peopleService = new PeopleService($client);
+
+             $params = [
+                 'pageSize' => $pageSize,
+                 'personFields' => $personFields,
+             ];
+
+             if ($nextPageToken) {
+                 $params['pageToken'] = $nextPageToken;
+             }
+
+             $response = $peopleService->people_connections->listPeopleConnections(
+                 'people/me',
+                 $params
+             );
+
+             return $response->toSimpleObject();
+         } catch (Exception $e) {
+             return $e;
+         }
      }
 
 
