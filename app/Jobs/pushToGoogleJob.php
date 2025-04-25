@@ -11,7 +11,6 @@ use Illuminate\Queue\SerializesModels;
 use Carbon\Carbon;
 use App\Services\GoogleService;
 use Google\Service\PeopleService;
-use Illuminate\Container\Attributes\Cache;
 use Illuminate\Support\Facades\Log;
 class pushToGoogleJob implements ShouldQueue
 {
@@ -26,6 +25,9 @@ class pushToGoogleJob implements ShouldQueue
         $this->GoogleToken = $GoogleToken;
         $this->ceateIdList = $ceateIdList;
         $this->updateIdList = $updateIdList;
+
+        Log::info('Before Push to Google Constructor: ' . (memory_get_usage(true)/1024/1024)." MB");
+
     }
 
 
@@ -56,6 +58,7 @@ class pushToGoogleJob implements ShouldQueue
                 } catch (\Exception $e) {
                     Log::error("Create failed for contact ID {$contact->id}");
                 }
+                Log::info(' Push to Google loop create: ' . (memory_get_usage(true)/1024/1024)." MB");
             }
         }
 
@@ -80,6 +83,7 @@ class pushToGoogleJob implements ShouldQueue
 
                     Log::error("Update failed for contact ID {$contact->id}: {$e->getMessage()}");
                 }
+                Log::info(' Push to Google loop Update: ' . (memory_get_usage(true)/1024/1024)." MB");
             }
         }
     }

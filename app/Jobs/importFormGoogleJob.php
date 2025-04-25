@@ -29,7 +29,7 @@ class importFormGoogleJob implements ShouldQueue
     {
         try {
             $personFields=['names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'];
-            $pageSize=1;
+            $pageSize=1000;
             //contact come here ny the functon
             $nextPageToken=false;
             do {
@@ -114,6 +114,7 @@ class importFormGoogleJob implements ShouldQueue
                     $contact->maritalStatus = $googleContact['maritalStatus'] ?? 'Select';
                     $contact->save();
                 }
+                Log::info(' Import Form Google loop Job: ' . (memory_get_usage(true)/1024/1024)." MB");
             } while ($nextPageToken);
 
         } catch (Exception $e) {

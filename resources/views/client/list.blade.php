@@ -63,7 +63,7 @@
                 { data: 'aadharCardNumber', name: 'aadharCardNumber' },
                 { data: 'relationshipManager', name: 'relationshipManager' },
                 { data: 'created_at', name: 'created_at' },
-                { data: 'updated_at', name: 'updaed_at' }
+                { data: 'updated_at', name: 'updated_at' }
             ]
         });
 

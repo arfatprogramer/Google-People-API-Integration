@@ -20,7 +20,7 @@ Route::get('/edit',[clientController::class, 'show'])->name('client.edit');
 Route::get('google/redirect',[AjaxRequestController::class, 'redirectToGoogle'])->name('client.redirect');
 Route::get('google/sync/callback',[AjaxRequestController::class, 'handleGoogleCallback'])->name('client.callback');
 
-// Only for Testing Purpose
+
 Route::get('sync',[AjaxRequestController::class,'index'])->name('ajax.index');
 Route::get('refreshUrl',[AjaxRequestController::class,'refreshReq'])->name('ajax.request');
 Route::get('synNow',[AjaxRequestController::class,'synNowBoth'])->name('ajax.synNow');
@@ -29,5 +29,5 @@ Route::get('importFromGoogle',[AjaxRequestController::class,'importFromGoogle'])
 Route::get('syncStatus',[AjaxRequestController::class,'syncStatus'])->name('ajax.syncStatus');
 
 
-
+Route::get('getClinetSyncHistory',[AjaxRequestController::class,'getClinetSyncHistory'])->name('ajax.getClinetSyncHistory');
 

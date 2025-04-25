@@ -6,28 +6,19 @@ use App\Models\client;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class clientController extends Controller
 {
+
+    function __construct(){
+        Log::info('Client controller Constructor Method: ' . (memory_get_usage(true)/1024/1024)." MB");
+    }
+
+
     function show(Request $req){
         if ($req->ajax()) {
-            // $clients = Client::select([
-            //     'firstName',
-            //     'lastName',
-            //     'number',
-            //     'email',
-            //     'panCard',
-            //     'aadharCard',
-            //     'ocupation',
-            //     'kycStatus',
-            //     'anulIncome',
-            //     'reffredBy',
-            //     'totalInvestment',
-            //     'relationshipManager',
-            //     'serviceRM',
-            //     'typeOfRelation'
-            // ]);
 
             $clients=client::query();
 
@@ -85,5 +76,9 @@ try {
     } catch (\Throwable $e) {
         dd($e);
     }
+    }
+
+    public function __destruct() {
+        Log::info('Client Controller Distructor Method: ' . (memory_get_usage(true)/1024/1024)." MB");
     }
 }

@@ -12,22 +12,26 @@ use Google\Service\PeopleService\Person;
 use Google\Service\PeopleService\Name;
 use Google\Service\PeopleService\PhoneNumber;
 use Google\Service\PeopleService\UserDefined;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class GoogleService
 {
 
     public function getGoogleCient($googleToken)
     {
+        Log::info('get GoogleCliet form Google Services class: ' . (memory_get_usage(true)/1024/1024)." MB");
 
         $accessToken = $googleToken->googleAccessToken;
-        //if access token Expire then Regenrate
-        $created = Carbon::parse($googleToken->updated_at)->timestamp;
         $expireIn = $googleToken->accessTokenExpiresIn;
-        if ($created + $expireIn < time()) {
+        $created = Carbon::parse($googleToken->updated_at)->timestamp;
+        $expectedExpireTime = Carbon::parse(now()->addMinutes(3))->timestamp;
+
+        if ($created + $expireIn < $expectedExpireTime) {
             // get new Token
+            Log::info('Refresh Function Called: ' . (memory_get_usage(true)/1024/1024)." MB");
             $accessToken = $this->refreshAccessToken($googleToken);
         }
+
 
         $client = new Google_Client();
         $client->setAccessToken([
@@ -51,7 +55,16 @@ class GoogleService
       {
           try {
               $refreshToken = $googleToken->googleRefreshToken;
-              $client = $this->getGoogleCient($googleToken);
+              $client = new Google_Client();
+              // this this not nessory for every things
+              $client->addScope([
+                  'https://www.googleapis.com/auth/contacts',
+                  'email',
+                  'profile'
+              ]);
+              $client->setClientId(config('services.google.client_id'));
+              $client->setClientSecret(config('services.google.client_secret'));
+
               $accessToken = $client->fetchAccessTokenWithRefreshToken($refreshToken);
 
               // herer we will update the data of current user
@@ -67,9 +80,9 @@ class GoogleService
               $user->refreshTokenExpiresIn = $accessToken['refresh_token_expires_in'];
               $user->save();
 
-              return redirect()->route('client.sync')->with('success', 'Rifresh tokne Genrated successfully.');
+              return $accessToken['access_token'];
           } catch (Exception $e) {
-              dd($e);
+              Log::error("This is comming From RefreshToke Rator Function in Google Service ".$e);
           }
       }
 

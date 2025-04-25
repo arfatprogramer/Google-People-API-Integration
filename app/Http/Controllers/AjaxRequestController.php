@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use App\Jobs\importFormGoogleJob;
 use App\Jobs\pushToGoogleJob;
 use App\Models\client;
+use App\Models\clientContatSyncHistory;
 use App\Models\GoogleAuth;
 use App\Services\GoogleService;
 use Exception;
-use Laravel\Socialite\Facades\Socialite;
+use Google_Client;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Yajra\DataTables\Facades\DataTables;
 
 class AjaxRequestController extends Controller
 {
@@ -18,12 +22,15 @@ class AjaxRequestController extends Controller
     protected $updateCountToCrm=0;
     protected $createCountToCrm=0;
     protected $googleToken;
-    protected $clientTable;
+
+    protected $clientContactSyncHistoryTable;
 
     function __construct()
     {
         $this->googleToken=GoogleAuth::orderBy('id', 'desc')->get()->first();
-        $this->clientTable=new client();
+        $this->clientContactSyncHistoryTable=new clientContatSyncHistory();
+
+        Log::info('Ajac Controller Constructor Method: ' . (memory_get_usage(true)/1024/1024)." MB");
     }
 
     public function index(){
@@ -33,6 +40,7 @@ class AjaxRequestController extends Controller
                 // $this->redirectToGoogle();
                 return redirect()->route('client.redirect');
             }
+            Log::info(' Before Ajax Index Return: ' .(memory_get_usage(true)/1024/1024)." MB");
             return view('client.enjayDesign');
 
         } catch (\Throwable $th) {
@@ -43,23 +51,32 @@ class AjaxRequestController extends Controller
 
     public function refreshReq(){
         try {
+            Log::info('Starting  Refresh Method in Ajax Contrller: ' .(memory_get_usage(true)/1024/1024)." MB");
 
             $contact=(new GoogleService())->getContacts($this->googleToken, 1, ['names']);
-            $crmTotalClient=$this->clientTable->count();
-            $google=$contact->totalItems;
+            // $crmTotalClient = client::count();
+            $crmTotalClient=Client::count();
+            // Client::chunk(10, function ($clients) use (&$crmTotalClient) {
+            //     $crmTotalClient += $clients->count();
+
+            // });
+            $google=$contact->totalItems ?? 0;
             $pending= abs($crmTotalClient - $google);
+            $lastSync=$this->clientContactSyncHistoryTable::orderBy('created_at','desc')->first();
 
             $data=['crm'=>$crmTotalClient,
                     'google'=>$google,
                     'pending'=>$pending,
+                    'lastSync'=>$lastSync,
                     'error'=>0,
-                    'lastSync'=>"April 7, 2024 at 1:20 AM"
             ];
+
+            Log::info('Before Resposnse Refresh Method: ' . (memory_get_usage(true)/1024/1024)." MB");
 
             return response()->json([
                     'status'=>true,
                     'message'=>"Refreshed",
-                    'error'=>true,
+                    'error'=>false,
                     'data'=>$data,
                 ]);
              //code...
@@ -106,39 +123,35 @@ class AjaxRequestController extends Controller
             $createIdList = Client::whereNull('resourceName')->pluck('id')->toArray();
             $updateIdList = Client::whereColumn('updated_at', '>', 'updateFlag')->pluck('id')->toArray();
 
-            $chunks1 = array_chunk($createIdList, 40);
-            $chunks2=array_chunk($updateIdList,40);
+            $chunks1 = array_chunk($createIdList, 80);
+            $chunks2=array_chunk($updateIdList,80);
 
-            // Create equal pairs from both chunks
-            $maxChunks = max(count($createIdList), count($updateIdList));
-
-            for ($i = 0; $i < $maxChunks; $i++) {
-                $createChunk = $chunks1[$i] ?? [];
-                $updateChunk = $chunks2[$i] ?? [];
-
-                if ($i>=1) {
-                    pushToGoogleJob::dispatch($googleToken, $createChunk, $updateChunk)
-                    ->delay(now()->addMinutes($delay));
-                    $delay++; // Avoid rate limit
-                }else{
-                    pushToGoogleJob::dispatch($googleToken, $createChunk, $updateChunk);
-                }
+            //creating job for Create Contact on Google
+            foreach($chunks1 as $chunk){
+                pushToGoogleJob::dispatch($googleToken, $chunk, [])
+                        ->delay(now()->addMinutes(1));
+            }
+            // creating job for Update contacts to google
+            foreach($chunks2 as $chunk){
+                pushToGoogleJob::dispatch($googleToken, [], $chunk)
+                ->delay(now()->addMinutes(1));
             }
 
-        $data=[
-            'isProcessing'=>$this->isProcessing,
-            'UpdatingToGoogle'=>count($updateIdList),
-            'CreatingToGoogle'=>count($createIdList),
+
+            $data=[
+                'isProcessing'=>$this->isProcessing,
+                'UpdatingToGoogle'=>count($updateIdList),
+                'CreatingToGoogle'=>count($createIdList),
             ];
 
+            Log::info(' Push to Google In Controller Before Return: ' . (memory_get_usage(true)/1024/1024)." MB");
+            return response()->json([
+                    'status'=>true,
+                    'message'=>"Push To Google Stared",
+                    'error'=>true,
+                    'data'=>$data,
+                ]);
 
-        return response()->json([
-                'status'=>true,
-                'message'=>"Push To Google Stared",
-                'error'=>true,
-                'data'=>$data,
-            ]);
-             //code...
         } catch (Exception $e) {
             return response()->json([
                 'status'=>false,
@@ -206,33 +219,57 @@ class AjaxRequestController extends Controller
     // aut2.0 authenticating
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')
-            ->scopes([
-                'https://www.googleapis.com/auth/contacts',
-                'email',
-                'profile'
-            ])
-            ->with(['access_type' => 'offline', 'prompt' => 'consent'])
-            ->redirect();
+        $client = new Google_Client();
+        $client->setClientId(config('services.google.client_id'));
+        $client->setRedirectUri(config('services.google.redirect'));
+        $client->addScope('https://www.googleapis.com/auth/contacts');
+        $client->setAccessType('offline');
+        $client->setPrompt('consent');
+
+    return redirect($client->createAuthUrl());
     }
 
     //auth 2.0 authonticatin redirect handel function
-    public function handleGoogleCallback()
+    public function handleGoogleCallback(Request $request)
     {
-        $googleUser = Socialite::driver('google')->user();
+        $client = new Google_Client();
+         $client->setClientId(config('services.google.client_id'));
+         $client->setClientSecret(config('services.google.client_secret'));
+         $client->setRedirectUri(config('services.google.redirect'));
 
-        //  save token and user info however you need
+        // Exchange the authorization code for an access token
+        $googleUser = $client->fetchAccessTokenWithAuthCode($request->get('code'));
+
+        //save token and user info however you need
         $user = new GoogleAuth;
-        $user->google_id = $googleUser->id;
-        $user->name = $googleUser->name;
-        $user->email = $googleUser->email;
-        $user->googleAccessToken = $googleUser->token;
-        $user->accessTokenExpiresIn = $googleUser->expiresIn;
-        $user->googleRefreshToken = $googleUser->refreshToken;
-        $user->refreshTokenExpiresIn = $googleUser->expiresIn;
+        $user->google_id = $googleUser['created'];
+        $user->name ='Mo Arfat';
+        $user->email = 'ArfatAnsari.Code@gmail.com';
+        $user->googleAccessToken = $googleUser['access_token'];
+        $user->accessTokenExpiresIn = $googleUser['expires_in'];
+        $user->googleRefreshToken = $googleUser['refresh_token'];
+        $user->refreshTokenExpiresIn = $googleUser['refresh_token_expires_in'];
         $user->save();
+
+
 
         return redirect()->route('ajax.index')->with('success', 'Google account connected successfully.');
     }
+
+
+    // function for get clinet sync history data
+    public function getClinetSyncHistory(){
+        $query = $this->clientContactSyncHistoryTable::query();
+            // dd($query);
+        return DataTables::eloquent($query)
+        ->addColumn('action',function($query){
+            return "<a href='#'>View</a>";
+        })
+
+        ->rawColumns(['action'])
+        ->make(true);
+    }
+
+
 
 }

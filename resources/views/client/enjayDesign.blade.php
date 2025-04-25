@@ -29,7 +29,7 @@
             </div>
             <div class="p-6 pt-0">
                 <div id="contactsInCrm" class="text-2xl font-bold">1,248</div>
-                <p class="text-xs text-green-500 text-muted-foreground">+156 from last sync</p>
+                <p class="text-xs text-green-500 text-muted-foreground">+<span id="lastSyncNewContact">0</span> from last sync</p>
                 <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
                     <div class="flex flex-col"><span  class="text-muted-foreground">In CRM</span><span id="contactsInCrm1" class="font-medium">1,248</span></div>
                     <div class="flex flex-col"><span  class="text-muted-foreground">In Google</span><span id="contactsInGoogle" class="font-medium">1,356</span></div>
@@ -69,12 +69,12 @@
                 </svg>
             </div>
             <div class="p-6 pt-0">
-                <div class="text-2xl font-bold">42</div>
+                <div id="lastSyncChangesDeteted" class="text-2xl font-bold">42</div>
                 <p class="text-xs text-muted-foreground">Since last sync</p>
                 <div class="mt-4 grid grid-cols-3 gap-1 text-xs">
-                    <div class="flex flex-col"><span class="text-muted-foreground">Added</span><span class="font-medium">18</span></div>
-                    <div class="flex flex-col"><span class="text-muted-foreground">Updated</span><span class="font-medium">24</span></div>
-                    <div class="flex flex-col"><span class="text-muted-foreground">Deleted</span><span class="font-medium">0</span></div>
+                    <div class="flex flex-col"><span class="text-muted-foreground">Added</span><span id="lastSyncNewContact1" class="font-medium">18</span></div>
+                    <div class="flex flex-col"><span class="text-muted-foreground">Updated</span><span id="lastSyncUpdatedContact" class="font-medium">24</span></div>
+                    <div class="flex flex-col"><span class="text-muted-foreground">Deleted</span><span id="lastSyncDeletedContact" class="font-medium">0</span></div>
                 </div>
             </div>
         </div>
@@ -315,10 +315,10 @@
             </div>
             <div class="p-6 pt-0">
                 <div class="rounded-md border">
-                    <table class="w-full">
+                    <table id="contact-history-table" class="contact-history-table w-full">
                         <thead>
                             <tr class="border-b bg-muted/50 text-sm">
-                                <th class="px-4 py-3 text-left font-medium">Date &amp; Time</th>
+                                <th class="px-4 py-3 text-left font-medium">Date Time</th>
                                 <th class="px-4 py-3 text-left font-medium">Status</th>
                                 <th class="px-4 py-3 text-left font-medium">Added</th>
                                 <th class="px-4 py-3 text-left font-medium">Updated</th>
@@ -327,94 +327,6 @@
                                 <th class="px-4 py-3 text-left font-medium">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y">
-                            <tr class="text-sm">
-                                <td class="px-4 py-3">
-                                    <div>April 7, 2025</div>
-                                    <div class="text-xs text-muted-foreground">1:29 PM</div>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big h-3 w-3">
-                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                            <path d="m9 11 3 3L22 4"></path>
-                                        </svg>Success</div>
-                                </td>
-                                <td class="px-4 py-3">18</td>
-                                <td class="px-4 py-3">24</td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3"><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3">View</button></td>
-                            </tr>
-                            <tr class="text-sm">
-                                <td class="px-4 py-3">
-                                    <div>April 7, 2025</div>
-                                    <div class="text-xs text-muted-foreground">12:59 PM</div>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big h-3 w-3">
-                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                            <path d="m9 11 3 3L22 4"></path>
-                                        </svg>Success</div>
-                                </td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3">12</td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3"><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3">View</button></td>
-                            </tr>
-                            <tr class="text-sm">
-                                <td class="px-4 py-3">
-                                    <div>April 7, 2025</div>
-                                    <div class="text-xs text-muted-foreground">12:29 PM</div>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big h-3 w-3">
-                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                            <path d="m9 11 3 3L22 4"></path>
-                                        </svg>Success</div>
-                                </td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3">5</td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3"><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3">View</button></td>
-                            </tr>
-                            <tr class="text-sm">
-                                <td class="px-4 py-3">
-                                    <div>April 7, 2025</div>
-                                    <div class="text-xs text-muted-foreground">11:59 AM</div>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-yellow-50 text-yellow-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert h-3 w-3">
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                            <line x1="12" x2="12" y1="8" y2="12"></line>
-                                            <line x1="12" x2="12.01" y1="16" y2="16"></line>
-                                        </svg>Warning</div>
-                                </td>
-                                <td class="px-4 py-3">138</td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3">3</td>
-                                <td class="px-4 py-3"><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3">View</button></td>
-                            </tr>
-                            <tr class="text-sm">
-                                <td class="px-4 py-3">
-                                    <div>April 7, 2025</div>
-                                    <div class="text-xs text-muted-foreground">11:29 AM</div>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big h-3 w-3">
-                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                            <path d="m9 11 3 3L22 4"></path>
-                                        </svg>Success</div>
-                                </td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3">0</td>
-                                <td class="px-4 py-3"><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3">View</button></td>
-                            </tr>
-                        </tbody>
                     </table>
                 </div>
                 <div class="mt-4 flex items-center justify-between text-sm">
@@ -424,7 +336,7 @@
             </div>
         </div>
 
-        <!-- >>>>>>>>>>>>>>>>>>>>>>>ContactSyncTable<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
+        <!-- >>>>>>>>>>>>>>>>>>>>>>>vContactvSync Status Table<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
         <div id="content-sync" class="tab-panel rounded-lg border bg-card text-card-foreground shadow-sm" data-v0-t="card">
             <div class="flex flex-col space-y-1.5 p-6">
                 <div class="flex items-center justify-between">
@@ -443,7 +355,7 @@
             <div class="p-6 pt-0">
                 <div class="rounded-md border">
                     <div class="flex items-center justify-between border-b bg-muted/50 px-4 py-3">
-                        <div class="flex items-center gap-2"><span class="font-medium">Last Sync:</span><span>April 7, 2025 at 1:29 PM</span></div>
+                        <div class="flex items-center gap-2"><span class="font-medium">Last Sync:</span><span id="lastSyncDate">April 7, 2025 at 1:29 PM</span></div>
                         <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big h-3 w-3">
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                                 <path d="m9 11 3 3L22 4"></path>
@@ -456,7 +368,7 @@
                                 <div class="text-sm text-muted-foreground">Total contacts in your CRM system</div>
                             </div>
                             <div class="col-span-2 flex items-center">
-                                <div class="text-2xl font-bold">1,248</div>
+                                <div id="contactsInCrm2" class="text-2xl font-bold">1,248</div>
                             </div>
                             <div class="flex items-center justify-end">
                                 <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big h-3 w-3">
@@ -471,7 +383,7 @@
                                 <div class="text-sm text-muted-foreground">Total contacts in Google Contacts</div>
                             </div>
                             <div class="col-span-2 flex items-center">
-                                <div class="text-2xl font-bold">1,356</div>
+                                <div id="contactsInGoogle2" class="text-2xl font-bold">1,356</div>
                             </div>
                             <div class="flex items-center justify-end">
                                 <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-blue-50 text-blue-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-3 w-3">
@@ -486,7 +398,7 @@
                                 <div class="text-sm text-muted-foreground">Changes waiting to be synced</div>
                             </div>
                             <div class="col-span-2 flex items-center">
-                                <div class="text-2xl font-bold">42</div>
+                                <div id="contactsInPending" class="text-2xl font-bold">42</div>
                             </div>
                             <div class="flex items-center justify-end">
                                 <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-yellow-50 text-yellow-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-3 w-3">
@@ -501,7 +413,7 @@
                                 <div class="text-sm text-muted-foreground">Contacts that failed to sync</div>
                             </div>
                             <div class="col-span-2 flex items-center">
-                                <div class="text-2xl font-bold">0</div>
+                                <div id="contactsInError" class="text-2xl font-bold">0</div>
                             </div>
                             <div class="flex items-center justify-end">
                                 <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big h-3 w-3">
@@ -536,7 +448,47 @@
         let isProcessingSync=false;
         refresh();
 
-        // To swith table
+        // getClinetSyncHistory Datatable
+        $('.contact-history-table').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route("ajax.getClinetSyncHistory") }}',
+            },
+            columns: [
+                {
+                    data: 'created_at',
+                    name: 'created_at',
+                    render: function(data) {
+                            const date = new Date(data);
+                            return date.toLocaleString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                         }
+                },
+                { data: 'error',
+                    name: 'error',
+                    render:function(data){
+                        if (data==0) {
+                            return "Completed";
+                        }
+                        return "Warning";
+                    }
+                 },
+                { data: 'created', name: 'created' },
+                { data: 'updated', name: 'updated' },
+                { data: 'deleted', name: 'deleted' },
+                { data: 'error', name: 'error' },
+                { data: 'action', name: 'action' },
+            ],
+        });
+
+            // To swith table
         $('.tab-button').on('click', function() {
             // Deactivate all tabs
             $('.tab-button').attr('aria-selected', 'false');
@@ -600,11 +552,19 @@
                     if (result.status) {
                         $('#contactsInCrm').text(result?.data?.crm);
                         $('#contactsInCrm1').text(result?.data?.crm);
+                        $('#contactsInCrm2').text(result?.data?.crm);
                         $('#contactsInGoogle').text(result?.data?.google);
-                        // $('#contactsInGoogle1').text(result?.data?.google);
-                        // $('#contactsInPending').text(result?.data?.pending);
-                        // $('#contactsInError').text(result?.data?.error);
-                        // $('#lastSync').text(result?.data?.lastSync);
+                        $('#contactsInGoogle1').text(result?.data?.google);
+                        $('#contactsInGoogle2').text(result?.data?.google);
+                        $('#contactsInPending').text(result?.data?.pending);
+                        $('#contactsInError').text(result?.data?.error);
+                        $('#lastSyncDate').text(timeToDateFormater(result?.data?.lastSync?.created_at));
+                        $('#lastSyncNewContact').text(result?.data?.lastSync?.created);
+                        $('#lastSyncNewContact1').text(result?.data?.lastSync?.created);
+                        $('#lastSyncUpdatedContact').text(result?.data?.lastSync?.updated);
+                        $('#lastSyncDeletedContact').text(result?.data?.lastSync?.deleted);
+                        $('#lastSyncChangesDeteted').text(result?.data?.lastSync?.created);
+
                     }
                 },
                 error:function(error){
@@ -654,6 +614,7 @@
             })
 
         }
+        
         function synNow(){
             console.log("SynNow Started");
             $.ajax({
@@ -681,29 +642,44 @@
             const interval = setInterval(() => {
                 console.log("Progress Bar Running");
                 count++;
-                $.ajax({
-                    url:"syncStatus",
-                    method:'get',
-                    success:function(response){
-                        if (response.status) {
-                            isProcessingSync=response.data?.isProcessing
-                            console.log(response);
-                        }
-                    },
-                    error:function(error){
-                        console.log(error);
-                    },
+                // $.ajax({
+                //     url:"syncStatus",
+                //     method:'get',
+                //     success:function(response){
+                //         if (response.status) {
+                //             isProcessingSync=response.data?.isProcessing
+                //             console.log(response);
+                //         }
+                //     },
+                //     error:function(error){
+                //         console.log(error);
+                //     },
 
-                })
-                $("#processBar").css("width",(count*20)+"%");
-                $("#processPersentage").text((count*20)+"%");
+                // })
+                $("#processBar").css("width",(count*2)+"%");
+                $("#processPersentage").text((count*2)+"%");
 
-                if (count >= 2) {
+                if (count >= 50) {
                     clearInterval(interval);
                     isProcessingSync=false;
                     console.log("Progress Bar Stopped");
                 }
-            }, 10000);
+            }, 1000);
+        }
+
+        function timeToDateFormater(data) {
+            if (!data) {
+                return "No Data Found"
+            }
+            const date = new Date(data);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
         }
 
 
