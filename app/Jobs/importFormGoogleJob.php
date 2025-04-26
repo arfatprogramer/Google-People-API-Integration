@@ -3,39 +3,54 @@
 namespace App\Jobs;
 
 use App\Models\client;
+use App\Models\clientContatSyncHistory;
 use App\Models\GoogleAuth;
 use App\Services\GoogleService;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
 class importFormGoogleJob implements ShouldQueue
 {
-    use Queueable;
+    use  Queueable;
     protected $googleToken;
+    protected $id;
     /**
      * Create a new job instance.
      */
-    public function __construct($googleToken)
+    public function __construct($googleToken,$id=1)
     {
         $this->googleToken=$googleToken;
+        $this->id=$id;
     }
 
     /**
      * Execute the job.
      */
     public function handle(): void
-    {
+    {   Log::info(' Import Form Google Starting Job: ' . (memory_get_usage(true)/1024/1024)." MB");
         try {
             $personFields=['names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'];
             $pageSize=1000;
             //contact come here ny the functon
+            $nextSynToken=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->skip(1)->first();
             $nextPageToken=false;
             do {
-                $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken);
+                $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken, $nextSynToken->synToken);
                 $nextPageToken=$googleContacts->nextPageToken??false;
-
+                
+                $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
+                $lastRowInContactSyncHistoryTable->synToken=$googleContacts->nextSyncToken;
+                $lastRowInContactSyncHistoryTable->batches -=1;
+                $lastRowInContactSyncHistoryTable->status =1;
+                $lastRowInContactSyncHistoryTable->save();
+                if (!$googleContacts->connections) {
+                   continue;
+                }
 
                 $googleMap = collect($googleContacts->connections)->mapWithKeys(function ($person) {
 
@@ -74,15 +89,31 @@ class importFormGoogleJob implements ShouldQueue
 
                 foreach ($googleMap as $resource => $googleContact) {
                     $crmContact = $crmContacts->get($resource);
+                    // this for captur data in Sync History Table
+                    $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
 
                     if (!$crmContact) {
                         // Create new contact in CRM
                         $contact = new client();
+                         // this for captur data in Sync History Table
+                        $lastRowInContactSyncHistoryTable->created+=1;
+                        $lastRowInContactSyncHistoryTable->save();
                     } elseif ($crmContact->etag !== $googleContact['etag']) {
                         // Update existing contact
                         $contact = $crmContact;
-                    } else {
+                         // this for captur data in Sync History Table
+                         $lastRowInContactSyncHistoryTable->updated+=1;
+                         $lastRowInContactSyncHistoryTable->save();
+                    }elseif ($crmContact->etag == $googleContact['etag']) {
+                        // delete data From CRM existing contact
+                         // this for captur data in Sync History Table
+                         $lastRowInContactSyncHistoryTable->deleted+=1;
+                         $lastRowInContactSyncHistoryTable->save();
+                        continue;
+                    }else {
                         // No change, skip
+                         // this for captur data in Sync History Table
+                         $lastRowInContactSyncHistoryTable->save();
                         continue;
                     }
 
@@ -113,6 +144,7 @@ class importFormGoogleJob implements ShouldQueue
                     $contact->typeOfRelation = $googleContact['typeOfRelation'] ?? 'Select';
                     $contact->maritalStatus = $googleContact['maritalStatus'] ?? 'Select';
                     $contact->save();
+
                 }
                 Log::info(' Import Form Google loop Job: ' . (memory_get_usage(true)/1024/1024)." MB");
             } while ($nextPageToken);

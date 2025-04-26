@@ -13,5 +13,7 @@ class clientContatSyncHistory extends Model
         'updated',
         'deleted',
         'error',
+        'batches',
+        'status',
     ];
 }

@@ -31,3 +31,5 @@ Route::get('syncStatus',[AjaxRequestController::class,'syncStatus'])->name('ajax
 
 Route::get('getClinetSyncHistory',[AjaxRequestController::class,'getClinetSyncHistory'])->name('ajax.getClinetSyncHistory');
 
+
+Route::get('test',[AjaxRequestController::class,'test']);

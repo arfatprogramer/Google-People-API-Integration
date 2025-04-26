@@ -13,10 +13,12 @@ return new class extends Migration
     {
         Schema::create('client_contat_sync_histories', function (Blueprint $table) {
             $table->id();
-            $table->string('created')->nullable();
-            $table->string('updated')->nullable();
-            $table->string('deleted')->nullable();
-            $table->string('error')->nullable();
+            $table->integer('created')->default(0);
+            $table->integer('updated')->default(0);
+            $table->integer('deleted')->default(0);
+            $table->integer('error')->default(0);
+            $table->integer('batches')->default(0);
+            $table->integer('status')->default(0);
             $table->string('synToken')->nullable();
             $table->timestamps();
         });

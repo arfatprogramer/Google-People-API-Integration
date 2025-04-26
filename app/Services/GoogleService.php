@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\clientContatSyncHistory;
 use App\Models\GoogleAuth;
 use Carbon\Carbon;
 use Exception;
@@ -146,7 +147,7 @@ class GoogleService
         return $person;
      }
 
-     public function getContacts($googleToken, $pageSize, $personFields, $nextPageToken = null): object
+     public function getContacts($googleToken, $pageSize, $personFields, $nextPageToken = null, $nextSyncToken=null): object
      {
          try {
              $client = $this->getGoogleCient($googleToken);
@@ -155,11 +156,16 @@ class GoogleService
              $params = [
                  'pageSize' => $pageSize,
                  'personFields' => $personFields,
+                 'requestSyncToken' => true,
              ];
 
              if ($nextPageToken) {
                  $params['pageToken'] = $nextPageToken;
-             }
+                }
+
+             if ($nextSyncToken) {
+                $params['syncToken'] = $nextSyncToken;
+            }
 
              $response = $peopleService->people_connections->listPeopleConnections(
                  'people/me',

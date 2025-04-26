@@ -22,6 +22,8 @@ class clientContatSyncHistoryFactory extends Factory
                 'updated'=>$this->faker->randomNumber(5, false),
                 'deleted'=>$this->faker->randomNumber(5, false),
                 'error'=>$this->faker->randomNumber(5, false),
+                'batches'=>$this->faker->randomNumber(5, false),
+                'status'=>$this->faker->randomNumber(5, false),
 
         ];
     }

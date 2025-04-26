@@ -563,7 +563,7 @@
                         $('#lastSyncNewContact1').text(result?.data?.lastSync?.created);
                         $('#lastSyncUpdatedContact').text(result?.data?.lastSync?.updated);
                         $('#lastSyncDeletedContact').text(result?.data?.lastSync?.deleted);
-                        $('#lastSyncChangesDeteted').text(result?.data?.lastSync?.created);
+                        $('#lastSyncChangesDeteted').text(result?.data?.lastSyncChangesDeteted);
 
                     }
                 },
@@ -614,7 +614,7 @@
             })
 
         }
-        
+
         function synNow(){
             console.log("SynNow Started");
             $.ajax({
@@ -638,33 +638,51 @@
 
         function SyncStatus() {
             let count = 0;
+            let processRunTime=1000
+            let batche=1;
 
-            const interval = setInterval(() => {
+            async function updateProgressBar(duration) {
+                console.log(duration);
+
+                for (let i = 0; i <= 100; i++) {
+                    $("#processBar").css("width", i + "%");
+                    $("#processPersentage").text(i + "%");
+                    await new Promise(resolve => setTimeout(resolve, duration / 10)); // smoother update
+                }
+
+            }
+
+            const interval = setInterval(async () => {
                 console.log("Progress Bar Running");
                 count++;
-                // $.ajax({
-                //     url:"syncStatus",
-                //     method:'get',
-                //     success:function(response){
-                //         if (response.status) {
-                //             isProcessingSync=response.data?.isProcessing
-                //             console.log(response);
-                //         }
-                //     },
-                //     error:function(error){
-                //         console.log(error);
-                //     },
 
-                // })
-                $("#processBar").css("width",(count*2)+"%");
-                $("#processPersentage").text((count*2)+"%");
 
-                if (count >= 50) {
-                    clearInterval(interval);
-                    isProcessingSync=false;
-                    console.log("Progress Bar Stopped");
-                }
-            }, 1000);
+                $.ajax({
+                    url:"syncStatus",
+                    method:'get',
+                    success:function(response){
+                        if (response.status) {
+                            isProcessingSync=response.data?.isProcessing
+                            batches=response.data.lastSync?.batches
+                           if( batches >1){
+                                processRunTime = batche * 100000
+                            }else {
+                                clearInterval(interval);
+                                isProcessingSync=false;
+                                console.log("Progress Bar Stopped");
+                            }
+                            console.log(response);
+                        }
+                    },
+                    error:function(error){
+                        console.log(error);
+                    },
+
+                })
+                await updateProgressBar(processRunTime);
+
+
+            }, processRunTime +2000);
         }
 
         function timeToDateFormater(data) {
