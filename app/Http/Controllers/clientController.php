@@ -24,7 +24,7 @@ class clientController extends Controller
 
             return DataTables::eloquent($clients)
             ->addColumn('action',function($clients){
-                    return "<a href=".route('client.edit').">Edit</a>";
+                    return "<a href=".route('client.edit',$clients->id)."> <i class='bi bi-pencil '></i> </a>";
             })
             ->addColumn('created_at',function($clients){
                 return Carbon::parse($clients->created_at)->format('y-m-d');
@@ -76,6 +76,12 @@ try {
     } catch (\Throwable $e) {
         dd($e);
     }
+    }
+
+    public function editContact($id){
+        $data = client::where('id',$id)->find($id);
+    //    return $data->firstName;
+        return view("client.createForm",compact('data'));
     }
 
     public function __destruct() {
