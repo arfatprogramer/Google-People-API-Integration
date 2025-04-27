@@ -28,11 +28,11 @@
                 </svg>
             </div>
             <div class="p-6 pt-0">
-                <div id="contactsInCrm" class="text-2xl font-bold">1,248</div>
+                <div id="contactsInCrm" class="text-2xl font-bold">0</div>
                 <p class="text-xs text-green-500 text-muted-foreground">+<span id="lastSyncNewContact">0</span> from last sync</p>
                 <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
-                    <div class="flex flex-col"><span  class="text-muted-foreground">In CRM</span><span id="contactsInCrm1" class="font-medium">1,248</span></div>
-                    <div class="flex flex-col"><span  class="text-muted-foreground">In Google</span><span id="contactsInGoogle" class="font-medium">1,356</span></div>
+                    <div class="flex flex-col"><span  class="text-muted-foreground">In CRM</span><span id="contactsInCrm1" class="font-medium">0</span></div>
+                    <div class="flex flex-col"><span  class="text-muted-foreground">In Google</span><span id="contactsInGoogle" class="font-medium">0</span></div>
                 </div>
             </div>
         </div>
@@ -45,11 +45,11 @@
                 </svg>
             </div>
             <div class="p-6 pt-0">
-                <div id="processPersentage" class="text-2xl font-bold">92%</div>
+                <div id="processPersentage" class="text-2xl font-bold">100%</div>
                 <p class="text-xs text-muted-foreground">Last synced 23 minutes ago</p>
                 <div class="mt-4">
                     <div aria-valuemax="100" aria-valuemin="0" role="progressbar" data-state="indeterminate" data-max="100" class="relative bg-gray-300 w-full overflow-hidden rounded-full bg-secondary h-2">
-                        <div id="processBar" data-state="indeterminate" data-max="100" class="bg-green-500 h-full w-full flex-1 bg-primary transition-all" style="width:90%;"></div>
+                        <div id="processBar" data-state="indeterminate" data-max="100" class="bg-green-500 h-full w-full flex-1 bg-primary transition-all"></div>
                     </div>
 
                 </div>
@@ -69,11 +69,11 @@
                 </svg>
             </div>
             <div class="p-6 pt-0">
-                <div id="lastSyncChangesDeteted" class="text-2xl font-bold">42</div>
+                <div id="lastSyncChangesDeteted" class="text-2xl font-bold">0</div>
                 <p class="text-xs text-muted-foreground">Since last sync</p>
                 <div class="mt-4 grid grid-cols-3 gap-1 text-xs">
-                    <div class="flex flex-col"><span class="text-muted-foreground">Added</span><span id="lastSyncNewContact1" class="font-medium">18</span></div>
-                    <div class="flex flex-col"><span class="text-muted-foreground">Updated</span><span id="lastSyncUpdatedContact" class="font-medium">24</span></div>
+                    <div class="flex flex-col"><span class="text-muted-foreground">Added</span><span id="lastSyncNewContact1" class="font-medium">0</span></div>
+                    <div class="flex flex-col"><span class="text-muted-foreground">Updated</span><span id="lastSyncUpdatedContact" class="font-medium">0</span></div>
                     <div class="flex flex-col"><span class="text-muted-foreground">Deleted</span><span id="lastSyncDeletedContact" class="font-medium">0</span></div>
                 </div>
             </div>
@@ -81,9 +81,7 @@
         <!-- Action Card -->
         <div class="rounded-lg border bg-card text-card-foreground shadow-sm" data-v0-t="card">
             <div class="space-y-1.5 p-6 flex flex-row items-center justify-between pb-2">
-                <h3 class="tracking-tight text-sm font-medium">Actions</h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="h-4 w-4 text-muted-foreground">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
+                <h3 class="tracking-tight text-sm font-medium">Actions</h3>
             </div>
             <div class="p-6 pt-0">
                 <div class="mt-0 grid grid-cols-1 gap-2">
@@ -389,16 +387,16 @@
                                 <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-blue-50 text-blue-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-3 w-3">
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <polyline points="12 6 12 12 16 14"></polyline>
-                                    </svg>108 to import</div>
+                                    </svg> <span id="remanigToImportFromGoogle">0</span> to import</div>
                             </div>
                         </div>
                         <div class="grid grid-cols-5 gap-4 px-4 py-3">
                             <div class="col-span-2">
-                                <div class="font-medium">Pending Changes</div>
+                                <div class="font-medium">Pending Changes on Google Contacts</div>
                                 <div class="text-sm text-muted-foreground">Changes waiting to be synced</div>
                             </div>
                             <div class="col-span-2 flex items-center">
-                                <div id="contactsInPending" class="text-2xl font-bold">42</div>
+                                <div id="pendingChangesOnGoogle" class="text-2xl font-bold">0</div>
                             </div>
                             <div class="flex items-center justify-end">
                                 <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-yellow-50 text-yellow-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-3 w-3">
@@ -407,6 +405,23 @@
                                     </svg>Pending</div>
                             </div>
                         </div>
+
+                        <div class="grid grid-cols-5 gap-4 px-4 py-3">
+                            <div class="col-span-2">
+                                <div class="font-medium">Pending Changes On CRM</div>
+                                <div class="text-sm text-muted-foreground">Changes waiting to be synced</div>
+                            </div>
+                            <div class="col-span-2 flex items-center">
+                                <div id="pendingChangesOnCRM" class="text-2xl font-bold">0</div>
+                            </div>
+                            <div class="flex items-center justify-end">
+                                <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-yellow-50 text-yellow-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-3 w-3">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>Pending</div>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-5 gap-4 px-4 py-3">
                             <div class="col-span-2">
                                 <div class="font-medium">Sync Errors</div>
@@ -417,6 +432,8 @@
                             </div>
                             <div class="flex items-center justify-end">
                                 <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big h-3 w-3">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <path d="m9 11 3 3L22 4"></path>
                                     </svg>No Errors</div>
                             </div>
                         </div>
@@ -425,7 +442,7 @@
                 <div class="mt-6 flex justify-between">
                     <button id="syncNow1" class="syncNow bg-black text-white inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
                     </svg>Sync Now</button>
-                    <div class="flex gap-2"><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">View Logs</button><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">Resolve All Issues</button></div>
+                    <!-- <div class="flex gap-2"><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">View Logs</button><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">Resolve All Issues</button></div> -->
                 </div>
             </div>
         </div>
@@ -553,11 +570,13 @@
                         $('#contactsInCrm').text(result?.data?.crm);
                         $('#contactsInCrm1').text(result?.data?.crm);
                         $('#contactsInCrm2').text(result?.data?.crm);
-                        $('#contactsInGoogle').text(result?.data?.google);
-                        $('#contactsInGoogle1').text(result?.data?.google);
-                        $('#contactsInGoogle2').text(result?.data?.google);
-                        $('#contactsInPending').text(result?.data?.pending);
-                        $('#contactsInError').text(result?.data?.error);
+                        $('#contactsInGoogle').text(result?.data?.TotalcontactInGoogle);
+                        $('#contactsInGoogle1').text(result?.data?.TotalcontactInGoogle);
+                        $('#contactsInGoogle2').text(result?.data?.TotalcontactInGoogle);
+                        $('#pendingChangesOnCRM').text(result?.data?.pendingChangesOnCRM);
+                        $('#pendingChangesOnGoogle').text(result?.data?.pendingChangesOnGoogle);
+                        $('#remanigToImportFromGoogle').text(result?.data?.remanigToImportFromGoogle);
+                        $('#contactsInError').text(result?.data?.lastSync?.error);
                         $('#lastSyncDate').text(timeToDateFormater(result?.data?.lastSync?.created_at));
                         $('#lastSyncNewContact').text(result?.data?.lastSync?.created);
                         $('#lastSyncNewContact1').text(result?.data?.lastSync?.created);

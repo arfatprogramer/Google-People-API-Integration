@@ -54,16 +54,25 @@ class AjaxRequestController extends Controller
         try {
             Log::info('Starting  Refresh Method in Ajax Contrller: ' .(memory_get_usage(true)/1024/1024)." MB");
 
-            $contact=(new GoogleService())->getContacts($this->googleToken, 1, ['names']);
+            $TotalcontactInGoogle=(new GoogleService())->getContacts($this->googleToken, 1, ['names']);
+
+            $nextSynToken=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
+            $pendingChangesOnGoogle=(new GoogleService())->getContacts($this->googleToken, 1, ['names'],null,$nextSynToken->synToken??null);
+
             $crmTotalClient=Client::count();
-            $google=$contact->totalItems ?? 0;
-            $pending= abs($crmTotalClient - $google);
+            $TotalcontactInGoogle=$TotalcontactInGoogle->totalPeople ?? 0;
+            $pendingChangesOnGoogle=$pendingChangesOnGoogle->totalPeople??0;
+            $pendingChangesOnCRM= abs($crmTotalClient - $TotalcontactInGoogle); // it have to calculate
+            $remanigToImportFromGoogle= ($TotalcontactInGoogle - $crmTotalClient) > 0 ? ($TotalcontactInGoogle - $crmTotalClient) : (0);
             $lastSync=$this->clientContactSyncHistoryTable::orderBy('created_at','desc')->first();
             // if First time create no Data Will be found
             $lastSyncChangesDeteted=($lastSync->created?? 0) + ($lastSync->updated?? 0) + ($lastSync->deleted ?? 0) ;
+
             $data=['crm'=>$crmTotalClient,
-                    'google'=>$google,
-                    'pending'=>$pending,
+                    'TotalcontactInGoogle'=>$TotalcontactInGoogle,
+                    'pendingChangesOnGoogle'=>$pendingChangesOnGoogle,
+                    'pendingChangesOnCRM'=>$pendingChangesOnCRM,
+                    'remanigToImportFromGoogle'=>$remanigToImportFromGoogle,
                     'lastSync'=>$lastSync,
                     'lastSyncChangesDeteted'=>$lastSyncChangesDeteted,
                     'error'=>0,
@@ -79,6 +88,7 @@ class AjaxRequestController extends Controller
                 ]);
              //code...
         } catch (Exception $e) {
+            Log::info("Error During Refresh Data Called :".$e);
             return response()->json([
                 'status'=>false,
                 'error'=>true,

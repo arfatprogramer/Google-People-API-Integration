@@ -40,9 +40,9 @@ class importFormGoogleJob implements ShouldQueue
             $nextSynToken=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->skip(1)->first();
             $nextPageToken=false;
             do {
-                $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken, $nextSynToken->synToken);
+                $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken, $nextSynToken->synToken??null);
                 $nextPageToken=$googleContacts->nextPageToken??false;
-                
+
                 $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
                 $lastRowInContactSyncHistoryTable->synToken=$googleContacts->nextSyncToken;
                 $lastRowInContactSyncHistoryTable->batches -=1;
