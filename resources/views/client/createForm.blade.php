@@ -14,11 +14,13 @@
 
         <!-- Form -->
         <form action="{{isset($data) ? route('client.ContactUpdate') : route('client.create')}}" method="post" class="">
-          {{-- @if ({{$data ?? ''}})
-              @method('PUT')
-          @endif --}}
+          @if ($data ?? '')
+             @method('PUT')
+          @endif
+
             @csrf
 <!-- Tab Contents -->
+<input type="hidden" name="id" value="{{old('id',$data->id ?? '')}}">
 <!-- Include jQuery -->
 
 <div id="address" class="p-6 tabcontent ">
@@ -42,25 +44,25 @@
           <!-- Default empty input row -->
     <tr>
       <td class="px-4 py-2">
-        <input type="text" value="" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300 " placeholder="Type">
+        <input type="text" name="addressType" value="{{old('addressType' ,$data->addressType ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300 " placeholder="Type">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Street">
+        <input type="text" name="street" value="{{old('street' ,$data->street ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Street">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Area">
+        <input type="text" name="area" value="{{old('area' ,$data->area ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Area">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="City">
+        <input type="text" name="city" value="{{old('city' ,$data->city ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="City">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="State">
+        <input type="text" name="state" value="{{old('state' ,$data->state ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="State">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Postal Code">
+        <input type="text" name="postalCode" value="{{old('postalCode' ,$data->postalCode ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Postal Code">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Country">
+        <input type="text" name="country" value="{{old('country' ,$data->country ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Country">
       </td>
       <td class="px-4 py-2 flex space-x-2 justify-center">
         <button class="setPrimary text-blue-500 hover:text-blue-700" type="button" title="Set Primary">🔑</button>
@@ -76,14 +78,12 @@
     Add
   </button>
 </div>
-
-
-
          <div class="tabcontent w-[100vw] grid grid-cols-1 md:grid-cols-2 gap-6 " id="overview">
-        
           <div>
             <label class="block mb-1 font-medium">First Name</label>
             <input type="text" name="firstName" value="{{old('firstName',$data->firstName ?? '')}}" class="w-full border rounded px-3 py-2" />
+            <span class="text-red-500">{{ $errors->first('firstName') }}</span>
+
           </div>
           <div>
             <label class="block mb-1 font-medium">Last Name</label>
@@ -92,9 +92,12 @@
 
           <div>
             <label class="block mb-1 font-medium">Phone</label>
-            <div class="flex">
-              <input type="text" value="{{old('number',$data->number ?? '')}}" name="number" class="flex-1 border rounded-l px-3 py-2"  />
+            <div >
+              <div class="flex">
+                <input type="text" value="{{old('number',$data->number ?? '')}}" name="number" class="flex-1 border rounded-l px-3 py-2"  />
               <button class="bg-gray-100 px-4 border border-l-0 rounded-r">+</button>
+              </div>
+              <span class="text-red-500 ">{{$errors->first('number')}}</span>
             </div>
           </div>
           <div>
@@ -105,9 +108,12 @@
 
           <div>
             <label class="block mb-1 font-medium">Email</label>
-            <div class="flex">
-              <input type="text" name="email" value="{{old('email',$data->email ?? '')}}" class="flex-1 border rounded-l px-3 py-2" />
-              <button class="bg-gray-100 px-4 border border-l-0 rounded-r">+</button>
+            <div >
+              <div class="flex">
+                <input type="text" name="email" value="{{old('email',$data->email ?? '')}}" class="flex-1 border rounded-l px-3 py-2" />
+                <button class="bg-gray-100 px-4 border border-l-0 rounded-r">+</button>
+              </div>
+              <span class="text-red-500">{{$errors->first('email')}}</span>
             </div>
           </div>
 
@@ -296,25 +302,25 @@ document.getElementById("defaultOpen").click();
     let newRow = `
       <tr>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300 " placeholder="Type">
+        <input type="text" name="addressType" value="{{old('addressType' ,$data->addressType ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300 " placeholder="Type">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Street">
+        <input type="text" name="street" value="{{old('street' ,$data->street ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Street">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Area">
+        <input type="text" name="area" value="{{old('area' ,$data->area ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Area">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="City">
+        <input type="text" name="city" value="{{old('city' ,$data->city ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="City">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="State">
+        <input type="text" name="state" value="{{old('state' ,$data->state ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="State">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Postal Code">
+        <input type="text" name="postalCode" value="{{old('postalCode' ,$data->postalCode ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Postal Code">
       </td>
       <td class="px-4 py-2">
-        <input type="text" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Country">
+        <input type="text" name="country" value="{{old('country' ,$data->country ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Country">
       </td>
       <td class="px-4 py-2 flex space-x-2 justify-center">
         <button class="setPrimary text-blue-500 hover:text-blue-700" type="button" title="Set Primary">🔑</button>
