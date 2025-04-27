@@ -36,6 +36,7 @@ return new class extends Migration
             $table->string('maritalStatus')->nullable();          //"maritalStatus" => "Select"
             $table->string('etag')->nullable();                   //"maritalStatus" => "Select"
             $table->string('resourceName')->nullable();           //"maritalStatus" => "Select"
+            $table->string('syncStatus')->default('Not Synced');
             $table->string('updateFlag')->nullable();             //"maritalStatus" => "Select"
             $table->timestamps();
         });
