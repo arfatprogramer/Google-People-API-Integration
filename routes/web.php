@@ -12,7 +12,8 @@ Route::get('/', function () {
 Route::post('/create',[clientController::class, 'create'])->name('client.create');
 Route::get('/create',[clientController::class, 'createForm'])->name('client.createForm');
 Route::get('/list',[clientController::class, 'show'])->name('client.list');
-Route::get('/edit',[clientController::class, 'show'])->name('client.edit');
+Route::get('/edit/{id}',[clientController::class, 'editContact'])->name('client.edit');
+Route::put('/ContactUpdate',[clientController::class, 'UpdateFormContact'])->name('client.ContactUpdate');
 
 
 

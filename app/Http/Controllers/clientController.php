@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
-
+use Illuminate\Support\Facades\Vatidator;
 class clientController extends Controller
 {
 
@@ -24,7 +24,7 @@ class clientController extends Controller
 
             return DataTables::eloquent($clients)
             ->addColumn('action',function($clients){
-                    return "<a href=".route('client.edit').">Edit</a>";
+                    return "<a href=".route('client.edit',$clients->id)."> <i class='bi bi-pencil '></i> </a>";
             })
             ->addColumn('created_at',function($clients){
                 return Carbon::parse($clients->created_at)->format('y-m-d');
@@ -45,8 +45,16 @@ class clientController extends Controller
     }
 
     function create(Request $req){
+        $validate = $req->validate([
+            'firstName'=>'required|string',
+            "number"=>'required',
+            "email"=>'required|email',
+          ]);
+          
+        
 try {
     //code...
+   
 
         $newClient=new client;
         $newClient->firstName=$req->firstName;//"firstName" => null
@@ -78,6 +86,55 @@ try {
     }
     }
 
+    public function editContact($id){
+        $data = client::where('id',$id)->find($id);
+    //    return $data->firstName;
+        return view("client.createForm",compact('data'));
+    }
+///------UpdateForm------------------
+public function UpdateFormContact(Request $request){
+      $validate = $request->validate([
+        'firstName'=>'required|string',
+        "number"=>'required',
+        "email"=>'required|email',
+      ]);
+        
+    //   return "updateto = ". $request->id;
+      $newClient = Client::find($request->id);
+
+      if( $newClient){
+        
+        $newClient->firstName=$request->firstName;//"firstName" => null
+        $newClient->lastName=$request->lastName;               //"lastName" => null
+        $newClient->number=$request->number;                //"number" => null
+        $newClient->familyOrOrgnization=$request->familyOrOrgnization;    //"familyOrOrgnization" => null
+        $newClient->email=$request->email;                  //"email" => null
+        $newClient->panCardNumber=$request->panCardNumber;                //"panCardNumber" => null
+        $newClient->aadharCardNumber=$request->aadharCardNumber;             //"aadharCardNumber" => null
+        $newClient->occupation=$request->occupation;              //"occupation" => "Select"
+        $newClient->kycStatus=$request->kycStatus;              //"kycStatus" => "Select"
+        $newClient->anulIncome=$request->anulIncome;            //"anulIncome" => null
+        $newClient->referredBy=$request->referredBy;              //"referredBy" => null
+        $newClient->totalInvestment=$request->totalInvestment;        //"totalInvestment" => null
+        $newClient->comments=$request->comments;                //"comments" => null
+        $newClient->relationshipManager=$request->relationshipManager;    //"relationshipManager" => "Mo Arfat Ansari"
+        $newClient->serviceRM=$request->serviceRM;              //"serviceRM" => null
+        $newClient->totalSIP=$request->totalSIP;              //"totalSIP" => null
+        $newClient->primeryContactPerson=$request->primeryContactPerson;   //"primeryContactPerson" => null
+        $newClient->meetinSchedule=$request->meetinSchedule;         //"meetinSchedule" => "Select"
+        $newClient->firstMeetingDate=$request->firstMeetingDate;       //"firstMeetingDate" => null
+        $newClient->typeOfRelation=$request->typeOfRelation;         //"typeOfRelation" => "Select"
+        $newClient->maritalStatus=$request->maritalStatus;          //"maritalStatus" => "Select"
+        $newClient->maritalStatus=$request->maritalStatus;          
+        $newClient->status="Pending";
+        $newClient->save();
+
+        return redirect()->route("client.list");
+      }else{
+        return redirect()->back()->with('error','client not found');
+      }
+    
+}
     public function __destruct() {
         Log::info('Client Controller Distructor Method: ' . (memory_get_usage(true)/1024/1024)." MB");
     }
