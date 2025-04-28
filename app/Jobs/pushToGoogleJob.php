@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Client;
+use App\Models\clientContatSyncHistory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -19,12 +20,14 @@ class pushToGoogleJob implements ShouldQueue
     protected $ceateIdList;
     protected $GoogleToken;
     protected $updateIdList;
+    protected $clientSyncHistoyEmptyRowId;
 
-    public function __construct($GoogleToken, $ceateIdList=[],$updateIdList=[])
+    public function __construct($GoogleToken, $ceateIdList=[],$updateIdList=[],$clientSyncHistoyEmptyRowId=null)
     {
         $this->GoogleToken = $GoogleToken;
         $this->ceateIdList = $ceateIdList;
         $this->updateIdList = $updateIdList;
+        $this->clientSyncHistoyEmptyRowId = $clientSyncHistoyEmptyRowId;
 
         Log::info('Before Push to Google Constructor: ' . (memory_get_usage(true)/1024/1024)." MB");
 
@@ -34,6 +37,13 @@ class pushToGoogleJob implements ShouldQueue
 
     public function handle()
     {
+        $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->clientSyncHistoyEmptyRowId)->first();
+
+        $lastRowInContactSyncHistoryTable->batches -=1;
+        $lastRowInContactSyncHistoryTable->status =1;
+        $lastRowInContactSyncHistoryTable->status = $lastRowInContactSyncHistoryTable->status==null ? time() : $lastRowInContactSyncHistoryTable->status;
+        $lastRowInContactSyncHistoryTable->save();
+
         $client = (new GoogleService())->getGoogleCient($this->GoogleToken);
         $peopleService = new PeopleService($client);
         $timeStamp = Carbon::now();
@@ -49,8 +59,8 @@ class pushToGoogleJob implements ShouldQueue
 
                         $contact->resourceName = $created->resourceName;
                         $contact->etag = $created->etag;
-                        $contact->updateFlag = $timeStamp;
-                        $contact->updated_at = $timeStamp;
+                        $contact->lastSync = $timeStamp;
+                        $contact->syncStatus = 'Synced';
                         $contact->save();
 
                     //  Update cache (key can include user/session if needed)
@@ -76,8 +86,8 @@ class pushToGoogleJob implements ShouldQueue
                     ]);
 
                     $contact->etag = $updated->etag;
-                    $contact->updateFlag = $timeStamp;
-                    $contact->updated_at = $timeStamp;
+                    $contact->lastSync = $timeStamp;
+                    $contact->syncStatus = 'Synced';
                     $contact->save();
                 } catch (\Exception $e) {
 

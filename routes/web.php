@@ -34,3 +34,6 @@ Route::get('getClinetSyncHistory',[AjaxRequestController::class,'getClinetSyncHi
 
 
 Route::get('test',[AjaxRequestController::class,'test']);
+Route::get('t',function(){
+    return view('client.kee');
+});
