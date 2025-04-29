@@ -41,35 +41,39 @@
         </tr>
       </thead>
       <tbody id="addressTable" class="bg-white divide-y divide-gray-200">
+        @if($clientAddress ?? '') 
           <!-- Default empty input row -->
-    <tr>
-      <td class="px-4 py-2">
-        <input type="text" name="addressType" value="{{old('addressType' ,$data->addressType ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300 " placeholder="Type">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="street" value="{{old('street' ,$data->street ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Street">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="area" value="{{old('area' ,$data->area ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Area">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="city" value="{{old('city' ,$data->city ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="City">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="state" value="{{old('state' ,$data->state ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="State">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="postalCode" value="{{old('postalCode' ,$data->postalCode ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Postal Code">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="country" value="{{old('country' ,$data->country ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Country">
-      </td>
-      <td class="px-4 py-2 flex space-x-2 justify-center">
-        <button class="setPrimary text-blue-500 hover:text-blue-700" type="button" title="Set Primary">🔑</button>
-        <button class="markWarning text-yellow-500 hover:text-yellow-700" type="button" title="Warning">⚠️</button>
-        <button class="deleteRow text-red-500 hover:text-red-700" type="button" title="Delete">🗑️</button>
-      </td>
-    </tr>
+          @foreach ($clientAddress as $address)
+          <tr>
+            <td class="px-4 py-2">
+              <input type="text" name="addresses[{{$address->id ?? 0}}][address_type]" value="{{old('address_type' ,$address->address_type ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300 " placeholder="Type">
+            </td>
+            <td class="px-4 py-2">
+              <input type="text" name="addresses[{{$address->id ?? 0}}][street]" value="{{old('street' ,$address->street ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Street">
+            </td>
+            <td class="px-4 py-2">
+              <input type="text" name="addresses[{{$address->id ?? 0}}][area]" value="{{old('area' ,$address->area ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Area">
+            </td>
+            <td class="px-4 py-2">
+              <input type="text" name="addresses[{{$address->id ?? 0}}][city]" value="{{old('city' ,$address->city ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="City">
+            </td>
+            <td class="px-4 py-2">
+              <input type="text" name="addresses[{{$address->id ?? 0}}][state]" value="{{old('state' ,$address->state ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="State">
+            </td>
+            <td class="px-4 py-2">
+              <input type="text" name="addresses[{{$address->id ?? 0}}][postal_code]" value="{{old('postal_code' ,$address->postal_code ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Postal Code">
+            </td>
+            <td class="px-4 py-2">
+              <input type="text" name="addresses[{{$address->id ?? 0}}][country]" value="{{old('country' ,$address->country ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Country">
+            </td>
+            <td class="px-4 py-2 flex space-x-2 justify-center">
+              <button class="setPrimary text-blue-500 hover:text-blue-700" type="button" title="Set Primary">🔑</button>
+              <button class="markWarning text-yellow-500 hover:text-yellow-700" type="button" title="Warning">⚠️</button>
+              <button class="deleteRow text-red-500 hover:text-red-700" type="button" title="Delete">🗑️</button>
+            </td>
+          </tr>
+          @endforeach
+          @endif
       </tbody>
     </table>
   </div>
@@ -78,7 +82,7 @@
     Add
   </button>
 </div>
-         <div class="tabcontent w-[100vw] grid grid-cols-1 md:grid-cols-2 gap-6 " id="overview">
+         <div class="tabcontent  grid grid-cols-1 md:grid-cols-2 gap-6 " id="overview">
           <div>
             <label class="block mb-1 font-medium">First Name</label>
             <input type="text" name="firstName" value="{{old('firstName',$data->firstName ?? '')}}" class="w-full border rounded px-3 py-2" />
@@ -266,6 +270,9 @@
          
         </form>
       </div>
+
+
+
 @endsection
 @section('script')
 <script>
@@ -293,45 +300,46 @@ document.getElementById("defaultOpen").click();
 </script>
 
 <script>
-  $(document).ready(function() {
-  // Add default row on page load
-  $('#addRow').click();
+$(document).ready(function() {
+  let addressIndex = 1;
 
-  // Add new row
-  $('#addRow').click(function() {
+  // Add default row on page load
+  $('#addRow').on('click', function() {
     let newRow = `
       <tr>
-      <td class="px-4 py-2">
-        <input type="text" name="addressType" value="{{old('addressType' ,$data->addressType ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300 " placeholder="Type">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="street" value="{{old('street' ,$data->street ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Street">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="area" value="{{old('area' ,$data->area ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Area">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="city" value="{{old('city' ,$data->city ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="City">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="state" value="{{old('state' ,$data->state ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="State">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="postalCode" value="{{old('postalCode' ,$data->postalCode ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Postal Code">
-      </td>
-      <td class="px-4 py-2">
-        <input type="text" name="country" value="{{old('country' ,$data->country ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Country">
-      </td>
-      <td class="px-4 py-2 flex space-x-2 justify-center">
-        <button class="setPrimary text-blue-500 hover:text-blue-700" type="button" title="Set Primary">🔑</button>
-        <button class="markWarning text-yellow-500 hover:text-yellow-700" type="button" title="Warning">⚠️</button>
-        <button class="deleteRow text-red-500 hover:text-red-700" type="button" title="Delete">🗑️</button>
-      </td>
-    </tr>
+        <td class="px-4 py-2">
+          <input type="text" name="addresses[${addressIndex}][address_type]" value="{{old('addressType' ,$data->addressType ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300 " placeholder="Type">
+        </td>
+        <td class="px-4 py-2">
+          <input type="text" name="addresses[${addressIndex}][street]" value="{{old('street' ,$data->street ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Street">
+        </td>
+        <td class="px-4 py-2">
+          <input type="text" name="addresses[${addressIndex}][area]" value="{{old('area' ,$data->area ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Area">
+        </td>
+        <td class="px-4 py-2">
+          <input type="text" name="addresses[${addressIndex}][city]" value="{{old('city' ,$data->city ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="City">
+        </td>
+        <td class="px-4 py-2">
+          <input type="text" name="addresses[${addressIndex}][state]" value="{{old('state' ,$data->state ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="State">
+        </td>
+        <td class="px-4 py-2">
+          <input type="text" name="addresses[${addressIndex}][postal_code]" value="{{old('postalCode' ,$data->postalCode ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Postal Code">
+        </td>
+        <td class="px-4 py-2">
+          <input type="text" name="addresses[${addressIndex}][country]" value="{{old('country' ,$data->country ?? '')}}" class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300" placeholder="Country">
+        </td>
+        <td class="px-4 py-2 flex space-x-2 justify-center">
+          <button class="setPrimary text-blue-500 hover:text-blue-700" type="button" title="Set Primary">🔑</button>
+          <button class="markWarning text-yellow-500 hover:text-yellow-700" type="button" title="Warning">⚠️</button>
+          <button class="deleteRow text-red-500 hover:text-red-700" type="button" title="Delete">🗑️</button>
+        </td>
+      </tr>
     `;
     $('#addressTable').append(newRow);
+    addressIndex++;
   });
 
+  ('#addRow').click(); //default open row
   // Delete row
   $(document).on('click', '.deleteRow', function() {
     $(this).closest('tr').remove();
@@ -352,4 +360,5 @@ document.getElementById("defaultOpen").click();
 });
 
 </script>
+
 @endsection
