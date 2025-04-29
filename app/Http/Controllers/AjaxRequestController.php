@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\SyncContactsDataTable;
 use App\Jobs\importFormGoogleJob;
 use App\Jobs\pushToGoogleJob;
 use App\Models\client;
@@ -34,7 +35,7 @@ class AjaxRequestController extends Controller
         Log::info('Ajac Controller Constructor Method: ' . (memory_get_usage(true)/1024/1024)." MB");
     }
 
-    public function index(){
+    public function index(SyncContactsDataTable $dataTable){
         try {
             //If table is empty then sign in user
             if (!$this->googleToken || $this->googleToken == null) {
@@ -42,7 +43,8 @@ class AjaxRequestController extends Controller
                 return redirect()->route('client.redirect');
             }
             Log::info(' Before Ajax Index Return: ' .(memory_get_usage(true)/1024/1024)." MB");
-            return view('client.enjayDesign');
+            // return view('client.enjayDesign');
+            return $dataTable->render('client.enjayDesign');
 
         } catch (\Throwable $th) {
             dd($th);
@@ -369,6 +371,11 @@ class AjaxRequestController extends Controller
 
         ->rawColumns(['action'])
         ->make(true);
+    }
+
+    public function SyncContactsTable(SyncContactsDataTable $dataTable)
+    {
+        return $dataTable->render('client.enjayDesign');
     }
 
 

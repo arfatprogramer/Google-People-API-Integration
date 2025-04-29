@@ -28,6 +28,7 @@ Route::get('synNow',[AjaxRequestController::class,'synNowBoth'])->name('ajax.syn
 Route::get('pushToGoogle',[AjaxRequestController::class,'pushToGoogle'])->name('ajax.pushToGoogle');
 Route::get('importFromGoogle',[AjaxRequestController::class,'importFromGoogle'])->name('ajax.importFromGoogle');
 Route::get('syncStatus',[AjaxRequestController::class,'syncStatus'])->name('ajax.syncStatus');
+Route::get('SyncContacts',[AjaxRequestController::class,'SyncContactsTable'])->name('ajax.SyncContactsTable');
 
 
 Route::get('getClinetSyncHistory',[AjaxRequestController::class,'getClinetSyncHistory'])->name('ajax.getClinetSyncHistory');
