@@ -13,11 +13,13 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
   {{-- ------Bootstrap--icon---cdn------------------- --}}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+feature1/address
     
   <!-- Include Toastr and jQuery -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
 
     <title>CRM</title>
 </head>
@@ -65,8 +67,12 @@
                             </a>
 
                             <a class="flex items-center hover:bg-gray-200" href="{{route('client.list')}}">
-                                <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-blue-500 flex items-center justify-center text-white m-2">L</span>
+                                <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-yellow-500 flex items-center justify-center text-white m-2">L</span>
                                 <span class="pr-4">Lead</span>
+                            </a>
+                            <a class="flex items-center hover:bg-gray-200" href="{{route('ajax.index')}}">
+                                <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-blue-500 flex items-center justify-center text-white m-2">GS</span>
+                                <span class="pr-4">Google Sync DashBord</span>
                             </a>
 
         </aside>
@@ -80,6 +86,7 @@
     <footer class=" bg-white border-t text-center">
         <p class="text-sm font-semibold text-gray-500">Powered By <span class="text-blue-900">Sanchay CRM </span></p>
     </footer>
+    @stack('scripts')
 
     <!-- jQuery CDN -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" ></script>
@@ -90,7 +97,7 @@
     <script src="https://cdn.datatables.net/v/bs5/jq-3.7.0/dt-2.2.2/cr-2.0.4/r-3.0.4/rr-1.5.0/datatables.min.js" integrity="sha384-9bYIk8wcWyHP6sGRy9fZWduNYeGcDw+PZhWc+ue0Hrt0iNDOn8OTj+YLtvuZ/dth" crossorigin="anonymous"></script>
 
     @yield("script")
-   
+
 </body>
 
 </html>

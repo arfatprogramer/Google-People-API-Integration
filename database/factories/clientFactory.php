@@ -20,6 +20,7 @@ class clientFactory extends Factory
             'firstName' => $this->faker->firstName,
             'lastName' => $this->faker->lastName,
             'number' => $this->faker->phoneNumber,
+            'email' => $this->faker->email,
             'familyOrOrgnization' => $this->faker->company,
             'panCardNumber' => strtoupper($this->faker->bothify('?????####?')),
             'aadharCardNumber' => $this->faker->numerify('############'),

@@ -54,11 +54,14 @@ class clientController extends Controller
             "email"=>'required|email',
           ]);
 
+ feature1/address
         //   return response()->json($req->addresses);
-        
+      
+
+ main
 try {
     //code...
-   
+
 
         $newClient=new client;
         $newClient->firstName=$req->firstName;//"firstName" => null
@@ -120,12 +123,12 @@ public function UpdateFormContact(Request $request){
         "number"=>'required',
         "email"=>'required|email',
       ]);
-        
+
     //   return "updateto = ". $request->id;
       $newClient = Client::find($request->id);
       
       if( $newClient){
-        
+
         $newClient->firstName=$request->firstName;//"firstName" => null
         $newClient->lastName=$request->lastName;               //"lastName" => null
         $newClient->number=$request->number;                //"number" => null
@@ -147,7 +150,9 @@ public function UpdateFormContact(Request $request){
         $newClient->firstMeetingDate=$request->firstMeetingDate;       //"firstMeetingDate" => null
         $newClient->typeOfRelation=$request->typeOfRelation;         //"typeOfRelation" => "Select"
         $newClient->maritalStatus=$request->maritalStatus;          //"maritalStatus" => "Select"
+        feature1/address
         $newClient->maritalStatus=$request->maritalStatus;          
+
         $newClient->syncStatus="Pending";
         $newClient->save();
         
@@ -188,7 +193,7 @@ public function UpdateFormContact(Request $request){
       }else{
         return redirect()->back()->with('error','client not found');
       }
-    
+
 }
     public function __destruct() {
         Log::info('Client Controller Distructor Method: ' . (memory_get_usage(true)/1024/1024)." MB");

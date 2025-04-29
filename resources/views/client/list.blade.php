@@ -4,7 +4,7 @@
 <div class=" rounded-lg shadow-md p-6 ">
     <div class="flex items-center justify-between">
     <h2 class="text-2xl font-semibold mb-6">Show Client</h2>
-    <button class=" bg-blue-600 text-white  border-gray-700 border-2 rounded-md p-2 hover:bg-blue-800 "><a href="{{url('sync')}}">View Sync Details</a></button>
+    <!-- <button class=" bg-blue-600 text-white  border-gray-700 border-2 rounded-md p-2 hover:bg-blue-800 "><a href="{{url('sync')}}">View Sync Details</a></button> -->
     </div>
     <div class=" overflow-auto ">
 
