@@ -88,7 +88,6 @@ try {
 
     public function editContact($id){
         $data = client::where('id',$id)->find($id);
-    //    return $data->firstName;
         return view("client.createForm",compact('data'));
     }
 ///------UpdateForm------------------
@@ -99,7 +98,6 @@ public function UpdateFormContact(Request $request){
         "email"=>'required|email',
       ]);
         
-    //   return "updateto = ". $request->id;
       $newClient = Client::find($request->id);
 
       if( $newClient){
