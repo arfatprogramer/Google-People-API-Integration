@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\client;
+use App\Models\ClientAddress;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -24,7 +25,9 @@ class clientController extends Controller
 
             return DataTables::eloquent($clients)
             ->addColumn('action',function($clients){
-                    return "<a href=".route('client.edit',$clients->id)."> <i class='bi bi-pencil '></i> </a>";
+                    return "<a href=".route('client.edit',$clients->id)."> <i class='bi bi-pencil text-blue-500'></i></a>
+                     <button class='deleteGoogleContact cursor-pointer' data-bs-id='$clients->id'> <i class='bi bi-trash text-red-500'></i></button>";
+                   
             })
             ->addColumn('created_at',function($clients){
                 return Carbon::parse($clients->created_at)->format('y-m-d');
@@ -51,7 +54,11 @@ class clientController extends Controller
             "email"=>'required|email',
           ]);
 
+ feature1/address
+        //   return response()->json($req->addresses);
+      
 
+ main
 try {
     //code...
 
@@ -79,7 +86,22 @@ try {
         $newClient->typeOfRelation=$req->typeOfRelation;         //"typeOfRelation" => "Select"
         $newClient->maritalStatus=$req->maritalStatus;          //"maritalStatus" => "Select"
         $newClient->save();
-
+          
+        // Now save addresses
+        if ($req->addresses && is_array($req->addresses)) {
+            foreach ($req->addresses as $address) {
+                $clientAddress = new ClientAddress();
+                $clientAddress->client_id = $newClient->id; // get newly created client's id
+                $clientAddress->address_type = $address['address_type'] ?? null;
+                $clientAddress->street = $address['street'] ?? null;
+                $clientAddress->area = $address['area'] ?? null;
+                $clientAddress->city = $address['city'] ?? null;
+                $clientAddress->state = $address['state'] ?? null;
+                $clientAddress->postal_code = $address['postal_code'] ?? null;
+                $clientAddress->country = $address['country'] ?? null;
+                $clientAddress->save();
+            }
+        }
         return redirect()->route("client.list");
     } catch (\Throwable $e) {
         dd($e);
@@ -88,8 +110,11 @@ try {
 
     public function editContact($id){
         $data = client::where('id',$id)->find($id);
+       $clientAddress = ClientAddress::where('client_id',$id)->get();
+    //    return response()->json($clientAddress); 
     //    return $data->firstName;
-        return view("client.createForm",compact('data'));
+
+        return view("client.createForm",compact('data','clientAddress'));
     }
 ///------UpdateForm------------------
 public function UpdateFormContact(Request $request){
@@ -101,7 +126,7 @@ public function UpdateFormContact(Request $request){
 
     //   return "updateto = ". $request->id;
       $newClient = Client::find($request->id);
-
+      
       if( $newClient){
 
         $newClient->firstName=$request->firstName;//"firstName" => null
@@ -125,10 +150,45 @@ public function UpdateFormContact(Request $request){
         $newClient->firstMeetingDate=$request->firstMeetingDate;       //"firstMeetingDate" => null
         $newClient->typeOfRelation=$request->typeOfRelation;         //"typeOfRelation" => "Select"
         $newClient->maritalStatus=$request->maritalStatus;          //"maritalStatus" => "Select"
-        $newClient->maritalStatus=$request->maritalStatus;
+        feature1/address
+        $newClient->maritalStatus=$request->maritalStatus;          
+
         $newClient->syncStatus="Pending";
         $newClient->save();
+        
+        // Retrieve existing addresses for the client
+             $existingAddresses = ClientAddress::where('client_id', $request->id)->get();
 
+            if ($request->addresses && is_array($request->addresses)) {
+                foreach ($request->addresses as $address) {
+                    // Check if the address already exists (you may want to check by address type or another unique identifier)
+                    $clientAddress = $existingAddresses->firstWhere('address_type', $address['address_type'] ?? null);
+
+                    if ($clientAddress) {
+                        // Update existing address
+                        $clientAddress->street = $address['street'] ?? null;
+                        $clientAddress->area = $address['area'] ?? null;
+                        $clientAddress->city = $address['city'] ?? null;
+                        $clientAddress->state = $address['state'] ?? null;
+                        $clientAddress->postal_code = $address['postal_code'] ?? null;
+                        $clientAddress->country = $address['country'] ?? null;
+                        $clientAddress->save();
+                    } else {
+                        // Create a new address if it doesn't exist
+                        $newClientAddress = new ClientAddress();
+                        $newClientAddress->client_id = $request->id; // Use the client's ID
+                        $newClientAddress->address_type = $address['address_type'] ?? null;
+                        $newClientAddress->street = $address['street'] ?? null;
+                        $newClientAddress->area = $address['area'] ?? null;
+                        $newClientAddress->city = $address['city'] ?? null;
+                        $newClientAddress->state = $address['state'] ?? null;
+                        $newClientAddress->postal_code = $address['postal_code'] ?? null;
+                        $newClientAddress->country = $address['country'] ?? null;
+                        $newClientAddress->save(); // Save the new address
+                    }
+                }
+            }
+        
         return redirect()->route("client.list");
       }else{
         return redirect()->back()->with('error','client not found');

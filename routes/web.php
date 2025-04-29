@@ -14,7 +14,8 @@ Route::get('/create',[clientController::class, 'createForm'])->name('client.crea
 Route::get('/list',[clientController::class, 'show'])->name('client.list');
 Route::get('/edit/{id}',[clientController::class, 'editContact'])->name('client.edit');
 Route::put('/ContactUpdate',[clientController::class, 'UpdateFormContact'])->name('client.ContactUpdate');
-
+//soft-delete---or-----google--delete---contact----------
+Route::post('/contacts/soft-delete',[AjaxRequestController::class, 'softDeletOrGoogleContact'])->name('client.softDelete');
 
 
 
