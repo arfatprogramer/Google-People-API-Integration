@@ -4,14 +4,11 @@ namespace App\Jobs;
 
 use App\Models\client;
 use App\Models\clientContatSyncHistory;
-use App\Models\GoogleAuth;
 use App\Services\GoogleService;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
 class importFormGoogleJob implements ShouldQueue
@@ -22,7 +19,7 @@ class importFormGoogleJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct($googleToken,$id=1)
+    public function __construct($googleToken,$id)
     {
         $this->googleToken=$googleToken;
         $this->id=$id;
@@ -40,14 +37,17 @@ class importFormGoogleJob implements ShouldQueue
             $nextSynToken=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->skip(1)->first();
             $nextPageToken=false;
             do {
-                $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken, $nextSynToken->synToken);
+                $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken, $nextSynToken->synToken??null);
                 $nextPageToken=$googleContacts->nextPageToken??false;
-                
+
+                //this writen to update contact History Table Data
                 $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
                 $lastRowInContactSyncHistoryTable->synToken=$googleContacts->nextSyncToken;
                 $lastRowInContactSyncHistoryTable->batches -=1;
                 $lastRowInContactSyncHistoryTable->status =1;
+                $lastRowInContactSyncHistoryTable->startTime = $lastRowInContactSyncHistoryTable->startTime==null ? time() : $lastRowInContactSyncHistoryTable->startTime;
                 $lastRowInContactSyncHistoryTable->save();
+
                 if (!$googleContacts->connections) {
                    continue;
                 }
@@ -141,8 +141,10 @@ class importFormGoogleJob implements ShouldQueue
                     $contact->primeryContactPerson = $googleContact['primeryContactPerson'] ?? null;
                     $contact->meetinSchedule = $googleContact['meetinSchedule'] ?? 'Select';
                     $contact->firstMeetingDate = $googleContact['firstMeetingDate'] ?? null;
-                    $contact->typeOfRelation = $googleContact['typeOfRelation'] ?? 'Select';
-                    $contact->maritalStatus = $googleContact['maritalStatus'] ?? 'Select';
+                    $contact->typeOfRelation = $googleContact['typeOfRelation'] ?? null;
+                    $contact->maritalStatus = $googleContact['maritalStatus'] ?? null;
+                    $contact->syncStatus = 'Synced';
+                    $contact->lastSync = Carbon::now();
                     $contact->save();
 
                 }
