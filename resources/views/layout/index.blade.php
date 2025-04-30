@@ -42,9 +42,9 @@
         </div>
     </nav>
 
-    <div class="flex h-[calc(100vh-75px)] relative">
+    <div class="flex h-[calc(100vh-75px)] relative shadow-lg">
         <!-- Sidebar -->
-        <aside class=" w-12 bg-white shadow-lg absolute h-full overflow-hidden hover:w-fit z-50">
+        <aside class=" w-12 bg-white border-r border-gray-300  shadow-lg absolute h-full overflow-hidden hover:w-fit z-50">
 
                             <a class="flex items-center  hover:bg-gray-200" href="{{route('client.list')}}">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-red-500 flex items-center justify-center text-white m-2">C</span>
@@ -78,7 +78,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 ml-10  p-6 overflow-y-auto w-screen" >
+        <main class="flex-1 ml-10   overflow-y-auto w-screen" >
             @yield("container")
         </main>
     </div>

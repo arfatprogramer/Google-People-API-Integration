@@ -25,8 +25,8 @@ class clientController extends Controller
 
             return DataTables::eloquent($clients)
             ->addColumn('action',function($clients){
-                    return "<a href=".route('client.edit',$clients->id)."> <i class='bi bi-pencil text-blue-500'></i></a>
-                     <button class='deleteGoogleContact cursor-pointer' data-bs-id='$clients->id'> <i class='bi bi-trash text-red-500'></i></button>";
+                    return "<a href=".route('client.edit',$clients->id)."> <i class='bi bi-pencil text-blue-500 hover:text-blue-600 '></i></a>
+                     <button class='deleteGoogleContact cursor-pointer' data-bs-id='$clients->id'> <i class='bi bi-trash text-red-500 hover:text-red-600 '></i></button>";
 
             })
             ->addColumn('created_at',function($clients){
@@ -194,7 +194,7 @@ public function UpdateFormContact(Request $request){
         return redirect()->back()->with('error','client not found');
       }
 
-}
+  }
     public function __destruct() {
         Log::info('Client Controller Distructor Method: ' . (memory_get_usage(true)/1024/1024)." MB");
     }
