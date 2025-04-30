@@ -431,23 +431,23 @@ class AjaxRequestController extends Controller
 
                 // Fetch the contact's resourceName from your database
                 $contact = client::find($request->client_id);  // or however you fetch it
-                $resourceName = $contact->resourceName; // something like 'people/c123456789'
+                // $resourceName = $contact->resourceName; // something like 'people/c123456789'
                   
 
                 try {
                     
-                   if($resourceName){
-                    $delete= $peopleService->people->deleteContact( $resourceName);
+                   if(!empty($contact->resourceName)){
+                    $delete= $peopleService->people->deleteContact( $contact->resourceName);
                    
                     if($delete){
                         $contact->delete();
                     }
-                    return response()->json(['success' => true,'message' => 'Contact deleted from Google and CRM.','resource'=>$resourceName]);
+                    return response()->json(['success' => true,'message' => ' Google and CRM Contact deleted successfully.','resource'=>$resourceName]);
                   
                    }else{
                     $contact->delete();
 
-                    // return response()->json(['success' => false,'message' => 'ResourcesName not found.','resourceName'=>$resourceName]);
+                    return response()->json(['success' =>true,'message' => 'CRM Contact is delete successfully','resourceName']);
                   
                    }
                 } catch (\Google\Service\Exception $e) {
