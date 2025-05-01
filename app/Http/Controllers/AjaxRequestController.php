@@ -447,7 +447,59 @@ class AjaxRequestController extends Controller
                 }else{
                 $contact->delete();
 
-                // return response()->json(['success' => false,'message' => 'ResourcesName not found.','resourceName'=>$resourceName]);
+
+    ///------softDelete---crm--or----googlecontact---delete---------------
+    public function softDeletOrGoogleContact(Request $request){
+        
+             $contactSoftDelete = filter_var($request->delete_contact, FILTER_VALIDATE_BOOLEAN);
+   
+                 if($contactSoftDelete === true){
+
+                    $client = (new GoogleService())->getGoogleCient($this->googleToken);
+                        // Assume you already have the authenticated Google Client
+                    $peopleService = new PeopleService($client);
+
+                // Fetch the contact's resourceName from your database
+                $contact = client::find($request->client_id);  // or however you fetch it
+                // $resourceName = $contact->resourceName; // something like 'people/c123456789'
+                  
+
+                try {
+                    
+                   if(!empty($contact->resourceName)){
+                    $delete= $peopleService->people->deleteContact( $contact->resourceName);
+                   
+                    if($delete){
+                        $contact->delete();
+                    }
+                    return response()->json(['success' => true,'message' => ' Google and CRM Contact deleted successfully.','resource'=>$resourceName]);
+                  
+                   }else{
+                    $contact->delete();
+
+                    return response()->json(['success' =>true,'message' => 'CRM Contact is delete successfully','resourceName']);
+                  
+                   }
+                } catch (\Google\Service\Exception $e) {
+                    return response()->json(['error' => $e->getMessage()], 500);
+                }
+                
+                    // return response()->json(['message' => 'Google Contact deleted successfully.','resource'=>$resourceName]);
+               
+
+                 }else{ 
+
+                $contact = client::find($request->client_id); 
+                if ($contact) {
+                    // $contact->delete(); // Soft delete karega (deleted_at fill karega)
+                    return response()->json(['success' => true, 
+                    'message' => ' CRM Contact soft deleted successfully.',
+                    'data'=>$contactSoftDelete
+                ]);
+                } else {
+                    return response()->json(['success' => false, 
+                    'message' => 'Contact not found.'
+                ]);
 
                 }
             } catch (\Google\Service\Exception $e) {

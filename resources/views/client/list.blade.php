@@ -59,27 +59,61 @@
 
 
   <!-- Modal -->
-<div id="deleteModal" style="background-color: rgba(128, 128, 128, 0.25);" class="fixed hidden inset-0 bg-gray-300 bg-opacity-25 z-40 flex items-center justify-center">
+{{-- <div id="deleteModal" style="background-color: rgba(128, 128, 128, 0.25);" class="fixed hidden inset-0 bg-gray-300 bg-opacity-25 z-40 flex items-center justify-center">
     <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg mx-4 relative">
 
         <!-- Close Icon -->
         <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
 
-        <h2 class="text-xl font-bold mb-4">Delete Contact</h2>
-        <p class="mb-6 text-gray-600">Are you sure you want to delete this Google contact?</p>
+        
+        <h2 class="text-xl font-bold mb-4">Delete Contact From Google or CRM</h2>
+        <p class="mb-6 text-gray-600">Are you sure  delete this Google contact or CRM?</p>
+
 
         <div class="flex justify-end space-x-4">
-
+            <button id="closeModal" class="px-4 py-2 bg-gray-400 hover:bg-gray-600 text-white rounded cursor-pointer">
+                Cancle </button>
             <button id="confirmDelete" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded cursor-pointer">
-                Yes
-              </button>
-              <button id="cancelDelete" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded cursor-pointer">
-                No
+                Google or CRM </button>
+              <button id="cancelDelete" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded cursor-pointer">
+                Only CRM
               </button>
         </div>
     </div>
-</div>
+</div> --}}
 
+{{-- //demo model --}}
+<!-- Modal Background -->
+<div id="deleteModal" style="background-color: rgba(128, 128, 128, 0.25);" class="fixed inset-0 hidden bg-gray-300 bg-opacity-25 flex items-center justify-center z-50">
+    <!-- Modal Box -->
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full text-center relative">
+      
+      <!-- Close Icon -->
+      <button id="closeModal2" class="absolute top-2 right-7 text-gray-400 hover:text-gray-600 text-3xl cursor-pointer">&times;</button>
+  
+            <div class="w-full flex justify-center items-center">
+                    <!-- Warning Icon -->
+                    <div  class="w-20 h-20 flex justify-center items-center text-red-500 text-4xl mb-4 text-center cursor-pointer rounded-full shadow-lg border-2  border-red-500 outline-none">
+                        <p class="text-center">X</p></div>
+            
+            </div>
+      <!-- Title -->
+      <h2 class="text-xl font-semibold mb-2">Are you sure?</h2>
+  
+      <!-- Subtext -->
+      <p class="text-gray-600 text-sm mb-6">Do you really want to delete this? After deleting, you can't undo.</p>
+  
+      <!-- Action Buttons -->
+      <div class="flex justify-end space-x-3">
+        <button id="closeModal" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 cursor-pointer">Cancel</button>
+        <button id="googleOrCRMDelete" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded cursor-pointer">Google Or CRM</button>
+        <button id="crmDelete" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer">Only CRM</button>
+        
+        
+      </div>
+    </div>
+  </div>
+  
     </div>
 
 
@@ -139,7 +173,7 @@
     });
 
     // When user clicks cancel
-    $('#cancelDelete').click(function() {
+    $('#crmDelete').click(function() {
         if (contactIdToDelete) {
             sendDeleteRequest(false); // false = only soft delete CRM
         }
@@ -151,8 +185,13 @@
         contactIdToDelete = null;
     });
 
+    $('#closeModal2').click(function() {
+        $('#deleteModal').addClass('hidden');
+        contactIdToDelete = null;
+    });
+
     // When user clicks confirm delete
-    $('#confirmDelete').click(function() {
+    $('#googleOrCRMDelete').click(function() {
         if (contactIdToDelete) {
             sendDeleteRequest(true); // true = delete Google + CRM
 
