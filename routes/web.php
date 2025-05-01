@@ -1,5 +1,7 @@
 <?php
 
+use App\DataTables\clietsSyncedHistoryDataTable;
+use App\DataTables\SyncContactsDataTable;
 use App\Http\Controllers\AjaxRequestController;
 use App\Http\Controllers\clientController;
 use Illuminate\Support\Facades\Cache;
@@ -28,14 +30,16 @@ Route::get('refreshUrl',[AjaxRequestController::class,'refreshReq'])->name('ajax
 Route::get('synNow',[AjaxRequestController::class,'synNowBoth'])->name('ajax.synNow');
 Route::get('pushToGoogle',[AjaxRequestController::class,'pushToGoogle'])->name('ajax.pushToGoogle');
 Route::get('importFromGoogle',[AjaxRequestController::class,'importFromGoogle'])->name('ajax.importFromGoogle');
+Route::post('singleSyncById',[AjaxRequestController::class,'singleSyncById'])->name('ajax.singleSyncById');
 Route::get('syncStatus',[AjaxRequestController::class,'syncStatus'])->name('ajax.syncStatus');
-Route::get('SyncContacts',[AjaxRequestController::class,'SyncContactsTable'])->name('ajax.SyncContactsTable');
+
+
+// Data Table Routes
+Route::get('sync-history-data', [clietsSyncedHistoryDataTable::class, 'ajax'])->name('sync.history.data');
+Route::get('sync-contacts-data', [SyncContactsDataTable::class, 'ajax'])->name('sync.contacts.data');
+
+
 
 
 Route::get('getClinetSyncHistory',[AjaxRequestController::class,'getClinetSyncHistory'])->name('ajax.getClinetSyncHistory');
 
-
-Route::get('test',[AjaxRequestController::class,'test']);
-Route::get('t',function(){
-    return view('client.kee');
-});

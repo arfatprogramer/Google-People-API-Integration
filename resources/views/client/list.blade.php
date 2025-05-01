@@ -1,5 +1,30 @@
 @extends('layout.index')
 
+@push('styles')
+
+<style>
+
+
+    table{
+    border-radius: 10px;
+    padding: 10px;
+    }
+    tr{
+        border:1px solid gray;
+        border-left:none ;
+        border-right: none;
+
+    }
+    tr:hover td{
+        background-color: rgb(206, 206, 206);
+    }
+
+
+
+</style>
+@endpush
+
+
 @section('container')
 <div class=" rounded-lg shadow-md p-6 ">
     <div class="flex items-center justify-between">
@@ -32,14 +57,14 @@
 
         </table>
 
-  
+
   <!-- Modal -->
 <div id="deleteModal" style="background-color: rgba(128, 128, 128, 0.25);" class="fixed hidden inset-0 bg-gray-300 bg-opacity-25 z-40 flex items-center justify-center">
     <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg mx-4 relative">
-        
+
         <!-- Close Icon -->
         <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none">&times;</button>
-        
+
         <h2 class="text-xl font-bold mb-4">Delete Contact</h2>
         <p class="mb-6 text-gray-600">Are you sure you want to delete this Google contact?</p>
 
@@ -56,7 +81,7 @@
 </div>
 
     </div>
-       
+
 
 </div>
 
@@ -98,7 +123,7 @@
 
 {{-- //Soft--delete----google--delete--contact --}}
 <script>
-   
+
 
     // When user clicks delete button
     $(document).ready(function() {
@@ -130,7 +155,7 @@
     $('#confirmDelete').click(function() {
         if (contactIdToDelete) {
             sendDeleteRequest(true); // true = delete Google + CRM
-        
+
         }
     });
 
@@ -157,13 +182,13 @@
                         window.location.reload();
                     }, 2000);
                 } else {
-                    
+
                     toastr.error(response.message);
                 }
                 // window.location.reload();
 
         }, // Refresh page or remove row
-            
+
             error: function(xhr) {
                 console.error('Error Response:', xhr.responseText);
                 alert('Something went wrong.');
@@ -176,9 +201,9 @@
     }
 
 });
-    
 
-//reused able 
+
+//reused able
     toastr.options = {
         "positionClass": "toast-top-center",
         "closeButton": true,

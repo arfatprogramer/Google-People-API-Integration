@@ -3,7 +3,6 @@
 namespace App\DataTables;
 
 use App\Models\client;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
@@ -28,17 +27,13 @@ class SyncContactsDataTable extends DataTable
             // ->addColumn('Check', function($row) {
             //     return '<input type="checkbox" class="h-4 w-4 rounded border-gray-300">';
             // })
-            ->setRowClass(function ($row) {
-                // Apply different CSS class based on your condition
-                    return 'border-y-1 border-gray-400 text-sm'; // another custom class
-
-            })
+            ->setRowClass('rowHoverClass ')
             ->addColumn('action', function($row) {
                     $disable="";
                 if ($row->syncStatus=="Synced") {
                     $disable="Disabled";
                 }
-                return '<div class="flex gap-1"><button '.$disable.' class="hover:text-blue-600 cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground rounded-md h-8 w-8 p-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
+                return '<div class=" flex gap-1"><button '.$disable.' data-sync-id='.$row->id.' class="singleSyncContact hover:text-blue-600 cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground rounded-md h-8 w-8 p-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
                     <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
                     <path d="M21 3v5h-5"></path>
                     <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
@@ -54,7 +49,7 @@ class SyncContactsDataTable extends DataTable
                 $hours = round($date / 3600); // seconds to hours
                 $days = round($date / 86400); // seconds to days
 
-                if ( $min > 0 && $min < 60) {
+                if ( $min >= 0 && $min < 60) {
                     return "$min Minutes Ago";
                 } elseif ($hours> 0 && $hours < 24) {
                     return "$hours Hours Ago";
@@ -101,19 +96,20 @@ class SyncContactsDataTable extends DataTable
         return $this->builder()
             ->setTableId('synccontacts-table')
             ->columns($this->getColumns())
-            ->minifiedAjax()
+            ->minifiedAjax(route('sync.contacts.data'))
             ->orderBy(4)
             ->selectStyleSingle()
             ->parameters([
-                'dom' => 'Bfrtip',
+                // 'dom' => 'Bfrt<bottom ip>',
+                'dom' => '<"synccontacts-table-search flex justify-between items-center mb-4"fB>lrt<"synccontacts-table flex justify-between items-center mt-4"ip>',
                 'language' => [
+                    'search' => '',
+                    'searchPlaceholder' => 'Search...',
+                    'lengthMenu' => 'Show _MENU_ entries',
                     'paginate' => [
-                        'previous' => '<i class="fas fa-arrow-left"></i> Prev',
-                        'next'     => 'Next <i class="fas fa-arrow-right"></i>',
-                    ]
-                ],
-                'buttons' => [
-                    // your buttons (export, reload etc)
+                        'previous' => 'Previous',
+                        'next' => 'Next',
+                    ],
                 ],
             ])
             ->buttons([
