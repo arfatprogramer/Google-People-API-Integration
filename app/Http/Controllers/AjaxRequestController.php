@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\clietsSyncedHistoryDataTable;
 use App\DataTables\SyncContactsDataTable;
 use App\Jobs\importFormGoogleJob;
 use App\Jobs\pushToGoogleJob;
@@ -9,6 +10,7 @@ use App\Models\client;
 use App\Models\clientContatSyncHistory;
 use App\Models\GoogleAuth;
 use App\Services\GoogleService;
+use Carbon\Carbon;
 use Exception;
 use Google\Service\PeopleService;
 use Google_Client;
@@ -35,16 +37,20 @@ class AjaxRequestController extends Controller
         Log::info('Ajac Controller Constructor Method: ' . (memory_get_usage(true)/1024/1024)." MB");
     }
 
-    public function index(SyncContactsDataTable $dataTable){
+    public function index(SyncContactsDataTable $contactsTable, clietsSyncedHistoryDataTable $historyTable){
         try {
             //If table is empty then sign in user
             if (!$this->googleToken || $this->googleToken == null) {
                 // $this->redirectToGoogle();
                 return redirect()->route('client.redirect');
             }
-            Log::info(' Before Ajax Index Return: ' .(memory_get_usage(true)/1024/1024)." MB");
-            // return view('client.enjayDesign');
-            return $dataTable->render('client.enjayDesign');
+            return view('client.enjayDesign', [
+                'contactsTable' => $contactsTable->html(),
+                'contactsScripts' => $contactsTable->html()->scripts(),
+
+                'historyTable' => $historyTable->html(),
+                'historyScripts' => $historyTable->html()->scripts(),
+            ]);
 
         } catch (\Throwable $th) {
             dd($th);
@@ -234,6 +240,8 @@ class AjaxRequestController extends Controller
 
     public function importFromGoogle()
     {   try{
+        Log::info('Import Form Google Function '  );
+
         $googleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
         $newClientSyncHistoyRow=new clientContatSyncHistory();
         $newClientSyncHistoyRow->batches += 1;
@@ -241,21 +249,56 @@ class AjaxRequestController extends Controller
 
         importFormGoogleJob::dispatch($googleToken, $newClientSyncHistoyRow->id);
 
+        Log::info('Import Form Google Function return '  );
 
-        unset($googleToken);
-        unset($newClientSyncHistoryRow);
+        // unset($googleToken);
+        // unset($newClientSyncHistoryRow);
         return response()->json([
                 'status'=>true,
                 'message'=>"Import From Google Contact",
                 'error'=>false,
                 'data'=>[],
             ]);
-             //code...
+
         } catch (Exception $e) {
             return response()->json([
                 'status'=>false,
                 'error'=>true,
                 'massage'=>$e,
+                'data'=>[],
+            ]);
+        }
+    }
+
+    public function singleSyncById(Request $request){
+        try {
+            $client = (new GoogleService())->getGoogleCient($this->googleToken);
+            $peopleService = new PeopleService($client);
+
+            $cliet_id=$request->Cliet_id;
+            $contact=client::where('id',$cliet_id)->get()->first();
+            $person=(new GoogleService())->getPerson($contact);
+            $person->setEtag($contact->etag);
+            $updated = $peopleService->people->updateContact($contact->resourceName, $person, [
+                'updatePersonFields' => 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies',
+            ]);
+            $contact->etag = $updated->etag;
+            $contact->lastSync = Carbon::now();
+            $contact->syncStatus = 'Synced';
+            $contact->save();
+            
+            return response()->json([
+                'status'=>true,
+                'message'=>"Completed",
+                'error'=>false,
+                'data'=>$updated,
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status'=>false,
+                'error'=>true,
+                'massage'=>$e->getMessage(),
                 'data'=>[],
             ]);
         }
@@ -373,50 +416,37 @@ class AjaxRequestController extends Controller
         ->make(true);
     }
 
-    public function SyncContactsTable(SyncContactsDataTable $dataTable)
-    {
-        return $dataTable->render('client.enjayDesign');
-    }
 
 
+    ///------softDelete---crm--or----googlecontact---delete---------------
+    public function softDeletOrGoogleContact(Request $request){
+
+            $contactSoftDelete = filter_var($request->delete_contact, FILTER_VALIDATE_BOOLEAN);
+
+                if($contactSoftDelete === true){
+
+                $client = (new GoogleService())->getGoogleCient($this->googleToken);
+                    // Assume you already have the authenticated Google Client
+                $peopleService = new PeopleService($client);
+
+            // Fetch the contact's resourceName from your database
+            $contact = client::find($request->client_id);  // or however you fetch it
+            $resourceName = $contact->resourceName; // something like 'people/c123456789'
 
 
-    function test(){
-        $client = (new GoogleService())->getGoogleCient($this->googleToken);
-        $service = new PeopleService($client);
+            try {
 
-        $data=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
-        // if ($data) {
-        //     # code...
-        //     dd($data->synToken);
-        // }else{
-        //     dd($data);
-        // }
+                if($resourceName){
+                $delete= $peopleService->people->deleteContact( $resourceName);
 
-        $params = [
-            'resourceName' => 'people/me',
-            'personFields' => 'names,emailAddresses,phoneNumbers',
-            'pageSize' => 1000,
-            'requestSyncToken' => true,
-            'syncToken' => $data->synToken, // Use this in future calls
-        ];
+                if($delete){
+                    $contact->delete();
+                }
+                return response()->json(['success' => true,'message' => 'Contact deleted from Google and CRM.','resource'=>$resourceName]);
 
-        $response = $service->people_connections->listPeopleConnections('people/me', $params);
+                }else{
+                $contact->delete();
 
-        Log::info('Ajac Controller test Method: ' . (memory_get_usage(true)/1024/1024)." MB");
-        dd($response);
-
-        $params = [
-            'resourceName' => 'people/me',
-            'personFields' => 'names,emailAddresses,phoneNumbers',
-            'pageSize' => 1000,
-            'syncToken' => $response->getNextSyncToken(),
-        ];
-
-        // Store this token for future incremental syncs
-        $nextSyncToken = $response->getNextSyncToken();
-
-    }
 
     ///------softDelete---crm--or----googlecontact---delete---------------
     public function softDeletOrGoogleContact(Request $request){
@@ -470,11 +500,30 @@ class AjaxRequestController extends Controller
                     return response()->json(['success' => false, 
                     'message' => 'Contact not found.'
                 ]);
+
                 }
+            } catch (\Google\Service\Exception $e) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+
+                // return response()->json(['message' => 'Google Contact deleted successfully.','resource'=>$resourceName]);
+
+
+                }else{
+
+            $contact = client::find($request->client_id);
+            if ($contact) {
+                // $contact->delete(); // Soft delete karega (deleted_at fill karega)
+                return response()->json(['success' => true,
+                'message' => ' CRM Contact soft deleted successfully.',
+                'data'=>$contactSoftDelete
+            ]);
+            } else {
+                return response()->json(['success' => false,
+                'message' => 'Contact not found.'
+            ]);
             }
         }
-        
     }
 
-
-
+}

@@ -1,10 +1,77 @@
 @extends('layout.index')
 
+@push('styles')
+<style>
+    .dt-length{
+        padding: 10px 20px;
+    }
+    th{
+        background-color:#d0d0d0;
+        font-weight: 400;
+    }
+
+    tr{
+        border-bottom: 1px solid gray;
+    }
+
+    .rowHoverClass:hover{
+        background-color: #e2e2e2;
+    }
+
+    .pagination{
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .first, .last{
+        display: none;
+        border:none;
+    }
+
+    .active{
+        color: blue;
+        font-weight: 500;
+    }
+    .next,.previous{
+        border: 1px solid black;
+        border-radius: 5px;
+        padding: 7px 15px;
+        font-weight: 500;
+    }
+    .disabled{
+        color: gray;
+
+    }
+
+    .dt-search{
+        width: 100%;
+    }
+    .dt-search input{
+        width: 100%;
+        border: 1px solid black;
+        border-radius: 10px;
+        padding: 7px 12px 7px 31px;
+    }
+
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+</style>
+@endpush
+
 @section('container')
 <div class=" mx-auto px-4  sm:px-6 lg:px-8 py-6 bg-gray-50">
 
 
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex items-center justify-between bg-white shadow-xl p-2">
         <div class="flex items-center gap-2">
             <h1 class="text-xl font-semibold text-gray-800">Dashboard</h1><span class="text-gray-400">›</span><span class="text-gray-600">Google Contacts Integration</span>
         </div>
@@ -19,7 +86,7 @@
     </div>
     <!-- >>>>>>>>>>>>>>>>>>>>>>>Dispaly Cards<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-lg border-gray-200 bg-card text-card-foreground shadow-sm" data-v0-t="card">
+        <div class="rounded-lg border-white border-2 bg-card text-card-foreground hover:border-blue-300 shadow-xl hover:shadow-blue-400 hover:shadow-sm" data-v0-t="card">
             <div class="space-y-1.5 p-6 flex flex-row items-center justify-between pb-2">
                 <h3 class="tracking-tight text-sm font-medium">Total Contacts</h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="h-4 w-4 text-muted-foreground">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -31,14 +98,14 @@
                 <div id="contactsInCrm" class="text-2xl font-bold">0</div>
                 <p class="text-xs text-green-500 text-muted-foreground">+<span id="lastSyncNewContact">0</span> from last sync</p>
                 <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
-                    <div class="flex flex-col"><span class="text-muted-foreground">In CRM</span><span id="contactsInCrm1" class="font-medium">0</span></div>
-                    <div class="flex flex-col"><span class="text-muted-foreground">In Google</span><span id="contactsInGoogle" class="font-medium">0</span></div>
+                    <div class="flex flex-col text-green-500"><span class="text-muted-foreground">In CRM</span><span id="contactsInCrm1" class="font-medium">0</span></div>
+                    <div class="flex flex-col text-blue-600"><span class="text-muted-foreground">In Google</span><span id="contactsInGoogle" class="font-medium">0</span></div>
                 </div>
             </div>
         </div>
 
         <!-- Sunc Status  -->
-        <div class="rounded-lg border-gray-200 bg-card text-card-foreground shadow-sm" data-v0-t="card">
+        <div class="rounded-lg border-white border-2 bg-card text-card-foreground hover:border-blue-300 shadow-xl hover:shadow-blue-400 hover:shadow-sm" data-v0-t="card">
             <div class="space-y-1.5 p-6 flex flex-row items-center justify-between pb-2">
                 <h3 class="tracking-tight text-sm font-medium">Sync Status</h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="h-4 w-4 text-muted-foreground">
                     <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
@@ -54,14 +121,14 @@
 
                 </div>
                 <div class="mt-2 grid grid-cols-3 gap-1 text-xs">
-                    <div class="flex flex-col"><span class="text-muted-foreground">Synced</span><span id="processBarSyned" class="font-medium">0</span></div>
-                    <div class="flex flex-col"><span class="text-muted-foreground">Pending</span><span id="processBarPending" class="font-medium">0</span></div>
-                    <div class="flex flex-col"><span class="text-muted-foreground">Failed</span><span id="processBarErros" class="font-medium">0</span></div>
+                    <div class="flex flex-col text-green-500"><span class="text-muted-foreground">Synced</span><span id="processBarSyned" class="font-medium">0</span></div>
+                    <div class="flex flex-col text-yellow-600"><span class="text-muted-foreground">Pending</span><span id="processBarPending" class="font-medium">0</span></div>
+                    <div class="flex flex-col text-red-600"><span class="text-muted-foreground">Failed</span><span id="processBarErros" class="font-medium">0</span></div>
                 </div>
             </div>
         </div>
         <!--  Changes Update Card -->
-        <div class="rounded-lg border-gray-200 bg-card text-card-foreground shadow-sm" data-v0-t="card">
+        <div class="rounded-lg border-white border-2 bg-card text-card-foreground hover:border-blue-300 shadow-xl hover:shadow-blue-400 hover:shadow-sm" data-v0-t="card">
             <div class="space-y-1.5 p-6 flex flex-row items-center justify-between pb-2">
                 <h3 class="tracking-tight text-sm font-medium">Changes Detected</h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="h-4 w-4 text-muted-foreground">
                     <rect width="20" height="14" x="2" y="5" rx="2"></rect>
@@ -72,31 +139,31 @@
                 <div id="lastSyncChangesDeteted" class="text-2xl font-bold">0</div>
                 <p class="text-xs text-muted-foreground">Since last sync</p>
                 <div class="mt-4 grid grid-cols-3 gap-1 text-xs">
-                    <div class="flex flex-col"><span class="text-muted-foreground">Added</span><span id="lastSyncNewContact1" class="font-medium">0</span></div>
-                    <div class="flex flex-col"><span class="text-muted-foreground">Updated</span><span id="lastSyncUpdatedContact" class="font-medium">0</span></div>
-                    <div class="flex flex-col"><span class="text-muted-foreground">Deleted</span><span id="lastSyncDeletedContact" class="font-medium">0</span></div>
+                    <div class="flex flex-col text-green-500"><span class="text-muted-foreground">Added</span><span id="lastSyncNewContact1" class="font-medium">0</span></div>
+                    <div class="flex flex-col text-yellow-600"><span class="text-muted-foreground">Updated</span><span id="lastSyncUpdatedContact" class="font-medium">0</span></div>
+                    <div class="flex flex-col text-red-600"><span class="text-muted-foreground">Deleted</span><span id="lastSyncDeletedContact" class="font-medium">0</span></div>
                 </div>
             </div>
         </div>
         <!-- Action Card -->
-        <div class="rounded-lg border-gray-200 bg-card text-card-foreground shadow-sm" data-v0-t="card">
+        <div class="rounded-lg border-white border-2 bg-card text-card-foreground hover:border-blue-300 shadow-xl hover:shadow-blue-400 hover:shadow-sm" data-v0-t="card">
             <div class="space-y-1.5 p-6 flex flex-row items-center justify-between pb-2">
                 <h3 class="tracking-tight text-sm font-medium">Actions</h3>
             </div>
             <div class="p-6 pt-0">
                 <div class="mt-0 grid grid-cols-1 gap-2">
-                    <button id="syncNow" class=" syncNow cursor-pointer bg-black text-white inline-flex items-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 w-full justify-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
+                    <button id="syncNow" class="hover:bg-gray-300  hover:shadow-4xl hover:scale-103 hover:text-green-500 syncNow border-2 cursor-pointer bg-black text-white inline-flex items-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 w-full justify-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
                             <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
                             <path d="M21 3v5h-5"></path>
                             <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
                             <path d="M8 16H3v5"></path>
                         </svg>Sync Now</button>
-                    <button id="pushToGoogle" class="cursor-pointer inline-flex items-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 w-full justify-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-upload h-4 w-4">
+                    <button id="pushToGoogle" class="hover:bg-black hover:shadow-4xl hover:scale-103 hover:text-green-500 cursor-pointer inline-flex items-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 w-full justify-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-upload h-4 w-4">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="17 8 12 3 7 8"></polyline>
                             <line x1="12" x2="12" y1="3" y2="15"></line>
                         </svg>Push to Google</button>
-                    <button id="importFromGoogle" class="cursor-pointer inline-flex items-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 w-full justify-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download h-4 w-4">
+                    <button id="importFromGoogle" class="hover:bg-black hover:shadow-4xl hover:scale-103 hover:text-green-500 cursor-pointer inline-flex items-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 w-full justify-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download h-4 w-4">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" x2="12" y1="15" y2="3"></line>
@@ -109,16 +176,17 @@
 
     <!-- >>>>>>>>>>>>>>>>>>>>>>>Navigation Table<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
 
-    <div dir="ltr" data-orientation="horizontal" class="mt-6 border-gray-200">
-        <div role="tablist" aria-orientation="horizontal" class="h-10 mb-6 items-center justify-center rounded-md p-1 text-muted-foreground grid w-full grid-cols-4 bg-white">
-            <button type="button" role="tab" aria-selected="false" aria-controls="content-sync" class="tab-button">Sync Status</button>
-            <button type="button" role="tab" aria-selected="false" aria-controls="content-history" class="tab-button text-gray-500">Sync History</button>
-            <button type="button" role="tab" aria-selected="true" aria-controls="content-contacts" class="tab-button text-gray-500">Contacts</button>
-            <button type="button" role="tab" aria-selected="false" aria-controls="content-settings" class="tab-button text-gray-500">Settings</button>
+    <div dir="ltr" data-orientation="horizontal" class="mt-6 border-gray-200 shadow-xl bg-gray-100">
+
+        <div role="tablist" aria-orientation="horizontal" class="h-12 mb-6 items-center justify-center rounded-md text-muted-foreground grid w-full grid-cols-4 ">
+            <button type="button" role="tab" aria-selected="false" aria-controls="content-sync" class="bg-white tab-button text-blue-700 border-blue-700 font-semibold border-b-2  py-2 ">Sync Status</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="content-history" class="bg-white tab-button   border-b-2 border-none py-2 ">Sync History</button>
+            <button type="button" role="tab" aria-selected="true" aria-controls="content-contacts" class="bg-white tab-button  border-b-2 border-none py-2 ">Contacts</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="content-settings" class="bg-white tab-button  border-b-2 border-none py-2 ">Settings</button>
         </div>
 
         <!-- >>>>>>>>>>>>>>>>>>>>>>>Sync Contact Table  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
-        <div id="content-contacts" hidden class=" tab-panel rounded-lg border-gray-200 bg-card text-card-foreground shadow-sm" data-v0-t="card">
+        <div id="content-contacts" hidden class=" tab-panel rounded-lg border-gray-200 bg-card text-card-foreground shadow-sm bg-white" data-v0-t="card">
             <div class="flex flex-col space-y-1.5 p-6">
                 <div class="flex items-center justify-between">
                     <div>
@@ -138,7 +206,7 @@
                         </svg>Import</button> -->
 
                             <a href="{{route('client.create')}}">
-                            <button  class="hover:text-blue-600 cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus h-4 w-4">
+                            <button  class="bg-black text-white hover:bg-blue-500 cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus h-4 w-4">
                                 <path d="M5 12h14"></path>
                                 <path d="M12 5v14"></path>
                             </svg>Add Contact</button> </a>
@@ -151,26 +219,22 @@
                             <circle cx="11" cy="11" r="8"></circle>
                             <path d="m21 21-4.3-4.3"></path>
                         </svg>
-                        <input id="ContactsCustomSearch" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-8" placeholder="Search contacts...">
+                        <div id="synccontacts-table-search"></div>
                     </div>
 
                 </div>
                 <div class="rounded-md border">
-                {{ $dataTable->table() }}
+                    {!! $contactsTable->table(['class' => '']) !!}
                 </div>
-                <!-- <div class="mt-4 flex items-center justify-between text-sm">
-                    <div id="contatTableText" class="text-muted-foreground">Showing 6 of 1,248 contacts</div>
-                    <div class="flex gap-1">
-                        <button id="previous" class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3" disabled="">Previous</button>
-                        <button id="next" class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3">Next</button>
-                    </div>
-                </div> -->
+                <div id="synccontacts-table-pagination" class="mt-4 text-sm w-full">
+                    <!-- here will diaplay pagination buttons -->
+                </div>
             </div>
 
         </div>
 
         <!-- >>>>>>>>>>>>>>>>>>>>>>>Sync History Table Table<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
-        <div id="content-history" hidden class="tab-panel rounded-lg border-gray-200 bg-card text-card-foreground shadow-sm" data-v0-t="card">
+        <div id="content-history" hidden  class="tab-panel rounded-lg border-gray-200 bg-card text-card-foreground shadow-sm bg-white" data-v0-t="card">
             <div class="flex flex-col space-y-1.5 p-6">
                 <div class="flex items-center justify-between">
                     <div>
@@ -187,37 +251,25 @@
                 </div>
             </div>
             <div class="p-6 pt-0">
+                <div id="historyTable-search" class=""> <!-- Search will Displaa here  --></div>
                 <div class="rounded-md border">
-                    <table id="contact-history-table" class="contact-history-table w-full">
-                        <thead>
-                            <tr class="border-b bg-muted/50 text-sm">
-                                <th class="px-4 py-3 text-left font-medium">Date Time</th>
-                                <th class="px-4 py-3 text-left font-medium">Status</th>
-                                <th class="px-4 py-3 text-left font-medium">Added</th>
-                                <th class="px-4 py-3 text-left font-medium">Updated</th>
-                                <th class="px-4 py-3 text-left font-medium">Deleted</th>
-                                <th class="px-4 py-3 text-left font-medium">Errors</th>
-                                <th class="px-4 py-3 text-left font-medium">Actions</th>
-                            </tr>
-                        </thead>
-                    </table>
+                {!! $historyTable->table(['class' => 'p-4 w-full']) !!}
                 </div>
-                <div class="mt-4 flex items-center justify-between text-sm">
-                    <div class="text-muted-foreground">Showing 5 of 24 entries</div>
-                    <div class="flex gap-1"><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3" disabled="">Previous</button><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3">Next</button></div>
+                <div id="historyTable-pagination" class="mt-4 text-sm w-full">
+                    <!-- here will diaplay pagination buttons -->
                 </div>
             </div>
         </div>
 
-        <!-- >>>>>>>>>>>>>>>>>>>>>>>vContactvSync Status Table<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
-        <div id="content-sync" class="tab-panel rounded-lg border-gray-200 border bg-card text-card-foreground shadow-sm" data-v0-t="card">
+        <!-- >>>>>>>>>>>>>>>>>>>>>>> Contact Sync Status Table<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
+        <div id="content-sync"  class="tab-panel rounded-lg border-gray-200 border bg-card text-card-foreground shadow-sm bg-white" data-v0-t="card">
             <div class="flex flex-col space-y-1.5 p-6">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-2xl font-semibold leading-none tracking-tight">Contact Sync Status</h3>
                         <p class="text-sm text-muted-foreground">Current status of Google Contacts synchronization</p>
                     </div>
-                    <button id="refresh" class=" bg-black text-white inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
+                    <button id="refresh" class="hover:bg-gray-300  hover:shadow-4xl hover:scale-103 hover:text-green-500 bg-black text-white inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
                             <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
                             <path d="M21 3v5h-5"></path>
                             <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
@@ -228,7 +280,7 @@
             <div class="p-6 pt-0">
                 <div class="rounded-md border-gray-200 border">
                     <div class="flex items-center justify-between border-gray-200 border-b bg-muted/50 px-4 py-3">
-                        <div class="flex items-center gap-2"><span class="font-medium">Last Sync:</span><span id="lastSyncDate">April 7, 2025 at 1:29 PM</span></div>
+                        <div class="flex items-center gap-2 "><span class="font-medium">Last Sync:</span><span id="lastSyncDate">April 7, 2025 at 1:29 PM</span></div>
                         <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700" data-v0-t="badge"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big h-3 w-3">
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                                 <path d="m9 11 3 3L22 4"></path>
@@ -315,7 +367,7 @@
                     </div>
                 </div>
                 <div class="mt-6 flex justify-between">
-                    <button id="syncNow1" class="syncNow bg-black text-white inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
+                    <button id="syncNow1" class="syncNow hover:bg-gray-300  hover:shadow-4xl hover:scale-103 hover:text-green-500 bg-black text-white inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
                         </svg>Sync Now</button>
                     <!-- <div class="flex gap-2"><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">View Logs</button><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">Resolve All Issues</button></div> -->
                 </div>
@@ -333,8 +385,8 @@
 @endsection
 
 @push('scripts')
-    {{ $dataTable->scripts(attributes: ['type' => 'module']) }}
-
+    {!! $contactsScripts !!}
+    {!! $historyScripts !!}
 @endpush
 
 @section('script')
@@ -346,66 +398,63 @@
         refresh();
         SyncStatus();
 
-        //data tabler Related
-        var table = $('#synccontacts-table').DataTable();
-        $('.dt-search').addClass("hidden")
-        $('#ContactsCustomSearch').on('keypress', function () {
-            table.search(this.value).draw();
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
         });
 
 
-        // getClinetSyncHistory Datatable
-        $('.contact-history-table').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: '{{ route("ajax.getClinetSyncHistory") }}',
-            },
-            columns: [
-                {
-                    data: 'created_at',
-                    name: 'created_at',
-                    render: function(data) {
-                            const date = new Date(data);
-                            return date.toLocaleString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: 'numeric',
-                                minute: '2-digit',
-                                hour12: true
-                            });
-                         }
+        $(document).on('click', '.singleSyncContact', function(e) {
+            e.preventDefault();
+            let id = $(this).data('sync-id'); // Get contact ID dynamically
+            $(this).css({ 'animation': 'spin 2s linear infinite','color':'blue' });
+
+            $.ajax({
+                url:'/singleSyncById',
+                method:'post',
+                data:{
+                    Cliet_id:id,
                 },
-                { data: 'error',
-                    name: 'error',
-                    render:function(data){
-                        if (data==0) {
-                            return "Completed";
-                        }
-                        return "Warning";
+                success:function(response) {
+                    console.log(response);
+                    if (response.status) {
+                            toastr.success(response.message);
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
                     }
-                 },
-                { data: 'created', name: 'created' },
-                { data: 'updated', name: 'updated' },
-                { data: 'deleted', name: 'deleted' },
-                { data: 'error', name: 'error' },
-                { data: 'action', name: 'action' },
-            ],
+                }
+            });
+
         });
+
+
+        $('#historyTable-pagination').html($('.clietssyncedhistory-table '));
+        $('#historyTable-search').html($('.clietssyncedhistory-search'));
+
+        $('#synccontacts-table-pagination').html($('.synccontacts-table'));
+        $('#synccontacts-table-search').html($('.synccontacts-table-search'));
+
 
             // To swith table
         $('.tab-button').on('click', function() {
             // Deactivate all tabs
             $('.tab-button').attr('aria-selected', 'false');
-            $('.tab-button').css('color', 'gray');
+            // $('.tab-button').css('color', '#6B7280');
+            $('.tab-button').css('color', 'black');
+            $('.tab-button').css('border-color', 'white');
+            $('.tab-button').css('font-weight', '400');
 
             // Hide all panels
             $('.tab-panel').attr('hidden', true);
 
             // Activate the clicked tab
             $(this).attr('aria-selected', 'true');
-            $(this).css('color', 'black');
+            $(this).css('color', 'blue');
+            $(this).css('border-bottom', '2px solid blue');
+            $(this).css('font-weight', '500');
+
 
             // Show the corresponding panel
             var panelId = $(this).attr('aria-controls');

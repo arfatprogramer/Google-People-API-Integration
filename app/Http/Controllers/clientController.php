@@ -150,7 +150,7 @@ public function UpdateFormContact(Request $request){
         $newClient->firstMeetingDate=$request->firstMeetingDate;       //"firstMeetingDate" => null
         $newClient->typeOfRelation=$request->typeOfRelation;         //"typeOfRelation" => "Select"
         $newClient->maritalStatus=$request->maritalStatus;          //"maritalStatus" => "Select"
-       
+
         $newClient->maritalStatus=$request->maritalStatus;
 
         $newClient->syncStatus="Pending";
