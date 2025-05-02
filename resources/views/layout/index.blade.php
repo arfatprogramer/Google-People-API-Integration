@@ -50,7 +50,7 @@
 
                             <a class="flex items-center  hover:bg-gray-200" href="{{route('client.list')}}">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-red-500 flex items-center justify-center text-white m-2">C</span>
-                                <span class="pr-4">Clinet</span>
+                                <span class="pr-4">Clients</span>
                             </a>
 
                             <a class="flex items-center hover:bg-gray-200" href="{{route('client.create')}}">
@@ -60,7 +60,7 @@
 
                             <a class="flex items-center hover:bg-gray-200" href="{{route('client.list')}}">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-green-500 flex items-center justify-center text-white m-2">FO</span>
-                                <span class="pr-4">Family/Orgnization</span>
+                                <span class="pr-4">Organization</span>
                             </a>
 
                             <a class="flex items-center hover:bg-gray-200" href="{{route('client.list')}}">
@@ -103,6 +103,10 @@
     {{-- //---crm.js---------------------------- --}}
     <script src="{{ asset('crmContact/crm.js') }}"></script>
 
+    {{-- -------google---map---api------------ --}}
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+
+
 <script>
       toastr.options = {
         "positionClass": "toast-top-center",
@@ -135,6 +139,7 @@
     @elseif(session('info'))
         showToastr('info', @json(session('info')));
     @endif
+
 </script>
 
 </body>

@@ -376,7 +376,63 @@
 
         <div id="content-settings" class="tab-panel" hidden>
             <!-- Settings Table -->
-            <h1>Setting page</h1>
+            <div class="w-full bg-white p-6 rounded-lg shadow">
+                <h1 class="text-2xl font-semibold mb-4">Google Contacts Integration Settings</h1>
+        
+                <div class="mb-6">
+                    <h2 class="text-lg font-medium mb-2">Sync Options</h2>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-2 rounded" checked>
+                            Enable automatic sync (every 30 minutes)
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-2 rounded" checked>
+                            Enable two-way sync (changes in CRM update Google Contacts)
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-2 rounded" checked>
+                            Notify on sync errors
+                        </label>
+                    </div>
+                </div>
+        
+                <div class="mb-6">
+                    <h2 class="text-lg font-medium mb-2">Field Mapping</h2>
+                    <table class="w-full text-left border border-gray-200">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="p-2 border-b border-gray-200">CRM Field</th>
+                                <th class="p-2 border-b border-gray-200">Google Contacts Field</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-2 border-b border-gray-200">Name</td>
+                                <td class="p-2 border-b border-gray-200">Name</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border-b border-gray-200">Email</td>
+                                <td class="p-2 border-b border-gray-200">Email</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border-b border-gray-200">Phone</td>
+                                <td class="p-2 border-b border-gray-200">Phone</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2">Company</td>
+                                <td class="p-2">Organization</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+        
+                <div class="flex justify-end space-x-2">
+                    <button class="px-4 py-2 rounded border border-gray-300 hover:bg-gray-100">Cancel</button>
+                    <button class="px-4 py-2 rounded bg-black text-white hover:bg-gray-800">Save Settings</button>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>

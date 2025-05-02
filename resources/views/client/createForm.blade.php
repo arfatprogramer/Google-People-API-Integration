@@ -10,7 +10,7 @@
             <div class="w-[95vw]  p-2 border-b border-gray-100 shadow-lg fixed top-12  bg-white  z-5  ">
                 <div class="flex justify-between  ">
 
-                    <div class="flex justify-center items-center">
+                    <div class="flex justify-center items-center ml-2.5">
                         <a href="#" class="text-blue-500 hover:text-blue-600 ">Clients</a>
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 fill-current text-gray-500 "
                             viewBox="0 0 24 24">
@@ -137,7 +137,7 @@
                                                 placeholder="Type">
                                         </td>
                                         <td class="px-4 py-2">
-                                            <input type="text" name="addresses[0][street]"
+                                            <input type="text" name="addresses[0][street]" id="street"
                                                 value="{{ old('street', $data->street ?? '') }}"
                                                 class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
                                                 placeholder="Street">
@@ -149,25 +149,25 @@
                                                 placeholder="Area">
                                         </td>
                                         <td class="px-4 py-2">
-                                            <input type="text" name="addresses[0][city]"
+                                            <input type="text" name="addresses[0][city]" id="city"
                                                 value="{{ old('city', $data->city ?? '') }}"
                                                 class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
                                                 placeholder="City">
                                         </td>
                                         <td class="px-4 py-2">
-                                            <input type="text" name="addresses[0][state]"
+                                            <input type="text" name="addresses[0][state]" id="state"
                                                 value="{{ old('state', $data->state ?? '') }}"
                                                 class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
                                                 placeholder="State">
                                         </td>
                                         <td class="px-4 py-2">
-                                            <input type="text" name="addresses[0][postal_code]"
+                                            <input type="text" name="addresses[0][postal_code]" id="postal_code"
                                                 value="{{ old('postalCode', $data->postalCode ?? '') }}"
                                                 class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
                                                 placeholder="Postal Code">
                                         </td>
                                         <td class="px-4 py-2">
-                                            <input type="text" name="addresses[0][country]"
+                                            <input type="text" name="addresses[0][country]" id="country"
                                                 value="{{ old('country', $data->country ?? '') }}"
                                                 class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
                                                 placeholder="Country">
@@ -187,7 +187,7 @@
                     </div>
 
                     <button type="button" id="addRow"
-                        class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer">
                         Add
                     </button>
                 </div>
@@ -498,9 +498,8 @@
                 $(this).closest('tr').toggleClass('bg-yellow-100');
                 alert('Marked address with warning!');
             });
-
-            
-            
+   
         });
     </script>
+
 @endsection

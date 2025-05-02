@@ -28,7 +28,7 @@
 @section('container')
 <div class=" rounded-lg shadow-md p-6 ">
     <div class="flex items-center justify-between">
-    <h2 class="text-2xl font-semibold mb-6">Show Client</h2>
+    <h2 class="text-2xl font-semibold mb-6">Show Clients</h2>
     <!-- <button class=" bg-blue-600 text-white  border-gray-700 border-2 rounded-md p-2 hover:bg-blue-800 "><a href="{{url('sync')}}">View Sync Details</a></button> -->
     </div>
     <div class=" overflow-auto ">
@@ -53,8 +53,6 @@
                     <th class="whitespace-nowrap px-3">Updated At</th>
                 </tr>
             </thead>
-
-
         </table>
 
         
@@ -75,10 +73,8 @@
             </div>
       <!-- Title -->
       <h2 class="text-xl font-semibold mb-2">Are you sure?</h2>
-
       <!-- Subtext -->
       <p class="text-gray-600 text-sm mb-6">Do you really want to delete this? After deleting, you can't undo.</p>
-
       <!-- Action Buttons -->
       <div class="flex justify-end space-x-3">
         <button id="closeModal" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 cursor-pointer">Cancel</button>
@@ -94,16 +90,7 @@
 
 
 </div>
-{{-- // Read Laravel session flash messages and trigger Toastr --}}
-{{-- @if(session('success'))
-    showToastr('success', @json(session('success')));
-@elseif(session('error'))
-    showToastr('error', @json(session('error')));
-@elseif(session('warning'))
-    showToastr('warning', @json(session('warning')));
-@elseif(session('info'))
-    showToastr('info', @json(session('info')));
-@endif --}}
+
 
 @endsection
 
