@@ -18,6 +18,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+   {{-- //----toaster--css------------ --}}
+   <link rel="stylesheet" href="{{ asset('asset/toastr.css') }}">
 
   @stack('styles')
 
@@ -48,7 +50,7 @@
 
                             <a class="flex items-center  hover:bg-gray-200" href="{{route('client.list')}}">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-red-500 flex items-center justify-center text-white m-2">C</span>
-                                <span class="pr-4">Clinet</span>
+                                <span class="pr-4">Clients</span>
                             </a>
 
                             <a class="flex items-center hover:bg-gray-200" href="{{route('client.create')}}">
@@ -58,7 +60,7 @@
 
                             <a class="flex items-center hover:bg-gray-200" href="{{route('client.list')}}">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-green-500 flex items-center justify-center text-white m-2">FO</span>
-                                <span class="pr-4">Family/Orgnization</span>
+                                <span class="pr-4">Organization</span>
                             </a>
 
                             <a class="flex items-center hover:bg-gray-200" href="{{route('client.list')}}">
@@ -97,6 +99,48 @@
     <script src="https://cdn.datatables.net/v/bs5/jq-3.7.0/dt-2.2.2/cr-2.0.4/r-3.0.4/rr-1.5.0/datatables.min.js" integrity="sha384-9bYIk8wcWyHP6sGRy9fZWduNYeGcDw+PZhWc+ue0Hrt0iNDOn8OTj+YLtvuZ/dth" crossorigin="anonymous"></script>
 
     @yield("script")
+
+    {{-- //---crm.js---------------------------- --}}
+    <script src="{{ asset('crmContact/crm.js') }}"></script>
+
+    {{-- -------google---map---api------------ --}}
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+
+
+<script>
+      toastr.options = {
+        "positionClass": "toast-top-center",
+        "closeButton": true,
+        "progressBar": true,
+        "timeOut": "4000",
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+    
+    function showToastr(type, message) {
+
+        if (type === 'success') toastr.success(message);
+        if (type === 'error') toastr.error(message);
+        if (type === 'warning') toastr.warning(message);
+        if (type === 'info') toastr.info(message);
+    }
+
+    @if(session('success'))
+        showToastr('success', @json(session('success')));
+    @elseif(session('error'))
+        showToastr('error', @json(session('error')));
+    @elseif(session('warning'))
+        showToastr('warning', @json(session('warning')));
+    @elseif(session('info'))
+        showToastr('info', @json(session('info')));
+    @endif
+
+</script>
 
 </body>
 
