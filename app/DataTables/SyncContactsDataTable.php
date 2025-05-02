@@ -27,13 +27,15 @@ class SyncContactsDataTable extends DataTable
             // ->addColumn('Check', function($row) {
             //     return '<input type="checkbox" class="h-4 w-4 rounded border-gray-300">';
             // })
+           ->addIndexColumn()
             ->setRowClass('rowHoverClass ')
+            ->setRowId('id')
             ->addColumn('action', function($row) {
                     $disable="";
                 if ($row->syncStatus=="Synced") {
                     $disable="Disabled";
                 }
-                return '<div class=" flex gap-1"><button '.$disable.' data-sync-id='.$row->id.' class="singleSyncContact hover:text-blue-600 cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground rounded-md h-8 w-8 p-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
+                return '<div class=" flex gap-1"><button '.$disable.' data-sync-id='.$row->id.' data-sync-status='.$row->syncStatus.' class="singleSyncContact hover:text-blue-600 cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground rounded-md h-8 w-8 p-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
                     <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
                     <path d="M21 3v5h-5"></path>
                     <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
@@ -43,20 +45,25 @@ class SyncContactsDataTable extends DataTable
                 </svg></button></a></div>';
             })
             ->addColumn('updated_at',function($row){
-                // $date = time() - strtotime($row->lastSync??Time());
-                $row->lastSync==null ? ($date = 0) : ($date = time() - strtotime($row->lastSync));
-                $min = round($date / 60); // seconds to minutes
-                $hours = round($date / 3600); // seconds to hours
-                $days = round($date / 86400); // seconds to days
-
-                if ( $min >= 0 && $min < 60) {
-                    return "$min Minutes Ago";
-                } elseif ($hours> 0 && $hours < 24) {
-                    return "$hours Hours Ago";
-                } elseif ($days >= 1 ) {
-                    return "$days Days Ago";
-                } else {
+                if ($row->lastSync==null) {
                     return "Never";
+                }
+
+                $date = time() - strtotime($row->lastSync);
+                $seconds =$date;
+
+                $minutes = floor($date / 60);
+                $hours = floor($date / 3600);
+                $days = floor($date / 86400);
+
+                if ($seconds < 60) {
+                    return "$seconds Seconds Ago";
+                } elseif ($minutes < 60) {
+                    return "$minutes Minutes Ago";
+                } elseif ($hours < 24) {
+                    return "$hours Hours Ago";
+                } else {
+                    return "$days Days Ago";
                 }
 
             })
@@ -68,13 +75,15 @@ class SyncContactsDataTable extends DataTable
                 }elseif ($row->syncStatus=='Pending'){
 
                     $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-yellow-50 text-yellow-700' data-v0-t='badge'>$row->syncStatus</div>";
+                }elseif($row->syncStatus=='Deleted'){
+                    $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-gray-50 text-red-700' data-v0-t='badge'>$row->syncStatus</div>";
                 }
                 else{
                     $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-gray-50 text-gray-700' data-v0-t='badge'>$row->syncStatus</div>";
                 }
                 return $data;
             })
-            ->rawColumns(['action','syncStatus']);
+            ->rawColumns(['Sr','action','syncStatus']);
     }
 
     /**
@@ -101,7 +110,7 @@ class SyncContactsDataTable extends DataTable
             ->selectStyleSingle()
             ->parameters([
                 // 'dom' => 'Bfrt<bottom ip>',
-                'dom' => '<"synccontacts-table-search flex justify-between items-center mb-4"fB>lrt<"synccontacts-table flex justify-between items-center mt-4"ip>',
+                'dom' => '<"synccontacts-table-search flex justify-between items-center mb-4" fB>lrt<"synccontacts-table flex justify-between items-center mt-4"ip>',
                 'language' => [
                     'search' => '',
                     'searchPlaceholder' => 'Search...',
@@ -110,15 +119,16 @@ class SyncContactsDataTable extends DataTable
                         'previous' => 'Previous',
                         'next' => 'Next',
                     ],
+
                 ],
+
             ])
             ->buttons([
                 Button::make('excel'),
                 Button::make('csv'),
                 Button::make('pdf'),
                 Button::make('print'),
-                Button::make('reset'),
-                Button::make('reload')
+
             ]);
     }
 
@@ -128,18 +138,17 @@ class SyncContactsDataTable extends DataTable
     public function getColumns(): array
     {
         return [
-            // Column::computed('Check')
-            //     ->exportable(false)
-            //     ->printable(false)
-            //     ->width(10)
-            //     ->addClass('text-center'),
+            Column::computed('DT_RowIndex')
+            ->title('Sr')
+            ->width(30)
+            ->addClass('text-center'),
 
             Column::make('firstName')->title('First Name')
             ->addClass('px-4 py-3 font-medium'),
             Column::make('email')->title('Email'),
             Column::make('number')->title('Phone Number'),
             Column::make('syncStatus')->title('Sync Status')->searchable(true),
-            Column::make('updated_at')->title('Last Sync'),
+            Column::make('updated_at')->title('Last Sync')->width(160),
 
             Column::computed('action')
                 ->exportable(false)

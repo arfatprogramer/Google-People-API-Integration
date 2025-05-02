@@ -178,11 +178,11 @@
 
     <div dir="ltr" data-orientation="horizontal" class="mt-6 border-gray-200 shadow-xl bg-gray-100">
 
-        <div role="tablist" aria-orientation="horizontal" class="h-12 mb-6 items-center justify-center rounded-md text-muted-foreground grid w-full grid-cols-4 ">
-            <button type="button" role="tab" aria-selected="false" aria-controls="content-sync" class="bg-white tab-button text-blue-700 border-blue-700 font-semibold border-b-2  py-2 ">Sync Status</button>
-            <button type="button" role="tab" aria-selected="false" aria-controls="content-history" class="bg-white tab-button   border-b-2 border-none py-2 ">Sync History</button>
-            <button type="button" role="tab" aria-selected="true" aria-controls="content-contacts" class="bg-white tab-button  border-b-2 border-none py-2 ">Contacts</button>
-            <button type="button" role="tab" aria-selected="false" aria-controls="content-settings" class="bg-white tab-button  border-b-2 border-none py-2 ">Settings</button>
+        <div role="tablist" aria-orientation="horizontal" class="h-12 mb-6 items-center justify-center rounded-md text-muted-foreground grid w-full grid-cols-4">
+            <button type="button" role="tab" aria-selected="false" aria-controls="content-sync"     class="tab-button cursor-pointer  bg-white border-2 border-white shadow-xl  hover:border-blue-300 hover:text-blue-400 hover:shadow-blue-400 hover:shadow-sm hover:font-semibold py-2 " style="color: oklch(0.707 0.165 254.624); font-weight: 600; border-color: oklch(0.707 0.165 254.624); box-shadow: oklch(0.707 0.165 254.624) 0px 0px 5px;">Sync Status</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="content-history"  class="tab-button cursor-pointer  bg-white border-2 border-white shadow-xl  hover:border-blue-300 hover:text-blue-400 hover:shadow-blue-400 hover:shadow-sm hover:font-semibold py-2 ">Sync History</button>
+            <button type="button" role="tab" aria-selected="true" aria-controls="content-contacts"  class="tab-button cursor-pointer  bg-white border-2 border-white shadow-xl  hover:border-blue-300 hover:text-blue-400 hover:shadow-blue-400 hover:shadow-sm hover:font-semibold py-2 ">Contacts</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="content-settings" class="tab-button cursor-pointer  bg-white border-2 border-white shadow-xl  hover:border-blue-300 hover:text-blue-400 hover:shadow-blue-400 hover:shadow-sm hover:font-semibold py-2 ">Settings</button>
         </div>
 
         <!-- >>>>>>>>>>>>>>>>>>>>>>>Sync Contact Table  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
@@ -194,16 +194,18 @@
                         <p class="text-sm text-muted-foreground">Manage your contacts and their sync status</p>
                     </div>
                     <div class="flex gap-2">
-                        <!-- <button class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-upload h-4 w-4">
+                        <!-- <button id="synccontactsExportExcel" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-upload h-4 w-4">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="17 8 12 3 7 8"></polyline>
                                 <line x1="12" x2="12" y1="3" y2="15"></line>
-                        </svg>Export</button>
-                        <button class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download h-4 w-4">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" x2="12" y1="15" y2="3"></line>
-                        </svg>Import</button> -->
+                        </svg>Export</button> -->
+
+                        <button id="synccontacts-reload" class="hover:bg-gray-300  hover:shadow-4xl hover:scale-103 hover:text-green-500 bg-blue-500 text-white inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                            <path d="M21 3v5h-5"></path>
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                            <path d="M8 16H3v5"></path>
+                        </svg>Refresh</button>
 
                             <a href="{{route('client.create')}}">
                             <button  class="bg-black text-white hover:bg-blue-500 cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus h-4 w-4">
@@ -262,6 +264,38 @@
         </div>
 
         <!-- >>>>>>>>>>>>>>>>>>>>>>> Contact Sync Status Table<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
+        <div id="ReCreateDeletedContactConfirmBox" style="background-color: rgba(128, 128, 128, 0.25);" hidden class="fixed inset-0 bg-gray-300 bg-opacity-25 flex items-center justify-center z-50">
+            <!-- Modal Box -->
+            <div class="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full text-center relative">
+
+            <!-- Close Icon -->
+            <button id="ReCreateColse" class="absolute top-2 right-7 text-gray-400 hover:text-gray-600 text-3xl cursor-pointer">&times;</button>
+
+                <div class="w-full flex justify-center items-center">
+                    <!-- Warning Icon -->
+                    <div  class="w-20 h-20 flex justify-center items-center text-red-500 text-4xl mb-4 text-center cursor-pointer rounded-full shadow-lg border-2  border-red-500 outline-none">
+                        <p class="text-center">X</p>
+                    </div>
+                </div>
+            <!-- Title -->
+            <h2 class="text-xl font-semibold mb-2">Are you sure?</h2>
+
+            <!-- Subtext -->
+            <p class="text-gray-600 text-sm mb-6">This contact was deleted from Google. Do you want to re-create it on Google Contacts?</p>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-3">
+                <button id="ReCreateCancel" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 cursor-pointer">Cancel</button>
+                <button id="ReCreateConfirm" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded cursor-pointer">Add Google</button>
+             </div>
+        </div>
+     </div>
+
+    </div>
+
+
+</div>
+
         <div id="content-sync"  class="tab-panel rounded-lg border-gray-200 border bg-card text-card-foreground shadow-sm bg-white" data-v0-t="card">
             <div class="flex flex-col space-y-1.5 p-6">
                 <div class="flex items-center justify-between">
@@ -385,14 +419,19 @@
 @endsection
 
 @push('scripts')
-    {!! $contactsScripts !!}
-    {!! $historyScripts !!}
+
+    {!! $contactsTable->scripts() !!}
+    {!! $historyTable->scripts() !!}
+
+    @vite(['resources/js/app.js'])
+
 @endpush
 
 @section('script')
 <script type="text/javaScript">
 
     $('ducument').ready(function(){
+        const synccontacts = $('#synccontacts-table').DataTable();
 
         let isProcessingSync=false;
         refresh();
@@ -405,31 +444,71 @@
         });
 
 
+        // synccontacts table Relatetd Buttons
+        $('#synccontacts-reload').on('click', function () {
+            synccontacts.ajax.reload(null, false); // Reloads data without resetting pagination
+        });
+
+        // this function update data to google single
         $(document).on('click', '.singleSyncContact', function(e) {
             e.preventDefault();
             let id = $(this).data('sync-id'); // Get contact ID dynamically
-            $(this).css({ 'animation': 'spin 2s linear infinite','color':'blue' });
+            let syncStatus = $(this).data('sync-status'); // Get contact ID dynamically
 
-            $.ajax({
+              // sync function
+            const performSync = (DeletedConfirmation) => {
+
+                $(this).css({ 'animation': 'spin 2s linear infinite','color':'blue' });
+                $.ajax({
                 url:'/singleSyncById',
                 method:'post',
                 data:{
                     Cliet_id:id,
+                    deletedReSync:DeletedConfirmation,
                 },
                 success:function(response) {
                     console.log(response);
                     if (response.status) {
-                            toastr.success(response.message);
+                        toastr.success(response.message);
                         setTimeout(() => {
-                            window.location.reload();
+                            synccontacts.ajax.reload(null, false);
                         }, 2000);
+                    }else{
+                        toastr.error(response.message);
+                        synccontacts.ajax.reload(null, false);
                     }
+
                 }
-            });
+                });
+            }
+
+            if (syncStatus==='Deleted') {
+                $('#ReCreateDeletedContactConfirmBox').removeAttr('hidden')
+                // deletedReSync=confirm("This contact was deleted from Google. Do you want to re-create it on Google Contacts?");
+                // deletedReSync ? (performSync()):(console.log("Canceld"));
+                $('#ReCreateConfirm').off().on('click', function () {
+                    performSync(true);
+                    $('#ReCreateDeletedContactConfirmBox').attr('hidden', true);
+                });
+
+                $('#ReCreateCancel').off().on('click', function () {
+                    $('#ReCreateDeletedContactConfirmBox').attr('hidden', true);
+                });
+
+                $('#ReCreateColse').off().on('click', function () {
+                    $('#ReCreateDeletedContactConfirmBox').attr('hidden', true);
+                });
+
+
+            }else{
+                performSync(false);
+            }
+
 
         });
 
 
+        // data tabe related functions to palce date out side of table
         $('#historyTable-pagination').html($('.clietssyncedhistory-table '));
         $('#historyTable-search').html($('.clietssyncedhistory-search'));
 
@@ -441,19 +520,21 @@
         $('.tab-button').on('click', function() {
             // Deactivate all tabs
             $('.tab-button').attr('aria-selected', 'false');
-            // $('.tab-button').css('color', '#6B7280');
-            $('.tab-button').css('color', 'black');
-            $('.tab-button').css('border-color', 'white');
-            $('.tab-button').css('font-weight', '400');
+            // $('.tab-button').removeAtt('style');
+            $('.tab-button').removeAttr('style');
 
             // Hide all panels
             $('.tab-panel').attr('hidden', true);
 
             // Activate the clicked tab
             $(this).attr('aria-selected', 'true');
-            $(this).css('color', 'blue');
-            $(this).css('border-bottom', '2px solid blue');
-            $(this).css('font-weight', '500');
+            $(this).css({
+                'color': 'oklch(70.7% 0.165 254.624)',
+                'font-weight': '600',
+                'border-color': 'oklch(70.7% 0.165 254.624)',
+                'box-shadow': '0 0 5px oklch(70.7% 0.165 254.624)'
+            });
+
 
 
             // Show the corresponding panel
@@ -603,7 +684,7 @@
                             // Animate the progress bar width with CSS transition
                             $("#processBar").css("transition", "width 1s ease-out");
                             $("#processBarSyned").text(response.data.synced??0);
-                            $("#processBarPending").text(response.data.synced??0);
+                            $("#processBarPending").text(response.data.pending??0);
                             $("#processBarErrors").text(response.data.synced??0);
 
                             // Change colors and text based on sync status
@@ -629,11 +710,12 @@
 
                                 $("#processBarText").css('color', '#00C951');
                                 clearInterval(interval);
+                                refresh();
+
                                 // Btton Enable
                                 $("#pushToGoogle").prop("disabled", false);
                                 $("#importFromGoogle").prop("disabled", false);
                                 $(".syncNow").prop("disabled", false);
-
 
                                 let lastSynced = new Date(response.data.lastSync.created_at);
                                 let now = new Date();

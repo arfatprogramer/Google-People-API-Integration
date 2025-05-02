@@ -66,6 +66,7 @@ class pushToGoogleJob implements ShouldQueue
                     //  Update cache (key can include user/session if needed)
 
                 } catch (\Exception $e) {
+
                     Log::error("Create failed for contact ID {$contact->id}");
                 }
                 Log::info(' Push to Google loop create: ' . (memory_get_usage(true)/1024/1024)." MB");
@@ -92,6 +93,12 @@ class pushToGoogleJob implements ShouldQueue
                 } catch (\Exception $e) {
 
                     Log::error("Update failed for contact ID {$contact->id}: {$e->getMessage()}");
+                    $ErrorCode=$e->getCode();
+                    if ($ErrorCode==404) { //404  Requested entity was not found
+                        $contact->syncStatus = 'Deleted';
+                        $contact->save();
+                        Log::error("Deleted save");
+                    }
                 }
                 Log::info(' Push to Google loop Update: ' . (memory_get_usage(true)/1024/1024)." MB");
             }

@@ -46,10 +46,8 @@ class AjaxRequestController extends Controller
             }
             return view('client.enjayDesign', [
                 'contactsTable' => $contactsTable->html(),
-                'contactsScripts' => $contactsTable->html()->scripts(),
-
                 'historyTable' => $historyTable->html(),
-                'historyScripts' => $historyTable->html()->scripts(),
+
             ]);
 
         } catch (\Throwable $th) {
@@ -68,10 +66,12 @@ class AjaxRequestController extends Controller
             $nextSynToken=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
             $TotalcontactInGoogle=(new GoogleService())->getContacts($this->googleToken, 1, ['names']);
             $pendingChangesOnGoogle=(new GoogleService())->getContacts($this->googleToken, 1, ['names'],null,$nextSynToken->synToken??null);
+            // dd($TotalcontactInGoogle);
 
             $crmTotalClient=Client::count();
             $pendingChangesOnCRM= Client::where('syncStatus','Pending')->orWhere('syncStatus','Not Synced')->count(); // it have to calculate
             $crmTotalClientSynced=Client::where('syncStatus','Synced')->count();
+
 
             $TotalcontactInGoogle=$TotalcontactInGoogle->totalPeople ?? 0;
             $pendingChangesOnGoogle=$pendingChangesOnGoogle->totalPeople??0;
@@ -79,15 +79,16 @@ class AjaxRequestController extends Controller
 
 
 
-            $data=['crm'=>$crmTotalClient,
-                    'TotalcontactInGoogle'=>$TotalcontactInGoogle,
-                    'pendingChangesOnGoogle'=>$pendingChangesOnGoogle,
-                    'pendingChangesOnCRM'=>$pendingChangesOnCRM,
-                    'remanigToImportFromGoogle'=>$remanigToImportFromGoogle,
-                    'lastSync'=>$lastSync,
-                    'lastSyncChangesDeteted'=>$lastSyncChangesDeteted,
-                    'crmTotalClientSynced'=>$crmTotalClientSynced,
-                    'error'=>0,
+            $data=[
+                'crm'=>$crmTotalClient,
+                'TotalcontactInGoogle'=>$TotalcontactInGoogle,
+                'pendingChangesOnGoogle'=>$pendingChangesOnGoogle,
+                'pendingChangesOnCRM'=>$pendingChangesOnCRM,
+                'remanigToImportFromGoogle'=>$remanigToImportFromGoogle,
+                'lastSync'=>$lastSync,
+                'lastSyncChangesDeteted'=>$lastSyncChangesDeteted,
+                'crmTotalClientSynced'=>$crmTotalClientSynced,
+                'error'=>0,
             ];
 
             Log::info('Before Resposnse Refresh Method: ' . (memory_get_usage(true)/1024/1024)." MB");
@@ -276,13 +277,31 @@ class AjaxRequestController extends Controller
             $peopleService = new PeopleService($client);
 
             $cliet_id=$request->Cliet_id;
+            $deletedReSync=$request->deletedReSync;
             $contact=client::where('id',$cliet_id)->get()->first();
+
             $person=(new GoogleService())->getPerson($contact);
-            $person->setEtag($contact->etag);
-            $updated = $peopleService->people->updateContact($contact->resourceName, $person, [
-                'updatePersonFields' => 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies',
-            ]);
+
+            if ($contact->syncStatus=="Pending" && $contact->resourceName) {
+
+                $person->setEtag($contact->etag);
+                $updated = $peopleService->people->updateContact($contact->resourceName, $person, [
+                    'updatePersonFields' => 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies',
+                ]);
+            }elseif($contact->syncStatus=="Not Synced" || $deletedReSync ){
+                $updated = $peopleService->people->createContact($person, [
+                    'personFields' => 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies',
+                ]);
+            }else {
+                return response()->json([
+                    'status'=>false,
+                    'error'=>true,
+                    'message'=>"This Data is Deleted From Google But Remaning in CRM",
+                    'data'=>[],
+                ]);
+            }
             $contact->etag = $updated->etag;
+            $contact->resourceName = $updated->resourceName;
             $contact->lastSync = Carbon::now();
             $contact->syncStatus = 'Synced';
             $contact->save();
@@ -295,10 +314,18 @@ class AjaxRequestController extends Controller
             ]);
 
         } catch (Exception $e) {
+
+            $message=$e->getMessage();
+            $ErrorCode=$e->getCode();
+            if ($ErrorCode===404) { //404  Requested entity was not found
+                $message='This Contact Is Deleted From Google';
+                $contact->syncStatus = 'Deleted';
+                $contact->save();
+            }
             return response()->json([
                 'status'=>false,
                 'error'=>true,
-                'massage'=>$e->getMessage(),
+                'message'=>$message,
                 'data'=>[],
             ]);
         }
