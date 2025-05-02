@@ -1,0 +1,7 @@
+    // Set default Toastr options
+
+   
+  
+    
+
+    

@@ -529,10 +529,12 @@
                 success:function(response){
                     if (response.status) {
                         SyncStatus();
+                        toastr.success(response.message);
                     }
                 },
                 error:function(error){
                     console.log(error);
+                    toastr.error(response.error);
                 },
 
             })
@@ -548,10 +550,12 @@
                     if (response.status) {
 
                         SyncStatus();
+                        toastr.success(response.message);
                     }
                 },
                 error:function(error){
                     console.log(error);
+                    toastr.error(response.error);
                 },
 
             })
@@ -566,10 +570,13 @@
                 success:function(response){
                     if (response.status) {
                         SyncStatus();
+                        toastr.success(response.message);
                     }
+
                 },
                 error:function(error){
                     console.log(error);
+                    toastr.error(response.error);
                 },
 
             })

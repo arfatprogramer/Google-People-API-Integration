@@ -18,6 +18,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+   {{-- //----toaster--css------------ --}}
+   <link rel="stylesheet" href="{{ asset('asset/toastr.css') }}">
 
   @stack('styles')
   
@@ -97,6 +99,43 @@
     <script src="https://cdn.datatables.net/v/bs5/jq-3.7.0/dt-2.2.2/cr-2.0.4/r-3.0.4/rr-1.5.0/datatables.min.js" integrity="sha384-9bYIk8wcWyHP6sGRy9fZWduNYeGcDw+PZhWc+ue0Hrt0iNDOn8OTj+YLtvuZ/dth" crossorigin="anonymous"></script>
 
     @yield("script")
+
+    {{-- //---crm.js---------------------------- --}}
+    <script src="{{ asset('crmContact/crm.js') }}"></script>
+
+<script>
+      toastr.options = {
+        "positionClass": "toast-top-center",
+        "closeButton": true,
+        "progressBar": true,
+        "timeOut": "4000",
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+    
+    function showToastr(type, message) {
+
+        if (type === 'success') toastr.success(message);
+        if (type === 'error') toastr.error(message);
+        if (type === 'warning') toastr.warning(message);
+        if (type === 'info') toastr.info(message);
+    }
+
+    @if(session('success'))
+        showToastr('success', @json(session('success')));
+    @elseif(session('error'))
+        showToastr('error', @json(session('error')));
+    @elseif(session('warning'))
+        showToastr('warning', @json(session('warning')));
+    @elseif(session('info'))
+        showToastr('info', @json(session('info')));
+    @endif
+</script>
 
 </body>
 

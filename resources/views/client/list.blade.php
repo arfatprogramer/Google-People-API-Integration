@@ -94,6 +94,16 @@
 
 
 </div>
+{{-- // Read Laravel session flash messages and trigger Toastr --}}
+{{-- @if(session('success'))
+    showToastr('success', @json(session('success')));
+@elseif(session('error'))
+    showToastr('error', @json(session('error')));
+@elseif(session('warning'))
+    showToastr('warning', @json(session('warning')));
+@elseif(session('info'))
+    showToastr('info', @json(session('info')));
+@endif --}}
 
 @endsection
 
@@ -218,14 +228,9 @@
 });
 
 
-//reused able
-    toastr.options = {
-        "positionClass": "toast-top-center",
-        "closeButton": true,
-        "progressBar": true,
-        "timeOut": "4000"
-    };
-
-
     </script>
+
+
+
+
 @endsection

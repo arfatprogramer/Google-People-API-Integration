@@ -1,0 +1,25 @@
+/* Change background and text color */
+/* .toast-success {
+    background-color: #28a745 !important;
+    color: white !important;
+} */
+
+/* .toast-error {
+    background-color: #dc3545 !important;
+    color: white !important;
+} */
+
+
+/* Custom width and height */
+.toast {
+    width: 300px !important;
+    min-height: 30px !important;
+    /* font-size: 16px !important; */
+    /* border-radius: 8px; */
+    /* padding: 16px !important; */
+}
+
+/* Change position (optional) */
+#toast-container > .toast {
+    margin-top: 60px;
+}
