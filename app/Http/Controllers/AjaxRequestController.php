@@ -428,9 +428,7 @@ class AjaxRequestController extends Controller
                     // Assume you already have the authenticated Google Client
                 $peopleService = new PeopleService($client);
 
-            // Fetch the contact's resourceName from your database
-            $contact = client::find($request->client_id);  // or however you fetch it
-            // $resourceName = $contact->resourceName; // something like 'people/c123456789'
+            $contact = client::find($request->client_id);  // or however you fetch 
 
 
             try {
@@ -444,6 +442,7 @@ class AjaxRequestController extends Controller
                 return response()->json(['success' => true,'message' => ' Google and CRM Contact deleted successfully.']);
 
                 }else{
+
                 $contact->delete();
 
                 return response()->json(['success' =>true,'message' => 'CRM Contact is delete successfully','resourceName']);
@@ -460,7 +459,7 @@ class AjaxRequestController extends Controller
 
             $contact = client::find($request->client_id);
             if ($contact) {
-                // $contact->delete(); // Soft delete karega (deleted_at fill karega)
+                $contact->delete(); // Soft delete karega (deleted_at fill karega)
                 return response()->json(['success' => true,
                 'message' => ' CRM Contact soft deleted successfully.',
                 'data'=>$contactSoftDelete

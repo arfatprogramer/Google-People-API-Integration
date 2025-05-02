@@ -53,67 +53,59 @@ class clientController extends Controller
             "number"=>'required',
             "email"=>'required|email',
           ]);
+        try {
+            //code...
 
+                $newClient=new client;
+                $newClient->firstName=$req->firstName;//"firstName" => null
+                $newClient->lastName=$req->lastName;               //"lastName" => null
+                $newClient->number=$req->number;                //"number" => null
+                $newClient->familyOrOrgnization=$req->familyOrOrgnization;    //"familyOrOrgnization" => null
+                $newClient->email=$req->email;                  //"email" => null
+                $newClient->panCardNumber=$req->panCardNumber;                //"panCardNumber" => null
+                $newClient->aadharCardNumber=$req->aadharCardNumber;             //"aadharCardNumber" => null
+                $newClient->occupation=$req->occupation;              //"occupation" => "Select"
+                $newClient->kycStatus=$req->kycStatus;              //"kycStatus" => "Select"
+                $newClient->anulIncome=$req->anulIncome;            //"anulIncome" => null
+                $newClient->referredBy=$req->referredBy;              //"referredBy" => null
+                $newClient->totalInvestment=$req->totalInvestment;        //"totalInvestment" => null
+                $newClient->comments=$req->comments;                //"comments" => null
+                $newClient->relationshipManager=$req->relationshipManager;    //"relationshipManager" => "Mo Arfat Ansari"
+                $newClient->serviceRM=$req->serviceRM;              //"serviceRM" => null
+                $newClient->totalSIP=$req->totalSIP;              //"totalSIP" => null
+                $newClient->primeryContactPerson=$req->primeryContactPerson;   //"primeryContactPerson" => null
+                $newClient->meetinSchedule=$req->meetinSchedule;         //"meetinSchedule" => "Select"
+                $newClient->firstMeetingDate=$req->firstMeetingDate;       //"firstMeetingDate" => null
+                $newClient->typeOfRelation=$req->typeOfRelation;         //"typeOfRelation" => "Select"
+                $newClient->maritalStatus=$req->maritalStatus;          //"maritalStatus" => "Select"
+                $newClient->save();
 
-        //   return response()->json($req->addresses);
+                // Now save addresses
+                if ($req->addresses && is_array($req->addresses)) {
+                    foreach ($req->addresses as $address) {
+                        $clientAddress = new ClientAddress();
+                        $clientAddress->client_id = $newClient->id; // get newly created client's id
+                        $clientAddress->address_type = $address['address_type'] ?? null;
+                        $clientAddress->street = $address['street'] ?? null;
+                        $clientAddress->area = $address['area'] ?? null;
+                        $clientAddress->city = $address['city'] ?? null;
+                        $clientAddress->state = $address['state'] ?? null;
+                        $clientAddress->postal_code = $address['postal_code'] ?? null;
+                        $clientAddress->country = $address['country'] ?? null;
+                        $clientAddress->save();
+                    }
+                }
 
-
-
-try {
-    //code...
-
-
-        $newClient=new client;
-        $newClient->firstName=$req->firstName;//"firstName" => null
-        $newClient->lastName=$req->lastName;               //"lastName" => null
-        $newClient->number=$req->number;                //"number" => null
-        $newClient->familyOrOrgnization=$req->familyOrOrgnization;    //"familyOrOrgnization" => null
-        $newClient->email=$req->email;                  //"email" => null
-        $newClient->panCardNumber=$req->panCardNumber;                //"panCardNumber" => null
-        $newClient->aadharCardNumber=$req->aadharCardNumber;             //"aadharCardNumber" => null
-        $newClient->occupation=$req->occupation;              //"occupation" => "Select"
-        $newClient->kycStatus=$req->kycStatus;              //"kycStatus" => "Select"
-        $newClient->anulIncome=$req->anulIncome;            //"anulIncome" => null
-        $newClient->referredBy=$req->referredBy;              //"referredBy" => null
-        $newClient->totalInvestment=$req->totalInvestment;        //"totalInvestment" => null
-        $newClient->comments=$req->comments;                //"comments" => null
-        $newClient->relationshipManager=$req->relationshipManager;    //"relationshipManager" => "Mo Arfat Ansari"
-        $newClient->serviceRM=$req->serviceRM;              //"serviceRM" => null
-        $newClient->totalSIP=$req->totalSIP;              //"totalSIP" => null
-        $newClient->primeryContactPerson=$req->primeryContactPerson;   //"primeryContactPerson" => null
-        $newClient->meetinSchedule=$req->meetinSchedule;         //"meetinSchedule" => "Select"
-        $newClient->firstMeetingDate=$req->firstMeetingDate;       //"firstMeetingDate" => null
-        $newClient->typeOfRelation=$req->typeOfRelation;         //"typeOfRelation" => "Select"
-        $newClient->maritalStatus=$req->maritalStatus;          //"maritalStatus" => "Select"
-        $newClient->save();
-
-        // Now save addresses
-        if ($req->addresses && is_array($req->addresses)) {
-            foreach ($req->addresses as $address) {
-                $clientAddress = new ClientAddress();
-                $clientAddress->client_id = $newClient->id; // get newly created client's id
-                $clientAddress->address_type = $address['address_type'] ?? null;
-                $clientAddress->street = $address['street'] ?? null;
-                $clientAddress->area = $address['area'] ?? null;
-                $clientAddress->city = $address['city'] ?? null;
-                $clientAddress->state = $address['state'] ?? null;
-                $clientAddress->postal_code = $address['postal_code'] ?? null;
-                $clientAddress->country = $address['country'] ?? null;
-                $clientAddress->save();
-            }
-        }
-        return redirect()->route("client.list");
-    } catch (\Throwable $e) {
-        dd($e);
-    }
+                return redirect()->route("client.list")->with('success','Contact Create Successfully');
+            }catch (\Throwable $e) {
+                   dd($e);
+                   return back()->with('error','form is not create successfully');
+                }
     }
 
     public function editContact($id){
         $data = client::where('id',$id)->find($id);
        $clientAddress = ClientAddress::where('client_id',$id)->get();
-    //    return response()->json($clientAddress);
-    //    return $data->firstName;
-
         return view("client.createForm",compact('data','clientAddress'));
     }
 ///------UpdateForm------------------
@@ -189,7 +181,7 @@ public function UpdateFormContact(Request $request){
                 }
             }
 
-        return redirect()->route("client.list");
+        return redirect()->route("client.list")->with('success','Client Update Successfully');
       }else{
         return redirect()->back()->with('error','client not found');
       }
