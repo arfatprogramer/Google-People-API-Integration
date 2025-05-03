@@ -2,52 +2,58 @@
 
 @push('styles')
 <style>
-    .dt-length{
+    .dt-length {
         padding: 10px 20px;
     }
-    th{
-        background-color:#d0d0d0;
+
+    th {
+        background-color: #d0d0d0;
         font-weight: 400;
     }
 
-    tr{
+    tr {
         border-bottom: 1px solid gray;
     }
 
-    .rowHoverClass:hover{
+    .rowHoverClass:hover {
         background-color: #e2e2e2;
     }
 
-    .pagination{
+    .pagination {
         display: flex;
         gap: 10px;
         align-items: center;
     }
 
-    .first, .last{
+    .first,
+    .last {
         display: none;
-        border:none;
+        border: none;
     }
 
-    .active{
+    .active {
         color: blue;
         font-weight: 500;
     }
-    .next,.previous{
+
+    .next,
+    .previous {
         border: 1px solid black;
         border-radius: 5px;
         padding: 7px 15px;
         font-weight: 500;
     }
-    .disabled{
+
+    .disabled {
         color: gray;
 
     }
 
-    .dt-search{
+    .dt-search {
         width: 100%;
     }
-    .dt-search input{
+
+    .dt-search input {
         width: 100%;
         border: 1px solid black;
         border-radius: 10px;
@@ -59,11 +65,11 @@
         from {
             transform: rotate(0deg);
         }
+
         to {
             transform: rotate(360deg);
         }
     }
-
 </style>
 @endpush
 
@@ -179,9 +185,9 @@
     <div dir="ltr" data-orientation="horizontal" class="mt-6 border-gray-200 shadow-xl bg-gray-100">
 
         <div role="tablist" aria-orientation="horizontal" class="h-12 mb-6 items-center justify-center rounded-md text-muted-foreground grid w-full grid-cols-4">
-            <button type="button" role="tab" aria-selected="false" aria-controls="content-sync"     class="tab-button cursor-pointer  bg-white border-2 border-white shadow-xl  hover:border-blue-300 hover:text-blue-400 hover:shadow-blue-400 hover:shadow-sm hover:font-semibold py-2 " style="color: oklch(0.707 0.165 254.624); font-weight: 600; border-color: oklch(0.707 0.165 254.624); box-shadow: oklch(0.707 0.165 254.624) 0px 0px 5px;">Sync Status</button>
-            <button type="button" role="tab" aria-selected="false" aria-controls="content-history"  class="tab-button cursor-pointer  bg-white border-2 border-white shadow-xl  hover:border-blue-300 hover:text-blue-400 hover:shadow-blue-400 hover:shadow-sm hover:font-semibold py-2 ">Sync History</button>
-            <button type="button" role="tab" aria-selected="true" aria-controls="content-contacts"  class="tab-button cursor-pointer  bg-white border-2 border-white shadow-xl  hover:border-blue-300 hover:text-blue-400 hover:shadow-blue-400 hover:shadow-sm hover:font-semibold py-2 ">Contacts</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="content-sync" class="tab-button cursor-pointer  bg-white border-2 border-white shadow-xl  hover:border-blue-300 hover:text-blue-400 hover:shadow-blue-400 hover:shadow-sm hover:font-semibold py-2 " style="color: oklch(0.707 0.165 254.624); font-weight: 600; border-color: oklch(0.707 0.165 254.624); box-shadow: oklch(0.707 0.165 254.624) 0px 0px 5px;">Sync Status</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="content-history" class="tab-button cursor-pointer  bg-white border-2 border-white shadow-xl  hover:border-blue-300 hover:text-blue-400 hover:shadow-blue-400 hover:shadow-sm hover:font-semibold py-2 ">Sync History</button>
+            <button type="button" role="tab" aria-selected="true" aria-controls="content-contacts" class="tab-button cursor-pointer  bg-white border-2 border-white shadow-xl  hover:border-blue-300 hover:text-blue-400 hover:shadow-blue-400 hover:shadow-sm hover:font-semibold py-2 ">Contacts</button>
             <button type="button" role="tab" aria-selected="false" aria-controls="content-settings" class="tab-button cursor-pointer  bg-white border-2 border-white shadow-xl  hover:border-blue-300 hover:text-blue-400 hover:shadow-blue-400 hover:shadow-sm hover:font-semibold py-2 ">Settings</button>
         </div>
 
@@ -201,17 +207,17 @@
                         </svg>Export</button> -->
 
                         <button id="synccontacts-reload" class="hover:bg-gray-300  hover:shadow-4xl hover:scale-103 hover:text-green-500 bg-blue-500 text-white inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-4 w-4">
-                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
-                            <path d="M21 3v5h-5"></path>
-                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
-                            <path d="M8 16H3v5"></path>
-                        </svg>Refresh</button>
+                                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                                <path d="M21 3v5h-5"></path>
+                                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                                <path d="M8 16H3v5"></path>
+                            </svg>Refresh</button>
 
-                            <a href="{{route('client.create')}}">
-                            <button  class="bg-black text-white hover:bg-blue-500 cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus h-4 w-4">
-                                <path d="M5 12h14"></path>
-                                <path d="M12 5v14"></path>
-                            </svg>Add Contact</button> </a>
+                        <a href="{{route('client.create')}}">
+                            <button class="bg-black text-white hover:bg-blue-500 cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus h-4 w-4">
+                                    <path d="M5 12h14"></path>
+                                    <path d="M12 5v14"></path>
+                                </svg>Add Contact</button> </a>
                     </div>
                 </div>
             </div>
@@ -236,7 +242,7 @@
         </div>
 
         <!-- >>>>>>>>>>>>>>>>>>>>>>>Sync History Table Table<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
-        <div id="content-history" hidden  class="tab-panel rounded-lg border-gray-200 bg-card text-card-foreground shadow-sm bg-white" data-v0-t="card">
+        <div id="content-history" hidden class="tab-panel rounded-lg border-gray-200 bg-card text-card-foreground shadow-sm bg-white" data-v0-t="card">
             <div class="flex flex-col space-y-1.5 p-6">
                 <div class="flex items-center justify-between">
                     <div>
@@ -255,7 +261,7 @@
             <div class="p-6 pt-0">
                 <div id="historyTable-search" class=""> <!-- Search will Displaa here  --></div>
                 <div class="rounded-md border">
-                {!! $historyTable->table(['class' => 'p-4 w-full']) !!}
+                    {!! $historyTable->table(['class' => 'p-4 w-full']) !!}
                 </div>
                 <div id="historyTable-pagination" class="mt-4 text-sm w-full">
                     <!-- here will diaplay pagination buttons -->
@@ -268,35 +274,32 @@
             <!-- Modal Box -->
             <div class="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full text-center relative">
 
-            <!-- Close Icon -->
-            <button id="ReCreateColse" class="absolute top-2 right-7 text-gray-400 hover:text-gray-600 text-3xl cursor-pointer">&times;</button>
+                <!-- Close Icon -->
+                <button id="ReCreateColse" class="absolute top-2 right-7 text-gray-400 hover:text-gray-600 text-3xl cursor-pointer">&times;</button>
 
                 <div class="w-full flex justify-center items-center">
                     <!-- Warning Icon -->
-                    <div  class="w-20 h-20 flex justify-center items-center text-red-500 text-4xl mb-4 text-center cursor-pointer rounded-full shadow-lg border-2  border-red-500 outline-none">
+                    <div class="w-20 h-20 flex justify-center items-center text-red-500 text-4xl mb-4 text-center cursor-pointer rounded-full shadow-lg border-2  border-red-500 outline-none">
                         <p class="text-center">X</p>
                     </div>
                 </div>
-            <!-- Title -->
-            <h2 class="text-xl font-semibold mb-2">Are you sure?</h2>
+                <!-- Title -->
+                <h2 class="text-xl font-semibold mb-2">Are you sure?</h2>
 
-            <!-- Subtext -->
-            <p class="text-gray-600 text-sm mb-6">This contact was deleted from Google. Do you want to re-create it on Google Contacts?</p>
+                <!-- Subtext -->
+                <p class="text-gray-600 text-sm mb-6">This contact was deleted from Google. Do you want to re-create it on Google Contacts?</p>
 
-            <!-- Action Buttons -->
-            <div class="flex justify-end space-x-3">
-                <button id="ReCreateCancel" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 cursor-pointer">Cancel</button>
-                <button id="ReCreateConfirm" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded cursor-pointer">Add Google</button>
-             </div>
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-3">
+                    <button id="ReCreateCancel" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 cursor-pointer">Cancel</button>
+                    <button id="ReCreateConfirm" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded cursor-pointer">Add Google</button>
+                </div>
+            </div>
         </div>
-     </div>
-
-    </div>
 
 
-</div>
 
-        <div id="content-sync"  class="tab-panel rounded-lg border-gray-200 border bg-card text-card-foreground shadow-sm bg-white" data-v0-t="card">
+        <div id="content-sync" class="tab-panel rounded-lg border-gray-200 border bg-card text-card-foreground shadow-sm bg-white" data-v0-t="card">
             <div class="flex flex-col space-y-1.5 p-6">
                 <div class="flex items-center justify-between">
                     <div>
@@ -383,7 +386,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-5 gap-4 px-4 py-3 " >
+                        <div class="grid grid-cols-5 gap-4 px-4 py-3 ">
                             <div class="col-span-2">
                                 <div class="font-medium">Sync Errors</div>
                                 <div class="text-sm text-muted-foreground">Contacts that failed to sync</div>
@@ -412,7 +415,7 @@
             <!-- Settings Table -->
             <div class="w-full bg-white p-6 rounded-lg shadow">
                 <h1 class="text-2xl font-semibold mb-4">Google Contacts Integration Settings</h1>
-        
+
                 <div class="mb-6">
                     <h2 class="text-lg font-medium mb-2">Sync Options</h2>
                     <div class="space-y-2">
@@ -430,7 +433,7 @@
                         </label>
                     </div>
                 </div>
-        
+
                 <div class="mb-6">
                     <h2 class="text-lg font-medium mb-2">Field Mapping</h2>
                     <table class="w-full text-left border border-gray-200">
@@ -460,7 +463,7 @@
                         </tbody>
                     </table>
                 </div>
-        
+
                 <div class="flex justify-end space-x-2">
                     <button class="px-4 py-2 rounded border border-gray-300 hover:bg-gray-100">Cancel</button>
                     <button class="px-4 py-2 rounded bg-black text-white hover:bg-gray-800">Save Settings</button>
@@ -469,6 +472,10 @@
 
         </div>
     </div>
+
+
+</div>
+</div>
 </div>
 
 
@@ -476,10 +483,10 @@
 
 @push('scripts')
 
-    {!! $contactsTable->scripts() !!}
-    {!! $historyTable->scripts() !!}
+{!! $contactsTable->scripts() !!}
+{!! $historyTable->scripts() !!}
 
-    @vite(['resources/js/app.js'])
+@vite(['resources/js/app.js'])
 
 @endpush
 

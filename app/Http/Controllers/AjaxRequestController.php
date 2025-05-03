@@ -130,12 +130,24 @@ class AjaxRequestController extends Controller
 
 
             foreach ($createChunks as $chunk) {
-                pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id)->delay(now()->addMinutes(1));
+                if ($batchCount > 1) {
+                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id)->delay(now()->addMinutes(1));
+
+                }else{
+
+                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id);
+                }
+
                 $batchCount++;
             }
 
             foreach ($updateChunks as $chunk) {
-                pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id)->delay(now()->addMinutes(1));
+                if ($batchCount > 1) {
+                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id)->delay(now()->addMinutes(1));
+
+                }else{
+                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id);
+                }
                 $batchCount++;
             }
 
@@ -200,12 +212,24 @@ class AjaxRequestController extends Controller
             $batchCount = 0;
 
             foreach ($createChunks as $chunk) {
-                pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id)->delay(now()->addMinutes(1));
+                if ($batchCount > 1) {
+                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id)->delay(now()->addMinutes(1));
+
+                }else{
+
+                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id);
+                }
+
                 $batchCount++;
             }
 
             foreach ($updateChunks as $chunk) {
-                pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id)->delay(now()->addMinutes(1));
+                if ($batchCount > 1) {
+                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id)->delay(now()->addMinutes(1));
+
+                }else{
+                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id);
+                }
                 $batchCount++;
             }
 
@@ -455,7 +479,7 @@ class AjaxRequestController extends Controller
                     // Assume you already have the authenticated Google Client
                 $peopleService = new PeopleService($client);
 
-            $contact = client::find($request->client_id);  // or however you fetch 
+            $contact = client::find($request->client_id);  // or however you fetch
 
 
             try {

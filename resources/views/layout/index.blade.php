@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @vite('resources/css/app.css')
-    <!-- boot strape CDN -->
+    <!-- boot st CDN -->
     <link href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.min.css" rel="stylesheet" integrity="sha384-BDXgFqzL/EpYeT/J5XTrxR+qDB4ft42notjpwhZDEjDIzutqmXeImvKS3YPH/WJX" crossorigin="anonymous">
     <!-- Data table CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
@@ -74,7 +74,7 @@
                             </a>
                             <a class="flex items-center hover:bg-gray-200" href="{{route('ajax.index')}}">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-blue-500 flex items-center justify-center text-white m-2">GS</span>
-                                <span class="pr-4">Google Sync DashBord</span>
+                                <span class="pr-4">Google Sync Dashboard</span>
                             </a>
 
         </aside>
@@ -100,11 +100,11 @@
 
     @yield("script")
 
-    {{-- //---crm.js---------------------------- --}}
+    <!-- {{-- //---crm.js---------------------------- --}}
     <script src="{{ asset('crmContact/crm.js') }}"></script>
 
     {{-- -------google---map---api------------ --}}
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script> -->
 
 
 <script>
@@ -121,7 +121,7 @@
         "showMethod": "fadeIn",
         "hideMethod": "fadeOut"
     };
-    
+
     function showToastr(type, message) {
 
         if (type === 'success') toastr.success(message);
@@ -130,17 +130,28 @@
         if (type === 'info') toastr.info(message);
     }
 
-    @if(session('success'))
-        showToastr('success', @json(session('success')));
-    @elseif(session('error'))
-        showToastr('error', @json(session('error')));
-    @elseif(session('warning'))
-        showToastr('warning', @json(session('warning')));
-    @elseif(session('info'))
-        showToastr('info', @json(session('info')));
-    @endif
+    // @if(session('success'))
+    //     showToastr('success', @json(session('success')));
+    // @elseif(session('error'))
+    //     showToastr('error', @json(session('error')));
+    // @elseif(session('warning'))
+    //     showToastr('warning', @json(session('warning')));
+    // @elseif(session('info'))
+    //     showToastr('info', @json(session('info')));
+    // @endif
+
 
 </script>
+
+@if(session('success'))
+     showToastr('success', @json(session('success')));
+ @elseif(session('error'))
+     showToastr('error', @json(session('error')));
+ @elseif(session('warning'))
+     showToastr('warning', @json(session('warning')));
+ @elseif(session('info'))
+     showToastr('info', @json(session('info')));
+ @endif
 
 </body>
 
