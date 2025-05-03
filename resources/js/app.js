@@ -1,2 +1,4 @@
 import './bootstrap';
-import 'laravel-datatables-vite';
+// import 'laravel-datatables-vite';
+
+

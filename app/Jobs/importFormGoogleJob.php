@@ -53,7 +53,7 @@ class importFormGoogleJob implements ShouldQueue
                 $nextPageToken=$googleContacts->nextPageToken??false;
 
                 //this writen to update contact History Table Data
-                Log::info(' error message in Import From google Job  before histor table '  );
+                Log::info(' error message in Import From google Job  before histoy table '  );
 
                 $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
                 $lastRowInContactSyncHistoryTable->synToken=$googleContacts->nextSyncToken??null;
@@ -62,9 +62,10 @@ class importFormGoogleJob implements ShouldQueue
                 $lastRowInContactSyncHistoryTable->startTime = $lastRowInContactSyncHistoryTable->startTime==null ? time() : $lastRowInContactSyncHistoryTable->startTime;
                 $lastRowInContactSyncHistoryTable->save();
 
-                if (!$googleContacts->connections) {
-                   continue;
+                if (empty($googleContacts->connections)) {
+                    continue;
                 }
+
 
                 $googleMap = collect($googleContacts->connections)->mapWithKeys(function ($person) {
 
@@ -117,15 +118,18 @@ class importFormGoogleJob implements ShouldQueue
                         } elseif ($crmContact->etag !== $googleContact['etag']) {
                             // Update existing contact
                             $contact = $crmContact;
+                            Log::info($googleContact['firstName']);
+                            if (empty($googleContact['firstName']) && empty($googleContact['lastName']) && empty($googleContact['number']) && empty($googleContact['email'])) {
+                                $contact->syncStatus = 'Deleted';
+                                $contact->lastSync = Carbon::now();
+                                $contact->save();
+                                $lastRowInContactSyncHistoryTable->deleted+=1;
+                                $lastRowInContactSyncHistoryTable->save();
+                                continue;
+                            }
                             // this for captur data in Sync History Table
                             $lastRowInContactSyncHistoryTable->updated+=1;
                             $lastRowInContactSyncHistoryTable->save();
-                        }elseif ($crmContact->etag == $googleContact['etag']) {
-                            // delete data From CRM existing contact
-                            // this for captur data in Sync History Table
-                            // $lastRowInContactSyncHistoryTable->deleted+=1;
-                            $lastRowInContactSyncHistoryTable->save();
-                            continue;
                         }else {
                             // No change, skip
                             // this for captur data in Sync History Table

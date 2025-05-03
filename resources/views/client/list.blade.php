@@ -55,7 +55,7 @@
             </thead>
         </table>
 
-        
+
 {{-- //demo model --}}
 <!-- Modal Background -->
 <div id="deleteModal" style="background-color: rgba(128, 128, 128, 0.25);" hidden class="fixed inset-0 bg-gray-300 bg-opacity-25 flex items-center justify-center z-50">
@@ -175,7 +175,7 @@
     headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
     }
-});
+    });
     // Common function to send AJAX
     function sendDeleteRequest(deleteContact) {
         $.ajax({

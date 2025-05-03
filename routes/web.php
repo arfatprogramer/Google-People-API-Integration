@@ -43,3 +43,11 @@ Route::get('sync-contacts-data', [SyncContactsDataTable::class, 'ajax'])->name('
 
 Route::get('getClinetSyncHistory',[AjaxRequestController::class,'getClinetSyncHistory'])->name('ajax.getClinetSyncHistory');
 
+//Testing Function
+Route::get('test',function(){
+    $personFields=['names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'];
+    $pageSize=1000;
+    //contact come here ny the functon
+        // $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken, $this->nextSynToken);
+
+});

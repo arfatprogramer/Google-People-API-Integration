@@ -145,7 +145,7 @@ public function UpdateFormContact(Request $request){
 
         $newClient->maritalStatus=$request->maritalStatus;
 
-        $newClient->syncStatus="Pending";
+        $newClient->syncStatus=  $newClient->syncStatus=="Synced" ?("Pending"):($newClient->syncStatus);
         $newClient->save();
 
         // Retrieve existing addresses for the client
