@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\clietsSyncedHistoryDataTable;
+use App\DataTables\SyncContactsDataTable;
 use App\Jobs\importFormGoogleJob;
 use App\Jobs\pushToGoogleJob;
 use App\Models\client;
 use App\Models\clientContatSyncHistory;
 use App\Models\GoogleAuth;
 use App\Services\GoogleService;
+use Carbon\Carbon;
 use Exception;
 use Google\Service\PeopleService;
 use Google_Client;
@@ -34,15 +37,18 @@ class AjaxRequestController extends Controller
         Log::info('Ajac Controller Constructor Method: ' . (memory_get_usage(true)/1024/1024)." MB");
     }
 
-    public function index(){
+    public function index(SyncContactsDataTable $contactsTable, clietsSyncedHistoryDataTable $historyTable){
         try {
             //If table is empty then sign in user
             if (!$this->googleToken || $this->googleToken == null) {
                 // $this->redirectToGoogle();
                 return redirect()->route('client.redirect');
             }
-            Log::info(' Before Ajax Index Return: ' .(memory_get_usage(true)/1024/1024)." MB");
-            return view('client.enjayDesign');
+            return view('client.enjayDesign', [
+                'contactsTable' => $contactsTable->html(),
+                'historyTable' => $historyTable->html(),
+
+            ]);
 
         } catch (\Throwable $th) {
             dd($th);
@@ -54,19 +60,35 @@ class AjaxRequestController extends Controller
         try {
             Log::info('Starting  Refresh Method in Ajax Contrller: ' .(memory_get_usage(true)/1024/1024)." MB");
 
-            $contact=(new GoogleService())->getContacts($this->googleToken, 1, ['names']);
-            $crmTotalClient=Client::count();
-            $google=$contact->totalItems ?? 0;
-            $pending= abs($crmTotalClient - $google);
             $lastSync=$this->clientContactSyncHistoryTable::orderBy('created_at','desc')->first();
-            // if First time create no Data Will be found
             $lastSyncChangesDeteted=($lastSync->created?? 0) + ($lastSync->updated?? 0) + ($lastSync->deleted ?? 0) ;
-            $data=['crm'=>$crmTotalClient,
-                    'google'=>$google,
-                    'pending'=>$pending,
-                    'lastSync'=>$lastSync,
-                    'lastSyncChangesDeteted'=>$lastSyncChangesDeteted,
-                    'error'=>0,
+
+            $nextSynToken=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
+            $TotalcontactInGoogle=(new GoogleService())->getContacts($this->googleToken, 1, ['names']);
+            $pendingChangesOnGoogle=(new GoogleService())->getContacts($this->googleToken, 1, ['names'],null,$nextSynToken->synToken??null);
+            // dd($TotalcontactInGoogle);
+
+            $crmTotalClient=Client::count();
+            $pendingChangesOnCRM= Client::where('syncStatus','Pending')->orWhere('syncStatus','Not Synced')->count(); // it have to calculate
+            $crmTotalClientSynced=Client::where('syncStatus','Synced')->count();
+
+
+            $TotalcontactInGoogle=$TotalcontactInGoogle->totalPeople ?? 0;
+            $pendingChangesOnGoogle=$pendingChangesOnGoogle->totalPeople??0;
+            $remanigToImportFromGoogle= ($TotalcontactInGoogle - $crmTotalClient) > 0 ? ($TotalcontactInGoogle - $crmTotalClient) : (0);
+
+
+
+            $data=[
+                'crm'=>$crmTotalClient,
+                'TotalcontactInGoogle'=>$TotalcontactInGoogle,
+                'pendingChangesOnGoogle'=>$pendingChangesOnGoogle,
+                'pendingChangesOnCRM'=>$pendingChangesOnCRM,
+                'remanigToImportFromGoogle'=>$remanigToImportFromGoogle,
+                'lastSync'=>$lastSync,
+                'lastSyncChangesDeteted'=>$lastSyncChangesDeteted,
+                'crmTotalClientSynced'=>$crmTotalClientSynced,
+                'error'=>0,
             ];
 
             Log::info('Before Resposnse Refresh Method: ' . (memory_get_usage(true)/1024/1024)." MB");
@@ -79,6 +101,7 @@ class AjaxRequestController extends Controller
                 ]);
              //code...
         } catch (Exception $e) {
+            Log::info("Error During Refresh Data Called :".$e);
             return response()->json([
                 'status'=>false,
                 'error'=>true,
@@ -91,58 +114,66 @@ class AjaxRequestController extends Controller
     public function synNowBoth(){
         try {
             $this->isProcessing=true;
-           //Import From Google
+           $batchCount = 0;
 
             $googleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
+           // Create an empty history row
+            $syncHistory = new clientContatSyncHistory();
+            $syncHistory->save();
 
-            //instang HistoryTable
-            $newClientSyncHistoyRow=new clientContatSyncHistory();
 
-            $newClientSyncHistoyRow->batches += 1;
-            $newClientSyncHistoyRow->save();
+            $createIds = Client::where('syncStatus', 'Not Synced')->pluck('id')->toArray();
+            $updateIds = Client::where('syncStatus', 'Pending')->pluck('id')->toArray();
 
-            $clientSyncHistoyId=clientContatSyncHistory::orderBy('id', 'desc')->get('id')->first();
-            importFormGoogleJob::dispatch($googleToken, $clientSyncHistoyId->id);
+            $createChunks = array_chunk($createIds, 80);
+            $updateChunks = array_chunk($updateIds, 80);
 
-            // PushToGoogle
-            $createIdList = Client::whereNull('resourceName')->pluck('id')->toArray();
-            $updateIdList = Client::whereColumn('updated_at', '>', 'updateFlag')->pluck('id')->toArray();
 
-            $chunks1 = array_chunk($createIdList, 80);
-            $chunks2=array_chunk($updateIdList,80);
+            foreach ($createChunks as $chunk) {
+                if ($batchCount > 1) {
+                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id)->delay(now()->addMinutes(1));
 
-            $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$clientSyncHistoyId->id)->first();
+                }else{
 
-            //creating job for Create Contact on Google
-            foreach($chunks1 as $chunk){
-                pushToGoogleJob::dispatch($googleToken, $chunk, [])
-                        ->delay(now()->addMinutes(1));
-                $lastRowInContactSyncHistoryTable->batches +=1;
-            }
-            // creating job for Update contacts to google
-            foreach($chunks2 as $chunk){
-                pushToGoogleJob::dispatch($googleToken, [], $chunk)
-                ->delay(now()->addMinutes(1));
-                $lastRowInContactSyncHistoryTable->batches +=1;
+                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id);
+                }
+
+                $batchCount++;
             }
 
-            $lastRowInContactSyncHistoryTable->save();
+            foreach ($updateChunks as $chunk) {
+                if ($batchCount > 1) {
+                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id)->delay(now()->addMinutes(1));
+
+                }else{
+                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id);
+                }
+                $batchCount++;
+            }
+
+            // import form Google Job
+            importFormGoogleJob::dispatch($googleToken, $syncHistory->id);
+            $batchCount++;
+
+            // Update the batches count
+            $syncHistory->batches = $batchCount;
+            $syncHistory->save();
 
             return response()->json([
                     'status'=>true,
                     'message'=>"Sync Started ",
-                    'error'=>true,
+                    'error'=>false,
                     'data'=>[],
                 ]);
                  //code...
-            } catch (Exception $e) {
-                return response()->json([
-                    'status'=>false,
-                    'error'=>true,
-                    'massage'=>$e,
-                    'data'=>[],
-                ]);
-            }
+        } catch (Exception $e) {
+            return response()->json([
+                'status'=>false,
+                'error'=>true,
+                'massage'=>$e,
+                'data'=>[],
+            ]);
+        }
     }
 
     // Push To Google Function Ready
@@ -151,42 +182,66 @@ class AjaxRequestController extends Controller
             $this->isProcessing=true;
 
             $googleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
-            $createIdList = Client::whereNull('resourceName')->pluck('id')->toArray();
-            $updateIdList = Client::whereColumn('updated_at', '>', 'updateFlag')->pluck('id')->toArray();
 
-            $chunks1 = array_chunk($createIdList, 80);
-            $chunks2=array_chunk($updateIdList,80);
-
-            $newClientSyncHistoryRow=new clientContatSyncHistory();
-            $newClientSyncHistoryRow->save();
-
-            $id=clientContatSyncHistory::orderBy('id','desc')->select('id')->get()->first();
-            $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$id->id)->first();
-
-            // $test=clientContatSyncHistory::where('id',($id->id-1))->first();
-
-
-
-
-            //creating job for Create Contact on Google
-            foreach($chunks1 as $chunk){
-                pushToGoogleJob::dispatch($googleToken, $chunk, [])
-                        ->delay(now()->addMinutes(1));
-                $lastRowInContactSyncHistoryTable->batches +=1;
+            $createIds = Client::where('syncStatus', 'Not Synced')->pluck('id')->toArray();
+            $updateIds = Client::where('syncStatus', 'Pending')->pluck('id')->toArray();
+            if (count($createIds)==0 && count($updateIds)==0) {
+                $this->isProcessing=false;
+                return response()->json([
+                    'status'=>true,
+                    'message'=>"No data To Push On Google",
+                    'error'=>true,
+                    'data'=>[
+                        'isProcessing'=>$this->isProcessing,
+                        'UpdatingToGoogle'=>count($createIds),
+                        'CreatingToGoogle'=>count($updateIds),
+                    ],
+                ]);
             }
-            // creating job for Update contacts to google
-            foreach($chunks2 as $chunk){
-                pushToGoogleJob::dispatch($googleToken, [], $chunk)
-                ->delay(now()->addMinutes(1));
-                $lastRowInContactSyncHistoryTable->batches +=1;
+            // Create an empty history row
+            $syncHistoryNextSynCToken=clientContatSyncHistory::orderBy('id','desc')->get("synToken")->first();
+            $syncHistory = new clientContatSyncHistory();
+            $syncHistory->synToken=$syncHistoryNextSynCToken->synToken??null;
+            $syncHistory->save();
+
+
+
+            $createChunks = array_chunk($createIds, 80);
+            $updateChunks = array_chunk($updateIds, 80);
+
+            $batchCount = 0;
+
+            foreach ($createChunks as $chunk) {
+                if ($batchCount > 1) {
+                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id)->delay(now()->addMinutes(1));
+
+                }else{
+
+                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id);
+                }
+
+                $batchCount++;
             }
 
-            $lastRowInContactSyncHistoryTable->save();
+            foreach ($updateChunks as $chunk) {
+                if ($batchCount > 1) {
+                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id)->delay(now()->addMinutes(1));
+
+                }else{
+                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id);
+                }
+                $batchCount++;
+            }
+
+
+            // Update the batches count
+            $syncHistory->batches = $batchCount;
+            $syncHistory->save();
 
             $data=[
                 'isProcessing'=>$this->isProcessing,
-                'UpdatingToGoogle'=>count($updateIdList),
-                'CreatingToGoogle'=>count($createIdList),
+                'UpdatingToGoogle'=>count($createIds),
+                'CreatingToGoogle'=>count($updateIds),
             ];
 
 
@@ -194,7 +249,7 @@ class AjaxRequestController extends Controller
             return response()->json([
                     'status'=>true,
                     'message'=>"Push To Google Stared",
-                    'error'=>true,
+                    'error'=>false,
                     'data'=>$data,
                 ]);
 
@@ -210,25 +265,26 @@ class AjaxRequestController extends Controller
 
     public function importFromGoogle()
     {   try{
+        Log::info('Import Form Google Function '  );
+
         $googleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
         $newClientSyncHistoyRow=new clientContatSyncHistory();
         $newClientSyncHistoyRow->batches += 1;
         $newClientSyncHistoyRow->save();
 
-        $clientSyncHistoyId=clientContatSyncHistory::orderBy('id', 'desc')->get('id')->first();
+        importFormGoogleJob::dispatch($googleToken, $newClientSyncHistoyRow->id);
 
-        importFormGoogleJob::dispatch($googleToken, $clientSyncHistoyId->id);
-        $data=[];
+        Log::info('Import Form Google Function return '  );
 
-        unset($googleToken);
-        unset($newClientSyncHistoryRow);
+        // unset($googleToken);
+        // unset($newClientSyncHistoryRow);
         return response()->json([
                 'status'=>true,
                 'message'=>"Import From Google Contact",
-                'error'=>true,
-                'data'=>$data,
+                'error'=>false,
+                'data'=>[],
             ]);
-             //code...
+
         } catch (Exception $e) {
             return response()->json([
                 'status'=>false,
@@ -239,21 +295,110 @@ class AjaxRequestController extends Controller
         }
     }
 
+    public function singleSyncById(Request $request){
+        try {
+            $client = (new GoogleService())->getGoogleCient($this->googleToken);
+            $peopleService = new PeopleService($client);
+
+            $cliet_id=$request->Cliet_id;
+            $deletedReSync=$request->deletedReSync;
+            $contact=client::where('id',$cliet_id)->get()->first();
+
+            $person=(new GoogleService())->getPerson($contact);
+
+            if ($contact->syncStatus=="Pending" && $contact->resourceName) {
+
+                $person->setEtag($contact->etag);
+                $updated = $peopleService->people->updateContact($contact->resourceName, $person, [
+                    'updatePersonFields' => 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies',
+                ]);
+            }elseif($contact->syncStatus=="Not Synced" || $deletedReSync ){
+                $updated = $peopleService->people->createContact($person, [
+                    'personFields' => 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies',
+                ]);
+            }else {
+                return response()->json([
+                    'status'=>false,
+                    'error'=>true,
+                    'message'=>"This Data is Deleted From Google But Remaning in CRM",
+                    'data'=>[],
+                ]);
+            }
+            $contact->etag = $updated->etag;
+            $contact->resourceName = $updated->resourceName;
+            $contact->lastSync = Carbon::now();
+            $contact->syncStatus = 'Synced';
+            $contact->save();
+
+            return response()->json([
+                'status'=>true,
+                'message'=>"Completed",
+                'error'=>false,
+                'data'=>$updated,
+            ]);
+
+        } catch (Exception $e) {
+
+            $message=$e->getMessage();
+            $ErrorCode=$e->getCode();
+            if ($ErrorCode===404) { //404  Requested entity was not found
+                $message='This Contact Is Deleted From Google';
+                $contact->syncStatus = 'Deleted';
+                $contact->save();
+            }
+            return response()->json([
+                'status'=>false,
+                'error'=>true,
+                'message'=>$message,
+                'data'=>[],
+            ]);
+        }
+    }
+
     // This for Dispaly Process Bar
      public function syncStatus(){
         try {
+            $message="";
             $lastSync=clientContatSyncHistory::orderBy('created_at','desc')->first();
-            $isProcessing=$this->isProcessing;
+            $status=$lastSync->status??0;
+            $batches=$lastSync->batches??0;
+            $synced=($lastSync->created??0)+ ($lastSync->updated??0);
+            $pending=0; // it have to calculate
+            $errors=$lastSync->error??0;
+
+            $startTime=$lastSync->startTime??null;
+
+            if ($batches > 0 && $status==0) {
+                $isSynced=false;
+                $message="Sync Is In Pendig On Queue";
+                $porcessBarPersentage=0;
+            }elseif($batches > 0 && $status==1){
+                $isSynced=false;
+                $message="Syn Is ProcessingIn Queue";
+                $processBarWidth = 0;
+                $totalTime = $batches * 60; // total expected time in seconds
+                $elapsedTime = time() - $startTime; // assuming you saved the start time
+                $processBarWidth = ($elapsedTime / $totalTime) * 100;
+                $porcessBarPersentage=round($processBarWidth);
+            }else{
+                $isSynced=true;
+                $porcessBarPersentage=100;
+                $message="Synced is Completed";
+            }
 
         $data=[
-            'isProcessing'=>$isProcessing,
+            'isSynced'=>$isSynced,
             'lastSync'=>$lastSync,
+            'synced'=>$synced,
+            'pending'=>$pending,
+            'errors'=>$errors,
+            'porcessBarPersentage'=>$porcessBarPersentage,
         ];
 
         return response()->json([
                 'status'=>true,
-                'message'=>"Sync Status",
-                'error'=>true,
+                'message'=>$message,
+                'error'=>false,
                 'data'=>$data,
             ]);
              //code...
@@ -278,7 +423,7 @@ class AjaxRequestController extends Controller
         $client->setAccessType('offline');
         $client->setPrompt('consent');
 
-    return redirect($client->createAuthUrl());
+        return redirect($client->createAuthUrl());
     }
 
     //auth 2.0 authonticatin redirect handel function
@@ -323,45 +468,59 @@ class AjaxRequestController extends Controller
     }
 
 
+    ///------softDelete---crm--or----googlecontact---delete---------------
+    public function softDeletOrGoogleContact(Request $request){
+
+        $contactSoftDelete = filter_var($request->delete_contact, FILTER_VALIDATE_BOOLEAN);
+
+            if($contactSoftDelete === true){
+
+                $client = (new GoogleService())->getGoogleCient($this->googleToken);
+                    // Assume you already have the authenticated Google Client
+                $peopleService = new PeopleService($client);
+
+            $contact = client::find($request->client_id);  // or however you fetch
 
 
-    function test(){
-        $client = (new GoogleService())->getGoogleCient($this->googleToken);
-        $service = new PeopleService($client);
+            try {
 
-        $data=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
-        // if ($data) {
-        //     # code...
-        //     dd($data->synToken);
-        // }else{
-        //     dd($data);
-        // }
+                if(!empty($contact->resourceName)){
+                $delete= $peopleService->people->deleteContact( $contact->resourceName);
 
-        $params = [
-            'resourceName' => 'people/me',
-            'personFields' => 'names,emailAddresses,phoneNumbers',
-            'pageSize' => 1000,
-            'requestSyncToken' => true,
-            'syncToken' => $data->synToken, // Use this in future calls
-        ];
+                if($delete){
+                    $contact->delete();
+                }
+                return response()->json(['success' => true,'message' => ' Google and CRM Contact deleted successfully.']);
 
-        $response = $service->people_connections->listPeopleConnections('people/me', $params);
+                }else{
 
-        Log::info('Ajac Controller test Method: ' . (memory_get_usage(true)/1024/1024)." MB");
-        dd($response);
+                $contact->delete();
 
-        $params = [
-            'resourceName' => 'people/me',
-            'personFields' => 'names,emailAddresses,phoneNumbers',
-            'pageSize' => 1000,
-            'syncToken' => $response->getNextSyncToken(),
-        ];
+                return response()->json(['success' =>true,'message' => 'CRM Contact is delete successfully','resourceName']);
 
-        // Store this token for future incremental syncs
-        $nextSyncToken = $response->getNextSyncToken();
+                }
+            } catch (Exception $e) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
 
+                // return response()->json(['message' => 'Google Contact deleted successfully.','resource'=>$resourceName]);
+
+
+            }else{
+
+            $contact = client::find($request->client_id);
+            if ($contact) {
+                $contact->delete(); // Soft delete karega (deleted_at fill karega)
+                return response()->json(['success' => true,
+                'message' => ' CRM Contact soft deleted successfully.',
+                'data'=>$contactSoftDelete
+            ]);
+            } else {
+                return response()->json(['success' => false,
+                'message' => 'Contact not found.'
+            ]);
+            }
+        }
     }
-
-
 
 }
