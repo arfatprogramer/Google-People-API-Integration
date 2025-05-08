@@ -117,14 +117,22 @@
                     <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                 </svg>
             </div>
-            <div class="p-6 pt-0">
-                <div id="processPersentage" class="text-2xl font-bold">100%</div>
-                <p id="processBarText" class="text-xs text-muted-foreground"></p>
+            <div class="p-6 pt-0 ">
+
+                <div class="cancileBtn flex justify-between">
+                    <div>
+                        <div id="processPersentage" class="text-2xl font-bold">100%</div>
+                        <p id="processBarText" class="text-xs text-muted-foreground"></p>
+                    </div>
+                    <button hidden type="button"
+                        id="cancelProcessing"
+                        class="bg-red-500 rounded-md px-3 h-8 text-white border-white shadow-md border hover:bg-red-600 hover:border-gray-700 hover:font-semibold"
+                        >Cancel</button>
+               </div>
                 <div class="mt-4">
                     <div aria-valuemax="100" aria-valuemin="0" role="progressbar" data-state="indeterminate" data-max="100" class="relative bg-gray-300 w-full overflow-hidden rounded-full bg-secondary h-2">
                         <div id="processBar" data-state="indeterminate" data-max="100" class="bg-green-500 h-full w-full flex-1 bg-primary transition-all"></div>
                     </div>
-
                 </div>
                 <div class="mt-2 grid grid-cols-3 gap-1 text-xs">
                     <div class="flex flex-col text-green-500"><span class="text-muted-foreground">Synced</span><span id="processBarSyned" class="font-medium">0</span></div>
@@ -495,9 +503,10 @@
 
     $('ducument').ready(function(){
         const synccontacts = $('#synccontacts-table').DataTable();
-
         let isProcessingSync=false;
-        refresh();
+        // setInterval(() => {
+        //     refresh();
+        // }, 15000);
         SyncStatus();
 
         $.ajaxSetup({
@@ -628,6 +637,24 @@
                 synNow();
         });
 
+        // this for cancel an ProcessWhile in pending state
+        $('#cancelProcessing').click(function(){
+            $.ajax({
+                url: "{{ route('ajax.cancelPendingGoogleSync') }}", // Use this inside a Blade template
+                method: 'DELETE',
+                success:function(response){
+                    if (response.status) {
+                        toastr.success(response.message);
+                        console.log(response);
+                    }
+
+                },
+                error:function(error){
+                    console.log(error);
+
+                }
+            })
+        });
 
 
         // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  Only Function Defination <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -651,8 +678,8 @@
                         $('#contactsInError').text(result?.data?.lastSync?.error);
                         $('#lastSyncDate').text(timeToDateFormater(result?.data?.lastSync?.created_at));
                         $('#lastSyncNewContact').text(result?.data?.lastSync?.created);
-                        $('#lastSyncNewContact1').text(result?.data?.lastSync?.created);
-                        $('#lastSyncUpdatedContact').text(result?.data?.lastSync?.updated);
+                        $('#lastSyncNewContact1').text((result?.data?.lastSync?.created) + (result?.data?.lastSync?.createdAtGoogle));
+                        $('#lastSyncUpdatedContact').text((result?.data?.lastSync?.updated)+(result?.data?.lastSync?.updatedAtGoogle));
                         $('#lastSyncDeletedContact').text(result?.data?.lastSync?.deleted);
                         $('#lastSyncChangesDeteted').text(result?.data?.lastSyncChangesDeteted);
 
@@ -748,14 +775,15 @@
                         if (response.status) {
 
                             let isProcessingSync = response.data?.isProcessing;
-                            let width = response.data.porcessBarPersentage;
+                            let width = response.data.progressBarPercentage;
                             let isSynced = response.data.isSynced;
+                            let extimatedTime = response.data.extimetedTime;
 
                             // Animate the progress bar width with CSS transition
                             $("#processBar").css("transition", "width 1s ease-out");
                             $("#processBarSyned").text(response.data.synced??0);
                             $("#processBarPending").text(response.data.pending??0);
-                            $("#processBarErrors").text(response.data.synced??0);
+                            $("#processBarErros").text(response.data.errors??0);
 
                             // Change colors and text based on sync status
                             if (width == 0) {
@@ -763,12 +791,13 @@
                                 $("#processBar").css('backgroundColor', 'yellow');
                                 $("#processBarText").text("Pending");
                                 $("#processBarText").css('color', '#ffa225');
+                                $('#cancelProcessing').removeAttr('hidden')
 
                             } else {
                                 $("#processBar").css("width", width + "%");
                                 $("#processPersentage").text(width + "%");
                                 $("#processBar").css('backgroundColor', '#00C951');
-                                $("#processBarText").text("Sync in Process");
+                                $("#processBarText").text("Sync in Process Extimard Time : "+extimatedTime);
                                 $("#processBarText").css('color', '#00C951');
                             }
 
@@ -786,6 +815,7 @@
                                 $("#pushToGoogle").prop("disabled", false);
                                 $("#importFromGoogle").prop("disabled", false);
                                 $(".syncNow").prop("disabled", false);
+                                $('#cancelProcessing').attr('hidden',true)
 
                                 let lastSynced = new Date(response.data.lastSync.created_at);
                                 let now = new Date();
@@ -803,6 +833,15 @@
                             }
 
                         }
+
+                        if (response.error) {
+                            console.log("Error fetching sync status:");
+                            clearInterval(interval);
+                            $("#pushToGoogle").prop("disabled", false);
+                            $("#importFromGoogle").prop("disabled", false);
+                            $(".syncNow").prop("disabled", false);
+                        }
+
                     },
                     error: function (error) {
                         console.log("Error fetching sync status:", error);
@@ -830,5 +869,7 @@
         }
 
     })
+
+
 </script>
 @endsection

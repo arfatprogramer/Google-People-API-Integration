@@ -32,6 +32,7 @@ Route::get('pushToGoogle',[AjaxRequestController::class,'pushToGoogle'])->name('
 Route::get('importFromGoogle',[AjaxRequestController::class,'importFromGoogle'])->name('ajax.importFromGoogle');
 Route::post('singleSyncById',[AjaxRequestController::class,'singleSyncById'])->name('ajax.singleSyncById');
 Route::get('syncStatus',[AjaxRequestController::class,'syncStatus'])->name('ajax.syncStatus');
+Route::delete('cancelPendingGoogleSync',[AjaxRequestController::class,'cancelPendingGoogleSync'])->name('ajax.cancelPendingGoogleSync');
 
 
 // Data Table Routes
@@ -40,13 +41,21 @@ Route::get('sync-contacts-data', [SyncContactsDataTable::class, 'ajax'])->name('
 
 
 
-
 Route::get('getClinetSyncHistory',[AjaxRequestController::class,'getClinetSyncHistory'])->name('ajax.getClinetSyncHistory');
 
 //Testing Function
 Route::get('test',function(){
-    $personFields=['names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'];
-    $pageSize=1000;
+    // $personFields=['names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'];
+    // $pageSize=1000;
+    $time=1746519477;
+    print_r(time());
+    echo"<br>";
+    $estimated=560;
+    $els=time() -$time;
+    $result=min(100,($els / $estimated) *100);
+    $result=round($result,2);
+
+    print_r($result ."%");
     //contact come here ny the functon
         // $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken, $this->nextSynToken);
 
