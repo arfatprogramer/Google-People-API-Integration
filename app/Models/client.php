@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 class client extends Model
 {
-    use HasFactory;
+    use HasFactory,SoftDeletes;
     protected $fillable = [
         'firstName',
         'lastName',
+        'email',
         'number',
         'familyOrOrgnization',
         'panCardNumber',
@@ -29,5 +30,6 @@ class client extends Model
         'firstMeetingDate',
         'typeOfRelation',
         'maritalStatus',
+        'deleted_at',
     ];
 }

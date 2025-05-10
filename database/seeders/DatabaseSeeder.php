@@ -23,6 +23,6 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         client::factory(10)->create();
-        clientContatSyncHistory::factory(1)->create();
+        // clientContatSyncHistory::factory(1)->create();
     }
 }

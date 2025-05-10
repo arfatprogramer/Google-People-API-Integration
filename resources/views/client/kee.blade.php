@@ -1,22 +1,20 @@
-<div>
-                <p class="text-gray-500">Last Sync (Seconds Ago)</p>
-                <p class="font-semibold text-blue-700">
-                    <!-- @if($client->last_synced_at)
-                    {{ now()->diffInSeconds($client->last_synced_at) }} seconds ago
-                    @else
-                    N/A
-                    @endif -->
-                </p>
-            </div>
+@extends('layout.index')
 
-            <div>
-                <p class="text-gray-500">Last Sync Date</p>
-                <p class="font-medium text-gray-900">
-                    {{ $client->last_synced_at ? $client->last_synced_at->format('Y-m-d H:i:s') : 'Not Synced' }}
-                </p>
-            </div>
+@section('container')
+    <div class="space-y-12">
+        <div>
+            <h2 class="text-xl font-semibold mb-4">Synced Contacts</h2>
+            {!! $contactsTable->table(['class' => 'table table-striped w-full']) !!}
+        </div>
 
+        <div>
+            <h2 class="text-xl font-semibold mb-4">Sync History</h2>
+            {!! $historyTable->table(['class' => 'table table-striped w-full']) !!}
+        </div>
+    </div>
+@endsection
 
-
-
-            
+@push('scripts')
+    {!! $contactsScripts !!}
+    {!! $historyScripts !!}
+@endpush

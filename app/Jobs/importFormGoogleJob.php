@@ -4,28 +4,36 @@ namespace App\Jobs;
 
 use App\Models\client;
 use App\Models\clientContatSyncHistory;
-use App\Models\GoogleAuth;
 use App\Services\GoogleService;
+use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
+
 
 class importFormGoogleJob implements ShouldQueue
 {
-    use  Queueable;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     protected $googleToken;
     protected $id;
+    protected $nextSynToken;
     /**
      * Create a new job instance.
      */
-    public function __construct($googleToken,$id=1)
+    public function __construct($googleToken,$id)
     {
+
         $this->googleToken=$googleToken;
         $this->id=$id;
+
+        $previousSync = clientContatSyncHistory::orderByDesc('id')->skip(1)->first();
+        $this->nextSynToken = $previousSync ? $previousSync->synToken : null;
+
+        Log::info("Import Form Google Starting Job constructor return: $this->nextSynToken " . (memory_get_usage(true)/1024/1024)." MB");
     }
 
     /**
@@ -33,24 +41,31 @@ class importFormGoogleJob implements ShouldQueue
      */
     public function handle(): void
     {   Log::info(' Import Form Google Starting Job: ' . (memory_get_usage(true)/1024/1024)." MB");
-        try {
+    try {
             $personFields=['names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'];
             $pageSize=1000;
             //contact come here ny the functon
-            $nextSynToken=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->skip(1)->first();
+
+
             $nextPageToken=false;
             do {
-                $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken, $nextSynToken->synToken);
+                $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken, $this->nextSynToken);
                 $nextPageToken=$googleContacts->nextPageToken??false;
-                
+
+                //this writen to update contact History Table Data
+                Log::info(' error message in Import From google Job  before histoy table '  );
+
                 $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
-                $lastRowInContactSyncHistoryTable->synToken=$googleContacts->nextSyncToken;
+                $lastRowInContactSyncHistoryTable->synToken=$googleContacts->nextSyncToken??null;
                 $lastRowInContactSyncHistoryTable->batches -=1;
                 $lastRowInContactSyncHistoryTable->status =1;
+                $lastRowInContactSyncHistoryTable->startTime = $lastRowInContactSyncHistoryTable->startTime==null ? time() : $lastRowInContactSyncHistoryTable->startTime;
                 $lastRowInContactSyncHistoryTable->save();
-                if (!$googleContacts->connections) {
-                   continue;
+
+                if (empty($googleContacts->connections)) {
+                    continue;
                 }
+
 
                 $googleMap = collect($googleContacts->connections)->mapWithKeys(function ($person) {
 
@@ -88,63 +103,73 @@ class importFormGoogleJob implements ShouldQueue
                 $crmContacts = client::whereNotNull('resourceName')->select(['id', 'resourceName', 'etag'])->get()->keyBy('resourceName');
 
                 foreach ($googleMap as $resource => $googleContact) {
-                    $crmContact = $crmContacts->get($resource);
-                    // this for captur data in Sync History Table
-                    $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
+                    try {
 
-                    if (!$crmContact) {
-                        // Create new contact in CRM
-                        $contact = new client();
-                         // this for captur data in Sync History Table
-                        $lastRowInContactSyncHistoryTable->created+=1;
-                        $lastRowInContactSyncHistoryTable->save();
-                    } elseif ($crmContact->etag !== $googleContact['etag']) {
-                        // Update existing contact
-                        $contact = $crmContact;
-                         // this for captur data in Sync History Table
-                         $lastRowInContactSyncHistoryTable->updated+=1;
-                         $lastRowInContactSyncHistoryTable->save();
-                    }elseif ($crmContact->etag == $googleContact['etag']) {
-                        // delete data From CRM existing contact
-                         // this for captur data in Sync History Table
-                         $lastRowInContactSyncHistoryTable->deleted+=1;
-                         $lastRowInContactSyncHistoryTable->save();
-                        continue;
-                    }else {
-                        // No change, skip
-                         // this for captur data in Sync History Table
-                         $lastRowInContactSyncHistoryTable->save();
-                        continue;
+                        $crmContact = $crmContacts->get($resource);
+                        // this for captur data in Sync History Table
+                        $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
+
+                        if (!$crmContact) {
+                            // Create new contact in CRM
+                            $contact = new client();
+                            // this for captur data in Sync History Table
+                            $lastRowInContactSyncHistoryTable->created+=1;
+                            $lastRowInContactSyncHistoryTable->save();
+                        } elseif ($crmContact->etag !== $googleContact['etag']) {
+                            // Update existing contact
+                            $contact = $crmContact;
+                            Log::info($googleContact['firstName']);
+                            if (empty($googleContact['firstName']) && empty($googleContact['lastName']) && empty($googleContact['number']) && empty($googleContact['email'])) {
+                                $contact->syncStatus = 'Deleted';
+                                $contact->lastSync = Carbon::now();
+                                $contact->save();
+                                $lastRowInContactSyncHistoryTable->deleted+=1;
+                                $lastRowInContactSyncHistoryTable->save();
+                                continue;
+                            }
+                            // this for captur data in Sync History Table
+                            $lastRowInContactSyncHistoryTable->updated+=1;
+                            $lastRowInContactSyncHistoryTable->save();
+                        }else {
+                            // No change, skip
+                            // this for captur data in Sync History Table
+                            $lastRowInContactSyncHistoryTable->save();
+                            continue;
+                        }
+
+                        // Common assignment for both Create and Update
+                        $contact->firstName = $googleContact['firstName'] ?? null;
+                        $contact->lastName = $googleContact['lastName'] ?? null;
+                        $contact->number = $googleContact['number'] ?? null;
+                        $contact->email = $googleContact['email'] ?? null;
+                        $contact->resourceName = $resource;
+                        $contact->etag = $googleContact['etag'];
+
+                        // Fill additional CRM fields with defaults or nulls
+                        $contact->familyOrOrgnization = $googleContact['familyOrOrgnization'] ?? null;
+                        $contact->panCardNumber = $googleContact['panCardNumber'] ?? null;
+                        $contact->aadharCardNumber = $googleContact['aadharCardNumber'] ?? null;
+                        $contact->occupation = $googleContact['occupation'] ?? 'Select';
+                        $contact->kycStatus = $googleContact['kycStatus'] ?? 'Select';
+                        $contact->anulIncome = $googleContact['anulIncome'] ?? null;
+                        $contact->referredBy = $googleContact['referredBy'] ?? null;
+                        $contact->totalInvestment = $googleContact['totalInvestment'] ?? null;
+                        $contact->comments = $googleContact['comments'] ?? null;
+                        $contact->relationshipManager = $googleContact['relationshipManager'] ?? null;
+                        $contact->serviceRM = $googleContact['serviceRM'] ?? null;
+                        $contact->totalSIP = $googleContact['totalSIP'] ?? null;
+                        $contact->primeryContactPerson = $googleContact['primeryContactPerson'] ?? null;
+                        $contact->meetinSchedule = $googleContact['meetinSchedule'] ?? 'Select';
+                        $contact->firstMeetingDate = $googleContact['firstMeetingDate'] ?? null;
+                        $contact->typeOfRelation = $googleContact['typeOfRelation'] ?? null;
+                        $contact->maritalStatus = $googleContact['maritalStatus'] ?? null;
+                        $contact->syncStatus = 'Synced';
+                        $contact->lastSync = Carbon::now();
+                        $contact->save();
+                    } catch (\Throwable $th) {
+                        Log::info(' error message in Import From google Job ' .$th );
+
                     }
-
-                    // Common assignment for both Create and Update
-                    $contact->firstName = $googleContact['firstName'] ?? null;
-                    $contact->lastName = $googleContact['lastName'] ?? null;
-                    $contact->number = $googleContact['number'] ?? null;
-                    $contact->email = $googleContact['email'] ?? null;
-                    $contact->resourceName = $resource;
-                    $contact->etag = $googleContact['etag'];
-
-                    // Fill additional CRM fields with defaults or nulls
-                    $contact->familyOrOrgnization = $googleContact['familyOrOrgnization'] ?? null;
-                    $contact->panCardNumber = $googleContact['panCardNumber'] ?? null;
-                    $contact->aadharCardNumber = $googleContact['aadharCardNumber'] ?? null;
-                    $contact->occupation = $googleContact['occupation'] ?? 'Select';
-                    $contact->kycStatus = $googleContact['kycStatus'] ?? 'Select';
-                    $contact->anulIncome = $googleContact['anulIncome'] ?? null;
-                    $contact->referredBy = $googleContact['referredBy'] ?? null;
-                    $contact->totalInvestment = $googleContact['totalInvestment'] ?? null;
-                    $contact->comments = $googleContact['comments'] ?? null;
-                    $contact->relationshipManager = $googleContact['relationshipManager'] ?? null;
-                    $contact->serviceRM = $googleContact['serviceRM'] ?? null;
-                    $contact->totalSIP = $googleContact['totalSIP'] ?? null;
-                    $contact->primeryContactPerson = $googleContact['primeryContactPerson'] ?? null;
-                    $contact->meetinSchedule = $googleContact['meetinSchedule'] ?? 'Select';
-                    $contact->firstMeetingDate = $googleContact['firstMeetingDate'] ?? null;
-                    $contact->typeOfRelation = $googleContact['typeOfRelation'] ?? 'Select';
-                    $contact->maritalStatus = $googleContact['maritalStatus'] ?? 'Select';
-                    $contact->save();
-
                 }
                 Log::info(' Import Form Google loop Job: ' . (memory_get_usage(true)/1024/1024)." MB");
             } while ($nextPageToken);

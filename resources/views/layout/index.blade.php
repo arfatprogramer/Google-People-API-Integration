@@ -4,14 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     @vite('resources/css/app.css')
-    <!-- boot strape CDN -->
+    <!-- boot st CDN -->
     <link href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.min.css" rel="stylesheet" integrity="sha384-BDXgFqzL/EpYeT/J5XTrxR+qDB4ft42notjpwhZDEjDIzutqmXeImvKS3YPH/WJX" crossorigin="anonymous">
     <!-- Data table CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
   {{-- ------Bootstrap--icon---cdn------------------- --}}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-  
+
+  <!-- Include Toastr and jQuery -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+   {{-- //----toaster--css------------ --}}
+   <link rel="stylesheet" href="{{ asset('asset/toastr.css') }}">
+
+  @stack('styles')
+
     <title>CRM</title>
 </head>
 
@@ -33,13 +44,13 @@
         </div>
     </nav>
 
-    <div class="flex h-[calc(100vh-75px)] relative">
+    <div class="flex h-[calc(100vh-75px)] relative shadow-lg">
         <!-- Sidebar -->
-        <aside class=" w-12 bg-white shadow-lg absolute h-full overflow-hidden hover:w-fit z-50">
+        <aside class=" w-12 bg-white border-r border-gray-300  shadow-lg absolute h-full overflow-hidden hover:w-fit z-50">
 
                             <a class="flex items-center  hover:bg-gray-200" href="{{route('client.list')}}">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-red-500 flex items-center justify-center text-white m-2">C</span>
-                                <span class="pr-4">Clinet</span>
+                                <span class="pr-4">Clients</span>
                             </a>
 
                             <a class="flex items-center hover:bg-gray-200" href="{{route('client.create')}}">
@@ -49,7 +60,7 @@
 
                             <a class="flex items-center hover:bg-gray-200" href="{{route('client.list')}}">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-green-500 flex items-center justify-center text-white m-2">FO</span>
-                                <span class="pr-4">Family/Orgnization</span>
+                                <span class="pr-4">Organization</span>
                             </a>
 
                             <a class="flex items-center hover:bg-gray-200" href="{{route('client.list')}}">
@@ -58,14 +69,18 @@
                             </a>
 
                             <a class="flex items-center hover:bg-gray-200" href="{{route('client.list')}}">
-                                <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-blue-500 flex items-center justify-center text-white m-2">L</span>
+                                <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-yellow-500 flex items-center justify-center text-white m-2">L</span>
                                 <span class="pr-4">Lead</span>
+                            </a>
+                            <a class="flex items-center hover:bg-gray-200" href="{{route('ajax.index')}}">
+                                <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-blue-500 flex items-center justify-center text-white m-2">GS</span>
+                                <span class="pr-4">Google Sync Dashboard</span>
                             </a>
 
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 ml-10  p-6 overflow-y-auto w-screen" >
+        <main class="flex-1 ml-10   overflow-y-auto w-screen" >
             @yield("container")
         </main>
     </div>
@@ -73,16 +88,71 @@
     <footer class=" bg-white border-t text-center">
         <p class="text-sm font-semibold text-gray-500">Powered By <span class="text-blue-900">Sanchay CRM </span></p>
     </footer>
+    @stack('scripts')
 
     <!-- jQuery CDN -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" ></script>
 
     <!-- DataTable JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <script src="https://cdn.datatables.net/v/bs5/jq-3.7.0/dt-2.2.2/cr-2.0.4/r-3.0.4/rr-1.5.0/datatables.min.js" integrity="sha384-9bYIk8wcWyHP6sGRy9fZWduNYeGcDw+PZhWc+ue0Hrt0iNDOn8OTj+YLtvuZ/dth" crossorigin="anonymous"></script>
 
     @yield("script")
-   
+
+    <!-- {{-- //---crm.js---------------------------- --}}
+    <script src="{{ asset('crmContact/crm.js') }}"></script>
+
+    {{-- -------google---map---api------------ --}}
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script> -->
+
+
+<script>
+      toastr.options = {
+        "positionClass": "toast-top-center",
+        "closeButton": true,
+        "progressBar": true,
+        "timeOut": "4000",
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+
+    function showToastr(type, message) {
+
+        if (type === 'success') toastr.success(message);
+        if (type === 'error') toastr.error(message);
+        if (type === 'warning') toastr.warning(message);
+        if (type === 'info') toastr.info(message);
+    }
+
+    // @if(session('success'))
+    //     showToastr('success', @json(session('success')));
+    // @elseif(session('error'))
+    //     showToastr('error', @json(session('error')));
+    // @elseif(session('warning'))
+    //     showToastr('warning', @json(session('warning')));
+    // @elseif(session('info'))
+    //     showToastr('info', @json(session('info')));
+    // @endif
+
+
+</script>
+
+@if(session('success'))
+     showToastr('success', @json(session('success')));
+ @elseif(session('error'))
+     showToastr('error', @json(session('error')));
+ @elseif(session('warning'))
+     showToastr('warning', @json(session('warning')));
+ @elseif(session('info'))
+     showToastr('info', @json(session('info')));
+ @endif
+
 </body>
 
 </html>

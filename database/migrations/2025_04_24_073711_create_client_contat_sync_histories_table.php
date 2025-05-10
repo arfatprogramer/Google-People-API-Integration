@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('error')->default(0);
             $table->integer('batches')->default(0);
             $table->integer('status')->default(0);
+            $table->integer('startTime')->nullable();
             $table->string('synToken')->nullable();
             $table->timestamps();
         });

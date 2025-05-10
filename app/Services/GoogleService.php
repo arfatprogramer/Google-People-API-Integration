@@ -98,7 +98,7 @@ class GoogleService
 
         // Set name
         $name = new Name();
-        $name->setGivenName($contact->FirstName);
+        $name->setGivenName($contact->firstName);
         $name->setFamilyName($contact->lastName);
         $person->setNames([$name]);
 

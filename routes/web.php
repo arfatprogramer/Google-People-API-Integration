@@ -1,5 +1,7 @@
 <?php
 
+use App\DataTables\clietsSyncedHistoryDataTable;
+use App\DataTables\SyncContactsDataTable;
 use App\Http\Controllers\AjaxRequestController;
 use App\Http\Controllers\clientController;
 use Illuminate\Support\Facades\Cache;
@@ -14,7 +16,8 @@ Route::get('/create',[clientController::class, 'createForm'])->name('client.crea
 Route::get('/list',[clientController::class, 'show'])->name('client.list');
 Route::get('/edit/{id}',[clientController::class, 'editContact'])->name('client.edit');
 Route::put('/ContactUpdate',[clientController::class, 'UpdateFormContact'])->name('client.ContactUpdate');
-
+//soft-delete---or-----google--delete---contact----------
+Route::post('/contacts/soft-delete',[AjaxRequestController::class, 'softDeletOrGoogleContact'])->name('client.softDelete');
 
 
 
@@ -27,10 +30,24 @@ Route::get('refreshUrl',[AjaxRequestController::class,'refreshReq'])->name('ajax
 Route::get('synNow',[AjaxRequestController::class,'synNowBoth'])->name('ajax.synNow');
 Route::get('pushToGoogle',[AjaxRequestController::class,'pushToGoogle'])->name('ajax.pushToGoogle');
 Route::get('importFromGoogle',[AjaxRequestController::class,'importFromGoogle'])->name('ajax.importFromGoogle');
+Route::post('singleSyncById',[AjaxRequestController::class,'singleSyncById'])->name('ajax.singleSyncById');
 Route::get('syncStatus',[AjaxRequestController::class,'syncStatus'])->name('ajax.syncStatus');
+
+
+// Data Table Routes
+Route::get('sync-history-data', [clietsSyncedHistoryDataTable::class, 'ajax'])->name('sync.history.data');
+Route::get('sync-contacts-data', [SyncContactsDataTable::class, 'ajax'])->name('sync.contacts.data');
+
+
 
 
 Route::get('getClinetSyncHistory',[AjaxRequestController::class,'getClinetSyncHistory'])->name('ajax.getClinetSyncHistory');
 
+//Testing Function
+Route::get('test',function(){
+    $personFields=['names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'];
+    $pageSize=1000;
+    //contact come here ny the functon
+        // $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken, $this->nextSynToken);
 
-Route::get('test',[AjaxRequestController::class,'test']);
+});
