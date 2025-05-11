@@ -7,6 +7,7 @@ use App\Models\clientContatSyncHistory;
 use App\Services\GoogleService;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,7 +18,7 @@ use Illuminate\Queue\SerializesModels;
 
 class importFormGoogleJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     protected $googleToken;
     protected $id;
     protected $nextSynToken;
@@ -40,7 +41,7 @@ class importFormGoogleJob implements ShouldQueue
      * Execute the job.
      */
     public function handle(): void
-    {   Log::info(' Import Form Google Starting Job: ' . (memory_get_usage(true)/1024/1024)." MB");
+    {    sleep(5);
     try {
             $personFields=['names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'];
             $pageSize=1000;
@@ -58,7 +59,7 @@ class importFormGoogleJob implements ShouldQueue
                 $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
                 $lastRowInContactSyncHistoryTable->synToken=$googleContacts->nextSyncToken??null;
                 $lastRowInContactSyncHistoryTable->batches -=1;
-                $lastRowInContactSyncHistoryTable->status =1;
+                $lastRowInContactSyncHistoryTable->status ="Processing";
                 $lastRowInContactSyncHistoryTable->startTime = $lastRowInContactSyncHistoryTable->startTime==null ? time() : $lastRowInContactSyncHistoryTable->startTime;
                 $lastRowInContactSyncHistoryTable->save();
 
@@ -108,17 +109,25 @@ class importFormGoogleJob implements ShouldQueue
                         $crmContact = $crmContacts->get($resource);
                         // this for captur data in Sync History Table
                         $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
+                        $lastRowInContactSyncHistoryTable->synced+=1;
+                        $lastRowInContactSyncHistoryTable->pending=$lastRowInContactSyncHistoryTable->pending==0?0:$lastRowInContactSyncHistoryTable->pending - 1;
 
-                        if (!$crmContact) {
+                        if (!$crmContact ) {
                             // Create new contact in CRM
-                            $contact = new client();
-                            // this for captur data in Sync History Table
-                            $lastRowInContactSyncHistoryTable->created+=1;
-                            $lastRowInContactSyncHistoryTable->save();
+                            if (!empty($googleContact['firstName']) || !empty($googleContact['lastName'])) {
+                                $contact = new client();
+                                // this for captur data in Sync History Table
+                                $lastRowInContactSyncHistoryTable->created+=1;
+                                $lastRowInContactSyncHistoryTable->save();
+                            }else{
+                                $lastRowInContactSyncHistoryTable->save();
+                                continue;
+                            }
+
                         } elseif ($crmContact->etag !== $googleContact['etag']) {
                             // Update existing contact
                             $contact = $crmContact;
-                            Log::info($googleContact['firstName']);
+
                             if (empty($googleContact['firstName']) && empty($googleContact['lastName']) && empty($googleContact['number']) && empty($googleContact['email'])) {
                                 $contact->syncStatus = 'Deleted';
                                 $contact->lastSync = Carbon::now();
