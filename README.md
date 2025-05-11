@@ -73,4 +73,8 @@ auth.json
 php artisan key:generate
 
 it uatomatically generate in the .env file
+
+
+
+## this is for testing
 ```

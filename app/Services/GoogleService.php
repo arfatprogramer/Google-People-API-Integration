@@ -59,9 +59,8 @@ class GoogleService
               $client = new Google_Client();
               // this this not nessory for every things
               $client->addScope([
-                  'https://www.googleapis.com/auth/contacts',
-                  'email',
-                  'profile'
+                  'https://www.googleapis.com/auth/userinfo.profile',
+                   'https://www.googleapis.com/auth/contacts'
               ]);
               $client->setClientId(config('services.google.client_id'));
               $client->setClientSecret(config('services.google.client_secret'));

@@ -12,11 +12,16 @@ use App\Models\GoogleAuth;
 use App\Services\GoogleService;
 use Carbon\Carbon;
 use Exception;
+use Google\Http\Batch;
 use Google\Service\PeopleService;
 use Google_Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
+
+use function Laravel\Prompts\progress;
+use function PHPUnit\Framework\isEmpty;
 
 class AjaxRequestController extends Controller
 {
@@ -61,11 +66,11 @@ class AjaxRequestController extends Controller
             Log::info('Starting  Refresh Method in Ajax Contrller: ' .(memory_get_usage(true)/1024/1024)." MB");
 
             $lastSync=$this->clientContactSyncHistoryTable::orderBy('created_at','desc')->first();
-            $lastSyncChangesDeteted=($lastSync->created?? 0) + ($lastSync->updated?? 0) + ($lastSync->deleted ?? 0) ;
+            $lastSyncChangesDeteted=($lastSync->createdAtGoogle?? 0) + ($lastSync->updatedAtGoogle?? 0) + ($lastSync->created?? 0) + ($lastSync->updated?? 0) + ($lastSync->deleted ?? 0) ;
 
             $nextSynToken=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
-            $TotalcontactInGoogle=(new GoogleService())->getContacts($this->googleToken, 1, ['names']);
-            $pendingChangesOnGoogle=(new GoogleService())->getContacts($this->googleToken, 1, ['names'],null,$nextSynToken->synToken??null);
+            $TotalcontactInGoogle=(new GoogleService())->getContacts($this->googleToken, 10, ['names']);
+            $pendingChangesOnGoogle=(new GoogleService())->getContacts($this->googleToken, 10, ['names'],null,$nextSynToken->synToken??null);
             // dd($TotalcontactInGoogle);
 
             $crmTotalClient=Client::count();
@@ -115,8 +120,16 @@ class AjaxRequestController extends Controller
         try {
             $this->isProcessing=true;
            $batchCount = 0;
+           $extimetedTime=0;
+           $totalPending=0;
 
             $googleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
+
+              // calculating pending on Google and Add in Pending
+              $nextSynToken=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
+              $pendingChangesOnGoogle=(new GoogleService())->getContacts($this->googleToken, 10, ['names'],null,$nextSynToken->synToken??null);
+              $totalPending +=$pendingChangesOnGoogle->totalPeople??0;
+
            // Create an empty history row
             $syncHistory = new clientContatSyncHistory();
             $syncHistory->save();
@@ -124,40 +137,37 @@ class AjaxRequestController extends Controller
 
             $createIds = Client::where('syncStatus', 'Not Synced')->pluck('id')->toArray();
             $updateIds = Client::where('syncStatus', 'Pending')->pluck('id')->toArray();
+            $totalPending= (count($createIds) + count($updateIds));
+            $createChunks = array_chunk($createIds, 200);
+            $updateChunks = array_chunk($updateIds, 200);
 
-            $createChunks = array_chunk($createIds, 80);
-            $updateChunks = array_chunk($updateIds, 80);
+            $batches=Bus::batch([])->name("Synk Both")->dispatch();
 
 
             foreach ($createChunks as $chunk) {
-                if ($batchCount > 1) {
-                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id)->delay(now()->addMinutes(1));
-
-                }else{
-
-                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id);
-                }
-
+                $batches->add(new pushToGoogleJob($googleToken, $chunk, [], $syncHistory->id));
+                $extimetedTime += 15; // 15 sec take to process
                 $batchCount++;
             }
 
             foreach ($updateChunks as $chunk) {
-                if ($batchCount > 1) {
-                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id)->delay(now()->addMinutes(1));
-
-                }else{
-                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id);
-                }
+                $batches->add(new pushToGoogleJob($googleToken, [], $chunk, $syncHistory->id));
+                $extimetedTime += 15; // 15 sec take to process
                 $batchCount++;
             }
 
             // import form Google Job
-            importFormGoogleJob::dispatch($googleToken, $syncHistory->id);
+            $batches->add(new importFormGoogleJob($googleToken, $syncHistory->id));
             $batchCount++;
+            $extimetedTime += 30; // 30 sec take to process
 
             // Update the batches count
             $syncHistory->batches = $batchCount;
+            $syncHistory->extimetedTime = $extimetedTime;
+            $syncHistory->pending = $totalPending;
             $syncHistory->save();
+
+            session(['batch_id'=>$batches->id]);
 
             return response()->json([
                     'status'=>true,
@@ -165,7 +175,7 @@ class AjaxRequestController extends Controller
                     'error'=>false,
                     'data'=>[],
                 ]);
-                 //code...
+
         } catch (Exception $e) {
             return response()->json([
                 'status'=>false,
@@ -179,13 +189,13 @@ class AjaxRequestController extends Controller
     // Push To Google Function Ready
     public function pushToGoogle(){
         try {
-            $this->isProcessing=true;
-
+            $extimetedTime=0;
             $googleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
 
             $createIds = Client::where('syncStatus', 'Not Synced')->pluck('id')->toArray();
             $updateIds = Client::where('syncStatus', 'Pending')->pluck('id')->toArray();
-            if (count($createIds)==0 && count($updateIds)==0) {
+            $totalPending= (count($createIds) + count($updateIds));
+            if ($totalPending==0) {
                 $this->isProcessing=false;
                 return response()->json([
                     'status'=>true,
@@ -202,41 +212,33 @@ class AjaxRequestController extends Controller
             $syncHistoryNextSynCToken=clientContatSyncHistory::orderBy('id','desc')->get("synToken")->first();
             $syncHistory = new clientContatSyncHistory();
             $syncHistory->synToken=$syncHistoryNextSynCToken->synToken??null;
+            $syncHistory->pending=$totalPending;
             $syncHistory->save();
 
-
-
-            $createChunks = array_chunk($createIds, 80);
-            $updateChunks = array_chunk($updateIds, 80);
+            $createChunks = array_chunk($createIds, 10);
+            $updateChunks = array_chunk($updateIds, 200);
 
             $batchCount = 0;
+            $batches=Bus::batch([])->name('Push To Google')->dispatch();
 
             foreach ($createChunks as $chunk) {
-                if ($batchCount > 1) {
-                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id)->delay(now()->addMinutes(1));
-
-                }else{
-
-                    pushToGoogleJob::dispatch($googleToken, $chunk, [], $syncHistory->id);
-                }
-
                 $batchCount++;
+                $batches->add(new pushToGoogleJob($googleToken, $chunk, [], $syncHistory->id));
+                $extimetedTime += 15; // 15 sec take to process
             }
 
             foreach ($updateChunks as $chunk) {
-                if ($batchCount > 1) {
-                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id)->delay(now()->addMinutes(1));
-
-                }else{
-                    pushToGoogleJob::dispatch($googleToken, [], $chunk, $syncHistory->id);
-                }
                 $batchCount++;
+                $batches->add(new pushToGoogleJob($googleToken, [], $chunk, $syncHistory->id));
+                $extimetedTime += 15; // 15 sec take to process
             }
-
 
             // Update the batches count
             $syncHistory->batches = $batchCount;
+            $syncHistory->extimetedTime = $extimetedTime;
             $syncHistory->save();
+
+            session(['batch_id'=>$batches->id]);
 
             $data=[
                 'isProcessing'=>$this->isProcessing,
@@ -268,16 +270,21 @@ class AjaxRequestController extends Controller
         Log::info('Import Form Google Function '  );
 
         $googleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
+        $nextSynToken=clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
+        $pendingChangesOnGoogle=(new GoogleService())->getContacts($this->googleToken, 10, ['names'],null,$nextSynToken->synToken??null);
+
         $newClientSyncHistoyRow=new clientContatSyncHistory();
         $newClientSyncHistoyRow->batches += 1;
+        $newClientSyncHistoyRow->pending = $pendingChangesOnGoogle->totalPeople??0;
+        $newClientSyncHistoyRow->extimetedTime = 30;
         $newClientSyncHistoyRow->save();
 
-        importFormGoogleJob::dispatch($googleToken, $newClientSyncHistoyRow->id);
+        $batches=Bus::batch([
+            new importFormGoogleJob($googleToken, $newClientSyncHistoyRow->id),
+        ])->name('Import From Google')->dispatch();
 
-        Log::info('Import Form Google Function return '  );
+        session(['batch_id'=>$batches->id]);
 
-        // unset($googleToken);
-        // unset($newClientSyncHistoryRow);
         return response()->json([
                 'status'=>true,
                 'message'=>"Import From Google Contact",
@@ -289,7 +296,7 @@ class AjaxRequestController extends Controller
             return response()->json([
                 'status'=>false,
                 'error'=>true,
-                'massage'=>$e,
+                'message'=>$e,
                 'data'=>[],
             ]);
         }
@@ -358,41 +365,35 @@ class AjaxRequestController extends Controller
     // This for Dispaly Process Bar
      public function syncStatus(){
         try {
-            $message="";
-            $lastSync=clientContatSyncHistory::orderBy('created_at','desc')->first();
-            $status=$lastSync->status??0;
-            $batches=$lastSync->batches??0;
-            $synced=($lastSync->created??0)+ ($lastSync->updated??0);
-            $pending=0; // it have to calculate
-            $errors=$lastSync->error??0;
+            $progress=100;
+            $processing=false;
+            $batchId = session('batch_id');
+            if (!$batchId==null) {
+                $batch = Bus::findBatch($batchId);
+                $progress=$batch->progress();
 
-            $startTime=$lastSync->startTime??null;
+                if ($batch->cancelled()) {  //cancelled
+                     $processing=false;
 
-            if ($batches > 0 && $status==0) {
-                $isSynced=false;
-                $message="Sync Is In Pendig On Queue";
-                $porcessBarPersentage=0;
-            }elseif($batches > 0 && $status==1){
-                $isSynced=false;
-                $message="Syn Is ProcessingIn Queue";
-                $processBarWidth = 0;
-                $totalTime = $batches * 60; // total expected time in seconds
-                $elapsedTime = time() - $startTime; // assuming you saved the start time
-                $processBarWidth = ($elapsedTime / $totalTime) * 100;
-                $porcessBarPersentage=round($processBarWidth);
-            }else{
-                $isSynced=true;
-                $porcessBarPersentage=100;
-                $message="Synced is Completed";
+                }elseif($batch->finished()){  // Completed
+                     $processing=false;
+
+                }else{   //Processing
+                     $processing=true;
+
+                }
             }
 
+            $message="Synced status function";
+            $lastSync=clientContatSyncHistory::orderBy('created_at','desc')->first();
+            $extimetedTime = ($lastSync->extimetedTime ?? 0);
+            $extimetedTime=round(($extimetedTime/60)). ":".($extimetedTime%60)." Min";
+
         $data=[
-            'isSynced'=>$isSynced,
+            'processing'=>$processing,
+            'progress'=>$progress,
             'lastSync'=>$lastSync,
-            'synced'=>$synced,
-            'pending'=>$pending,
-            'errors'=>$errors,
-            'porcessBarPersentage'=>$porcessBarPersentage,
+            'extimetedTime'=>$extimetedTime,
         ];
 
         return response()->json([
@@ -401,13 +402,14 @@ class AjaxRequestController extends Controller
                 'error'=>false,
                 'data'=>$data,
             ]);
-             //code...
         } catch (Exception $e) {
+
             return response()->json([
                 'status'=>false,
                 'error'=>true,
-                'massage'=>$e,
+                'massage'=>$e->getMessage(),
                 'data'=>[],
+
             ]);
         }
     }
@@ -419,7 +421,10 @@ class AjaxRequestController extends Controller
         $client = new Google_Client();
         $client->setClientId(config('services.google.client_id'));
         $client->setRedirectUri(config('services.google.redirect'));
-        $client->addScope('https://www.googleapis.com/auth/contacts');
+        $client->addScope([
+            'https://www.googleapis.com/auth/userinfo.profile',
+             'https://www.googleapis.com/auth/contacts'
+        ]);
         $client->setAccessType('offline');
         $client->setPrompt('consent');
 
@@ -521,6 +526,38 @@ class AjaxRequestController extends Controller
             ]);
             }
         }
+    }
+
+
+    public function cancelPendingGoogleSync(){
+
+        try {
+
+            $lastRow = clientContatSyncHistory::latest('id')->first();
+            $lastRow->delete();
+
+            $batchId = session('batch_id');
+            if (!$batchId==null) {
+                $batch = Bus::findBatch($batchId);
+                $batch->cancel();
+            }
+
+            return response()->json([
+                'status'=>true,
+                'error'=>false,
+                'message'=>"Process canceld",
+                'data'=>$lastRow,
+            ]);
+
+        } catch (Exception $e) {
+             return response()->json([
+                'status'=>false,
+                'error'=>true,
+                'message'=>$e,
+                'data'=>[],
+            ]);
+        }
+
     }
 
 }
