@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 use App\Models\Client;
 
-class CrmService
+class CrmApiServices 
 {
     protected string $baseUrl = 'https://uat.sanchaycrm.com/api';
 

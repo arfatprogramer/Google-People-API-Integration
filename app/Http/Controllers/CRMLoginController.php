@@ -9,11 +9,14 @@ class CRMLoginController extends Controller
     
     protected $crm;
 
-    public function __construct(CrmService $crm)
+    public function __construct(CrmApiServices $crm)
     {
         $this->crm = $crm;
     }
 
+    public function ViewcrmLogin(){
+        return view('client.login');
+    }
     public function login(Request $request)
     {
         $request->validate([
