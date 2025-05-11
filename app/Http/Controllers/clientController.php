@@ -105,8 +105,12 @@ class clientController extends Controller
 
     public function editContact($id){
         $data = client::where('id',$id)->find($id);
+
+        return view("client.createForm",compact('data'));
+
        $clientAddress = ClientAddress::where('client_id',$id)->get();
         return view("client.createForm",compact('data','clientAddress'));
+
     }
 ///------UpdateForm------------------
 public function UpdateFormContact(Request $request){
@@ -115,6 +119,7 @@ public function UpdateFormContact(Request $request){
         "number"=>'required',
         "email"=>'required|email',
       ]);
+
 
     //   return "updateto = ". $request->id;
       $newClient = Client::find($request->id);

@@ -1,16 +1,26 @@
 <?php
 
-use App\DataTables\clietsSyncedHistoryDataTable;
-use App\DataTables\SyncContactsDataTable;
-use App\Http\Controllers\AjaxRequestController;
-use App\Http\Controllers\clientController;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
+use App\DataTables\SyncContactsDataTable;
+use App\Http\Controllers\clientController;
+use App\Http\Controllers\CRMLoginController;
+use App\Http\Middleware\loginAuthMiddleware;
+use App\Http\Controllers\AjaxRequestController;
+use App\DataTables\clietsSyncedHistoryDataTable;
+
+
+
+Route::get('crm/login',[CRMLoginController::class,'ViewcrmLogin'])->name('login');
+
+//--login---auth--miggleware--route
+Route::middleware(loginAuthMiddleware::class)->group(function(){
 
 Route::get('/', function () {
     return view('client.list');
 });
-
+//--login---route
+Route::post('/crmlogin',[CRMLoginController::class,'login']);
 Route::post('/create',[clientController::class, 'create'])->name('client.create');
 Route::get('/create',[clientController::class, 'createForm'])->name('client.createForm');
 Route::get('/list',[clientController::class, 'show'])->name('client.list');
@@ -60,3 +70,5 @@ Route::get('test',function(){
         // $googleContacts = (new GoogleService())->getContacts($this->googleToken, $pageSize, $personFields,$nextPageToken, $this->nextSynToken);
 
 });
+
+}); //login middleware end
