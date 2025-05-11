@@ -15,6 +15,7 @@ use Google\Service\PeopleService;
 use Google\Service\PeopleService\BatchCreateContactsRequest;
 use Google\Service\PeopleService\BatchUpdateContactsRequest;
 use Google\Service\PeopleService\ContactToCreate;
+use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -22,7 +23,7 @@ use function PHPUnit\Framework\isEmpty;
 
 class pushToGoogleJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $ceateIdList;
     protected $GoogleToken;
@@ -129,165 +130,166 @@ class pushToGoogleJob implements ShouldQueue
     // }
 
     public function handle()
-{
-    $syncHistory = clientContatSyncHistory::find($this->clientSyncHistoyEmptyRowId);
+    {
+        sleep(5);
+        $syncHistory = clientContatSyncHistory::find($this->clientSyncHistoyEmptyRowId);
 
-    if (!$syncHistory) {
-        Log::error("Sync history record not found: ID {$this->clientSyncHistoyEmptyRowId}");
-        return;
-    }
-
-    $syncHistory->status = 'Processing';
-    $syncHistory->startTime = $syncHistory->startTime ?? time();
-    $syncHistory->save();
-
-    $client = (new GoogleService())->getGoogleCient($this->GoogleToken);
-    $peopleService = new PeopleService($client);
-    $timeStamp = Carbon::now();
-
-    // === BATCH CREATE ===
-    if (!empty($this->ceateIdList)) {
-        $contacts = Client::whereIn('id', $this->ceateIdList)->get();
-        $requests = [];
-        $contactMap = [];
-
-        foreach ($contacts as $index => $contact) {
-            try {
-                $person = (new GoogleService())->getPerson($contact);
-
-                $contactToCreate = new ContactToCreate();
-                $contactToCreate->setContactPerson($person);
-
-                $requests[] = $contactToCreate;
-                $contactMap[$index] = $contact;
-
-            } catch (\Exception $e) {
-
-                Log::error("Error preparing create for contact ID {$contact->id}: {$e->getMessage()}");
-            }
+        if (!$syncHistory) {
+            Log::error("Sync history record not found: ID {$this->clientSyncHistoyEmptyRowId}");
+            return;
         }
 
-        if (!empty($requests)) {
-            $batchCreateRequest = new BatchCreateContactsRequest();
-            $batchCreateRequest->setContacts($requests);
-            $batchCreateRequest->setReadMask('names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'); ;
+        $syncHistory->status = 'Processing';
+        $syncHistory->startTime = $syncHistory->startTime ?? time();
+        $syncHistory->save();
 
-            try {
-                $response = $peopleService->people->batchCreateContacts($batchCreateRequest);
-                $response=$response->toSimpleObject();
+        $client = (new GoogleService())->getGoogleCient($this->GoogleToken);
+        $peopleService = new PeopleService($client);
+        $timeStamp = Carbon::now();
 
-                foreach ($response->createdPeople as $index => $createdPerson) {
-                    if (isset($contactMap[$index])) {
-                        $originalContact = $contactMap[$index];
-                        $originalContact->resourceName = $createdPerson->person->resourceName;
-                        $originalContact->etag = $createdPerson->person->etag;
-                        $originalContact->lastSync = $timeStamp;
-                        $originalContact->syncStatus = 'Synced';
-                        $originalContact->save();
+        // === BATCH CREATE ===
+        if (!empty($this->ceateIdList)) {
+            $contacts = Client::whereIn('id', $this->ceateIdList)->get();
+            $requests = [];
+            $contactMap = [];
 
-                        $syncHistory->increment('createdAtGoogle');
-                        $syncHistory->increment('synced');
+            foreach ($contacts as $index => $contact) {
+                try {
+                    $person = (new GoogleService())->getPerson($contact);
+
+                    $contactToCreate = new ContactToCreate();
+                    $contactToCreate->setContactPerson($person);
+
+                    $requests[] = $contactToCreate;
+                    $contactMap[$index] = $contact;
+
+                } catch (\Exception $e) {
+
+                    Log::error("Error preparing create for contact ID {$contact->id}: {$e->getMessage()}");
+                }
+            }
+
+            if (!empty($requests)) {
+                $batchCreateRequest = new BatchCreateContactsRequest();
+                $batchCreateRequest->setContacts($requests);
+                $batchCreateRequest->setReadMask('names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'); ;
+
+                try {
+                    $response = $peopleService->people->batchCreateContacts($batchCreateRequest);
+                    $response=$response->toSimpleObject();
+
+                    foreach ($response->createdPeople as $index => $createdPerson) {
+                        if (isset($contactMap[$index])) {
+                            $originalContact = $contactMap[$index];
+                            $originalContact->resourceName = $createdPerson->person->resourceName;
+                            $originalContact->etag = $createdPerson->person->etag;
+                            $originalContact->lastSync = $timeStamp;
+                            $originalContact->syncStatus = 'Synced';
+                            $originalContact->save();
+
+                            $syncHistory->increment('createdAtGoogle');
+                            $syncHistory->increment('synced');
+                            $syncHistory->decrement('pending');
+                        }
+                    }
+                } catch (\Exception $e) {
+                    $message=json_decode($e->getMessage());
+                    $errorCode=$message->error->code;
+                    if ($errorCode==429) {
+                        $syncHistory->error +=count($contactMap);
                         $syncHistory->decrement('pending');
                     }
                 }
-            } catch (\Exception $e) {
-                $message=json_decode($e->getMessage());
-                $errorCode=$message->error->code;
-                if ($errorCode==429) {
-                    $syncHistory->error +=200;
-                    $syncHistory->decrement('pending');
+            }
+        }
+
+        // === BATCH UPDATE ===
+        if (!empty($this->updateIdList)) {
+            $contacts = Client::whereIn('id', $this->updateIdList)->get();
+
+            $batchUpdateRequest = new BatchUpdateContactsRequest();
+            $updateMap = [];
+            $updateMask = 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies';
+            $readMask = 'names,emailAddresses,phoneNumbers';
+
+            foreach ($contacts as $contact) {
+                try {
+                    $person = (new GoogleService())->getPerson($contact);
+                    $person->setEtag($contact->etag); // Ensure etag is fresh before batch
+                    $updateMap[$contact->resourceName] = $person;
+                } catch (\Exception $e) {
+                    Log::error("Error preparing update for contact ID {$contact->id}: {$e->getMessage()}");
                 }
             }
-        }
-    }
 
-    // === BATCH UPDATE ===
-    if (!empty($this->updateIdList)) {
-        $contacts = Client::whereIn('id', $this->updateIdList)->get();
-
-        $batchUpdateRequest = new BatchUpdateContactsRequest();
-        $updateMap = [];
-        $updateMask = 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies';
-        $readMask = 'names,emailAddresses,phoneNumbers';
-
-        foreach ($contacts as $contact) {
-            try {
-                $person = (new GoogleService())->getPerson($contact);
-                $person->setEtag($contact->etag); // Ensure etag is fresh before batch
-                $updateMap[$contact->resourceName] = $person;
-            } catch (\Exception $e) {
-                Log::error("Error preparing update for contact ID {$contact->id}: {$e->getMessage()}");
-            }
-        }
-
-        $return=false;
-        do {
             $return=false;
+            do {
+                $return=false;
+                try {
+                    $batchUpdateRequest->setContacts($updateMap);
+                    $batchUpdateRequest->setUpdateMask($updateMask);
+                    $batchUpdateRequest->setReadMask($readMask);
+                    $response = $peopleService->people->batchUpdateContacts($batchUpdateRequest);
+                } catch (\Exception $e) {
+                    $message=json_decode($e->getMessage());
+                    $Resoucres=$message->error->details[0]->fieldViolations[0]->field;
+                    $resourceName = Str::between($Resoucres, 'contacts[', ']');
+                    if (isEmpty($resourceName)) {
+                        $return=true;
+                        print_r($resourceName);
+                        unset($updateMap[$resourceName]);
+                        $updateMap=$updateMap;
+                        $contact = $contacts->where('resourceName', $resourceName)->first();
+                        if ($contact) {
+                            $contact->lastSync = $timeStamp;
+                            $contact->syncStatus = 'Deleted';
+                            $contact->save();
+
+                            $syncHistory->increment('deleted');
+                            $syncHistory->increment('synced');
+                            $syncHistory->decrement('pending');
+                        }
+                    }
+                }
+            } while ($return);
+
+
+
             try {
-                $batchUpdateRequest->setContacts($updateMap);
-                $batchUpdateRequest->setUpdateMask($updateMask);
-                $batchUpdateRequest->setReadMask($readMask);
-                $response = $peopleService->people->batchUpdateContacts($batchUpdateRequest);
-            } catch (\Exception $e) {
-                $message=json_decode($e->getMessage());
-                $Resoucres=$message->error->details[0]->fieldViolations[0]->field;
-                $resourceName = Str::between($Resoucres, 'contacts[', ']');
-                if (isEmpty($resourceName)) {
-                    $return=true;
-                    print_r($resourceName);
-                    unset($updateMap[$resourceName]);
-                    $updateMap=$updateMap;
-                    $contact = $contacts->where('resourceName', $resourceName)->first();
-                    if ($contact) {
-                        $contact->lastSync = $timeStamp;
-                        $contact->syncStatus = 'Deleted';
-                        $contact->save();
+                $results = $response->getUpdateResult(); // Must call getter method
 
-                        $syncHistory->increment('deleted');
-                        $syncHistory->increment('synced');
-                        $syncHistory->decrement('pending');
-                    }
-                }
-            }
-        } while ($return);
+                foreach ($results as $resourceName => $updateResult) {
+                    $updatedPerson = $updateResult->getPerson();
+                    if ($updatedPerson) {
+                        $contact = $contacts->where('resourceName', $resourceName)->first();
+                        if ($contact) {
+                            $contact->etag = $updatedPerson->getEtag();
+                            $contact->lastSync = $timeStamp;
+                            $contact->syncStatus = 'Synced';
+                            $contact->save();
 
-
-
-        try {
-            $results = $response->getUpdateResult(); // Must call getter method
-
-            foreach ($results as $resourceName => $updateResult) {
-                $updatedPerson = $updateResult->getPerson();
-                if ($updatedPerson) {
-                    $contact = $contacts->where('resourceName', $resourceName)->first();
-                    if ($contact) {
-                        $contact->etag = $updatedPerson->getEtag();
-                        $contact->lastSync = $timeStamp;
-                        $contact->syncStatus = 'Synced';
-                        $contact->save();
-
-                        $syncHistory->increment('updatedAtGoogle');
-                        $syncHistory->increment('synced');
-                        $syncHistory->decrement('pending');
+                            $syncHistory->increment('updatedAtGoogle');
+                            $syncHistory->increment('synced');
+                            $syncHistory->decrement('pending');
+                        } else {
+                            Log::warning("No local contact found for resourceName: {$resourceName}");
+                        }
                     } else {
-                        Log::warning("No local contact found for resourceName: {$resourceName}");
+                        Log::warning("No updated person returned for resourceName: {$resourceName}");
                     }
-                } else {
-                    Log::warning("No updated person returned for resourceName: {$resourceName}");
                 }
+
+            } catch (\Exception $e) {
+                Log::error("Batch update failed: {$e->getMessage()}");
             }
-
-        } catch (\Exception $e) {
-            Log::error("Batch update failed: {$e->getMessage()}");
         }
+
+
+        // Finalize
+        $syncHistory->decrement('batches');
+        $syncHistory->save();
+
     }
-
-
-    // Finalize
-    $syncHistory->decrement('batches');
-    $syncHistory->save();
-}
-
 
 }
 

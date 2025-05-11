@@ -774,9 +774,8 @@
                     success: function (response) {
                         if (response.status) {
 
-                            let isProcessingSync = response.data?.isProcessing;
-                            let width = response.data.progressBarPercentage;
-                            let isSynced = response.data.isSynced;
+                            let processing = response.data?.processing;
+                            let width = response.data.progress;
                             let extimatedTime = response.data.extimetedTime;
 
                             // Animate the progress bar width with CSS transition
@@ -784,14 +783,14 @@
                             $("#processBarSyned").text(response.data.synced??0);
                             $("#processBarPending").text(response.data.pending??0);
                             $("#processBarErros").text(response.data.errors??0);
+                            $('#cancelProcessing').removeAttr('hidden')
 
                             // Change colors and text based on sync status
                             if (width == 0) {
-                                $("#processBar").css("width", 100 + "%");
+                                // $("#processBar").css("width", 100 + "%");
                                 $("#processBar").css('backgroundColor', 'yellow');
                                 $("#processBarText").text("Pending");
                                 $("#processBarText").css('color', '#ffa225');
-                                $('#cancelProcessing').removeAttr('hidden')
 
                             } else {
                                 $("#processBar").css("width", width + "%");
@@ -802,7 +801,7 @@
                             }
 
                             // Handle completion of sync
-                            if (isSynced) {
+                            if (!processing) {
                                 $("#processBar").css("width", 100 + "%");
                                 $("#processPersentage").text("100%");
                                 $("#processBar").css('backgroundColor', '#00C951');
