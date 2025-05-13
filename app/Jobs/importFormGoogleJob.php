@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Models\client;
 use App\Models\clientContatSyncHistory;
+use App\Services\CrmApiServices;
 use App\Services\GoogleService;
 use Carbon\Carbon;
 use Exception;
@@ -22,14 +22,17 @@ class importFormGoogleJob implements ShouldQueue
     protected $googleToken;
     protected $id;
     protected $nextSynToken;
+    protected $GoogleResourceName=[];
+    protected $apiToken;
     /**
      * Create a new job instance.
      */
-    public function __construct($googleToken,$id)
+    public function __construct($googleToken,$id,$apiToken)
     {
 
         $this->googleToken=$googleToken;
         $this->id=$id;
+        $this->apiToken=$apiToken;
 
         $previousSync = clientContatSyncHistory::orderByDesc('id')->skip(1)->first();
         $this->nextSynToken = $previousSync ? $previousSync->synToken : null;
@@ -42,11 +45,11 @@ class importFormGoogleJob implements ShouldQueue
      */
     public function handle(): void
     {    sleep(5);
-    try {
-            $personFields=['names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'];
+        try {
+         $timeStamp=Carbon::now();
+            $personFields=['names,phoneNumbers,emailAddresses,userDefined,organizations,biographies,addresses,birthdays'];
             $pageSize=1000;
             //contact come here ny the functon
-
 
             $nextPageToken=false;
             do {
@@ -54,7 +57,6 @@ class importFormGoogleJob implements ShouldQueue
                 $nextPageToken=$googleContacts->nextPageToken??false;
 
                 //this writen to update contact History Table Data
-                Log::info(' error message in Import From google Job  before histoy table '  );
 
                 $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
                 $lastRowInContactSyncHistoryTable->synToken=$googleContacts->nextSyncToken??null;
@@ -63,118 +65,118 @@ class importFormGoogleJob implements ShouldQueue
                 $lastRowInContactSyncHistoryTable->startTime = $lastRowInContactSyncHistoryTable->startTime==null ? time() : $lastRowInContactSyncHistoryTable->startTime;
                 $lastRowInContactSyncHistoryTable->save();
 
+
                 if (empty($googleContacts->connections)) {
                     continue;
                 }
+                $contacts = [];
+                foreach ($googleContacts->connections as $person) {
+                    $resourceName = $person->resourceName;
+                    $etag = $person->etag;
+                    $this->GoogleResourceName[]=$resourceName;
 
+                    $name = $person->names[0] ?? null;
+                    $emails = collect($person->emailAddresses ?? []);
+                    $phones = collect($person->phoneNumbers ?? []);
+                    $biographies = $person->biographies[0]->value ?? '';
+                    $organizations = $person->organizations[0] ?? null;
+                    $addresses = collect($person->addresses ?? []);
 
-                $googleMap = collect($googleContacts->connections)->mapWithKeys(function ($person) {
-
-                    $customFields = collect($person->userDefined??[])->mapWithKeys(function ($field) {
-                        return [$field->key => $field->value];
-                    });
-                    return [
-                        $person->resourceName => [
-                            'etag' => $person->etag,
-                            'firstName' => $person->names[0]->givenName ?? null,
-                            'lastName' => $person->names[0]->familyName ?? null,
-                            'number' => $person->phoneNumbers[0]->value ?? null,
-                            'email' => $person->emailAddresses[0]->value ?? null,
-                            'familyOrOrgnization' => $person->organizations[0]->name ?? null,
-                            'panCardNumber' => $customFields['panCardNumber'] ?? null,
-                            'aadharCardNumber' => $customFields['aadharCardNumber'] ?? null,
-                            'occupation' => $customFields['occupation'] ?? 'Select',
-                            'kycStatus' => $customFields['kycStatus'] ?? 'Select',
-                            'anulIncome' => $customFields['anulIncome'] ?? null,
-                            'referredBy' => $customFields['referredBy'] ?? null,
-                            'totalInvestment' => $customFields['totalInvestment'] ?? null,
-                            'comments' => $person->biographies[0]->value ?? null,
-                            'relationshipManager' => $customFields['relationshipManager'] ?? null,
-                            'serviceRM' => $customFields['serviceRM'] ?? null,
-                            'totalSIP' => $customFields['totalSIP'] ?? null,
-                            'primeryContactPerson' => $customFields['primeryContactPerson'] ?? null,
-                            'meetinSchedule' => $customFields['meetinSchedule'] ?? 'Select',
-                            'firstMeetingDate' => $customFields['firstMeetingDate'] ?? null,
-                            'typeOfRelation' => $customFields['typeOfRelation'] ?? 'Select',
-                            'maritalStatus' => $customFields['maritalStatus'] ?? 'Select',
+                    $contacts[$resourceName] = [
+                        'rest_data' => [
+                            'module_name' => 'Contact',
+                            'name_value_list' => [
+                                'first_name' => $name->givenName ?? '',
+                                'last_name' => $name->familyName ?? '',
+                                'designation' => $organizations->title ?? '',
+                                'birth_date' => '',
+                                'anniversary' => '',
+                                'customer_type' => '',
+                                'hiddenPhone' => $phones->map(function ($phone) {
+                                    return [
+                                        'phone_number' => $phone->value ?? '',
+                                        'verified_at' => '',
+                                        'unsubscribed' => false,
+                                        'invalid' => false,
+                                        'primary' => $phone->metadata->primary ?? false,
+                                    ];
+                                })->values()->all(),
+                                'hiddenEmail' => $emails->map(function ($email) {
+                                    return [
+                                        'email_address' => $email->value ?? '',
+                                        'primary' => $email->metadata->primary ?? false,
+                                        'status' => 'invalid',
+                                        'suppression' => $email->value ?? null,
+                                        'verified_at' => '',
+                                    ];
+                                })->values()->all(),
+                                'hiddenAddress' => $addresses->map(function ($address) {
+                                    return [
+                                        'street' => $address->streetAddress ?? '',
+                                        'city' => $address->city ?? '',
+                                        'region' => $address->region ?? '',
+                                        'postal_code' => $address->postalCode ?? '',
+                                        'country' => $address->country ?? '',
+                                        'type' => $address->type ?? '',
+                                        'primary' => $address->metadata->primary ?? false,
+                                    ];
+                                })->values()->all(),
+                                'comment' => $biographies ? [['description' => $biographies]] : [],
+                                'etag_c'=>$etag,
+                                'resource_name_c'=>$resourceName,
+                                'sync_status_c'=>'Synced',
+                                'last_sync_c'=>$timeStamp,
+                                'assigned_user_id'=>1,
+                                'duration_c' => '12:00 AM',
+                                'hierarchy' => '',
+                                'department' => '',
+                                'lead_source' => '',
+                                'teamsSet' => '1'
+                            ]
                         ]
                     ];
-                });
+                }
 
-                $crmContacts = client::whereNotNull('resourceName')->select(['id', 'resourceName', 'etag'])->get()->keyBy('resourceName');
-
-                foreach ($googleMap as $resource => $googleContact) {
+                $existingData = (new CrmApiServices($this->apiToken))->getExistingDataFromCrm($this->GoogleResourceName);
+                foreach ($contacts as $resource => $payload) {
                     try {
-
-                        $crmContact = $crmContacts->get($resource);
                         // this for captur data in Sync History Table
                         $lastRowInContactSyncHistoryTable=clientContatSyncHistory::where('id',$this->id)->first();
                         $lastRowInContactSyncHistoryTable->synced+=1;
                         $lastRowInContactSyncHistoryTable->pending=$lastRowInContactSyncHistoryTable->pending==0?0:$lastRowInContactSyncHistoryTable->pending - 1;
 
-                        if (!$crmContact ) {
+                        if ( !array_key_exists($resource, $existingData)) {
                             // Create new contact in CRM
-                            if (!empty($googleContact['firstName']) || !empty($googleContact['lastName'])) {
-                                $contact = new client();
+                            if (!empty($payload['rest_data']['name_value_list']['first_name']) || !empty($payload['rest_data']['name_value_list']['last_name'])) {
+                               $data=(new CrmApiServices($this->apiToken))->createContact($payload);
                                 // this for captur data in Sync History Table
                                 $lastRowInContactSyncHistoryTable->created+=1;
-                                $lastRowInContactSyncHistoryTable->save();
-                            }else{
-                                $lastRowInContactSyncHistoryTable->save();
-                                continue;
                             }
+                            $lastRowInContactSyncHistoryTable->save();
+                            continue;
 
-                        } elseif ($crmContact->etag !== $googleContact['etag']) {
-                            // Update existing contact
-                            $contact = $crmContact;
+                        } elseif ( $existingData[$resource]['etag'] !== $payload['rest_data']['name_value_list']['etag_c']) {
 
-                            if (empty($googleContact['firstName']) && empty($googleContact['lastName']) && empty($googleContact['number']) && empty($googleContact['email'])) {
-                                $contact->syncStatus = 'Deleted';
-                                $contact->lastSync = Carbon::now();
-                                $contact->save();
+                            if (empty($payload['rest_data']['name_value_list']['first_name']) && empty($payload['rest_data']['name_value_list']['last_name'])) {
+                                (new CrmApiServices($this->apiToken))->updateSyncStatus( $existingData[$resource]['id'],$resource, $payload['rest_data']['name_value_list']['etag_c'],"Deleted");
                                 $lastRowInContactSyncHistoryTable->deleted+=1;
                                 $lastRowInContactSyncHistoryTable->save();
                                 continue;
                             }
+
+                            (new CrmApiServices($this->apiToken))->updateContact($existingData[$resource]['id'],$payload);
                             // this for captur data in Sync History Table
                             $lastRowInContactSyncHistoryTable->updated+=1;
                             $lastRowInContactSyncHistoryTable->save();
+                            continue;
                         }else {
                             // No change, skip
                             // this for captur data in Sync History Table
+                            dump("Skipng No update Found");
                             $lastRowInContactSyncHistoryTable->save();
                             continue;
                         }
 
-                        // Common assignment for both Create and Update
-                        $contact->firstName = $googleContact['firstName'] ?? null;
-                        $contact->lastName = $googleContact['lastName'] ?? null;
-                        $contact->number = $googleContact['number'] ?? null;
-                        $contact->email = $googleContact['email'] ?? null;
-                        $contact->resourceName = $resource;
-                        $contact->etag = $googleContact['etag'];
-
-                        // Fill additional CRM fields with defaults or nulls
-                        $contact->familyOrOrgnization = $googleContact['familyOrOrgnization'] ?? null;
-                        $contact->panCardNumber = $googleContact['panCardNumber'] ?? null;
-                        $contact->aadharCardNumber = $googleContact['aadharCardNumber'] ?? null;
-                        $contact->occupation = $googleContact['occupation'] ?? 'Select';
-                        $contact->kycStatus = $googleContact['kycStatus'] ?? 'Select';
-                        $contact->anulIncome = $googleContact['anulIncome'] ?? null;
-                        $contact->referredBy = $googleContact['referredBy'] ?? null;
-                        $contact->totalInvestment = $googleContact['totalInvestment'] ?? null;
-                        $contact->comments = $googleContact['comments'] ?? null;
-                        $contact->relationshipManager = $googleContact['relationshipManager'] ?? null;
-                        $contact->serviceRM = $googleContact['serviceRM'] ?? null;
-                        $contact->totalSIP = $googleContact['totalSIP'] ?? null;
-                        $contact->primeryContactPerson = $googleContact['primeryContactPerson'] ?? null;
-                        $contact->meetinSchedule = $googleContact['meetinSchedule'] ?? 'Select';
-                        $contact->firstMeetingDate = $googleContact['firstMeetingDate'] ?? null;
-                        $contact->typeOfRelation = $googleContact['typeOfRelation'] ?? null;
-                        $contact->maritalStatus = $googleContact['maritalStatus'] ?? null;
-                        $contact->syncStatus = 'Synced';
-                        $contact->lastSync = Carbon::now();
-                        $contact->save();
                     } catch (\Throwable $th) {
                         Log::info(' error message in Import From google Job ' .$th );
 

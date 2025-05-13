@@ -9,19 +9,16 @@ use App\Jobs\pushToGoogleJob;
 use App\Models\client;
 use App\Models\clientContatSyncHistory;
 use App\Models\GoogleAuth;
+use App\Services\CrmApiServices;
 use App\Services\GoogleService;
 use Carbon\Carbon;
 use Exception;
-use Google\Http\Batch;
 use Google\Service\PeopleService;
 use Google_Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
-
-use function Laravel\Prompts\progress;
-use function PHPUnit\Framework\isEmpty;
 
 class AjaxRequestController extends Controller
 {
@@ -31,11 +28,13 @@ class AjaxRequestController extends Controller
     protected $updateCountToCrm=0;
     protected $createCountToCrm=0;
     protected $googleToken;
+    protected $apiToken;
 
     protected $clientContactSyncHistoryTable;
 
     function __construct()
     {
+        $this->apiToken=session('crm_token');
         $this->googleToken=GoogleAuth::orderBy('id', 'desc')->get()->first();
         $this->clientContactSyncHistoryTable=new clientContatSyncHistory();
 
@@ -73,9 +72,13 @@ class AjaxRequestController extends Controller
             $pendingChangesOnGoogle=(new GoogleService())->getContacts($this->googleToken, 10, ['names'],null,$nextSynToken->synToken??null);
             // dd($TotalcontactInGoogle);
 
-            $crmTotalClient=Client::count();
-            $pendingChangesOnCRM= Client::where('syncStatus','Pending')->orWhere('syncStatus','Not Synced')->count(); // it have to calculate
-            $crmTotalClientSynced=Client::where('syncStatus','Synced')->count();
+            $res = (new CrmApiServices(session('crm_token')))->getContacts();
+            $crmTotalClient = $res['meta']['total']??0;
+
+            $res = (new CrmApiServices(session('crm_token')))->getClietsList(1, 1, "Synced");
+            $crmTotalClientSynced=$res->meta->total??0;
+             $res = (new CrmApiServices(session('crm_token')))->getClietsList(1, 1, "Pending");
+            $pendingChangesOnCRM=$res->meta->total??0;
 
 
             $TotalcontactInGoogle=$TotalcontactInGoogle->totalPeople ?? 0;
@@ -134,30 +137,36 @@ class AjaxRequestController extends Controller
             $syncHistory = new clientContatSyncHistory();
             $syncHistory->save();
 
-
-            $createIds = Client::where('syncStatus', 'Not Synced')->pluck('id')->toArray();
-            $updateIds = Client::where('syncStatus', 'Pending')->pluck('id')->toArray();
-            $totalPending= (count($createIds) + count($updateIds));
-            $createChunks = array_chunk($createIds, 200);
-            $updateChunks = array_chunk($updateIds, 200);
-
             $batches=Bus::batch([])->name("Synk Both")->dispatch();
+             $createPages = 1;
+            do {
+                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 5, "Not sync");
+                $data = $res->data ?? [];
 
-
-            foreach ($createChunks as $chunk) {
-                $batches->add(new pushToGoogleJob($googleToken, $chunk, [], $syncHistory->id));
-                $extimetedTime += 15; // 15 sec take to process
+                $batches->add(new pushToGoogleJob($googleToken, $data, [], $syncHistory->id, $this->apiToken));
+                $next = isset($res->links->next);
+                $createPages++;
                 $batchCount++;
-            }
-
-            foreach ($updateChunks as $chunk) {
-                $batches->add(new pushToGoogleJob($googleToken, [], $chunk, $syncHistory->id));
+                $pendingToCreate = $res->meta->total??0;
                 $extimetedTime += 15; // 15 sec take to process
+
+            } while ($next);
+            $updatePages=1;
+            do {
+                $response = (new CrmApiServices($this->apiToken))->getClietsList($updatePages, 5, "Pending");
+                $data = $response->data ?? [];
+                $batches->add(new pushToGoogleJob($googleToken, [], $data, $syncHistory->id, $this->apiToken));
+                $nextUpdate = isset($response->links->next);
+                $updatePages++;
                 $batchCount++;
-            }
+                $pendingToUpdate = $response->meta->total??0;
+                $extimetedTime += 15; // 15 sec take to process
+
+            } while ($nextUpdate);
+            $totalPending= ($pendingToUpdate +$pendingToCreate);
 
             // import form Google Job
-            $batches->add(new importFormGoogleJob($googleToken, $syncHistory->id));
+            $batches->add(new importFormGoogleJob($googleToken, $syncHistory->id,$this->apiToken));
             $batchCount++;
             $extimetedTime += 30; // 30 sec take to process
 
@@ -192,49 +201,59 @@ class AjaxRequestController extends Controller
             $extimetedTime=0;
             $googleToken = GoogleAuth::orderBy('id', 'desc')->get()->first();
 
-            $createIds = Client::where('syncStatus', 'Not Synced')->pluck('id')->toArray();
-            $updateIds = Client::where('syncStatus', 'Pending')->pluck('id')->toArray();
-            $totalPending= (count($createIds) + count($updateIds));
-            if ($totalPending==0) {
-                $this->isProcessing=false;
-                return response()->json([
-                    'status'=>true,
-                    'message'=>"No data To Push On Google",
-                    'error'=>true,
-                    'data'=>[
-                        'isProcessing'=>$this->isProcessing,
-                        'UpdatingToGoogle'=>count($createIds),
-                        'CreatingToGoogle'=>count($updateIds),
-                    ],
-                ]);
-            }
             // Create an empty history row
             $syncHistoryNextSynCToken=clientContatSyncHistory::orderBy('id','desc')->get("synToken")->first();
             $syncHistory = new clientContatSyncHistory();
             $syncHistory->synToken=$syncHistoryNextSynCToken->synToken??null;
-            $syncHistory->pending=$totalPending;
             $syncHistory->save();
-
-            $createChunks = array_chunk($createIds, 10);
-            $updateChunks = array_chunk($updateIds, 200);
 
             $batchCount = 0;
             $batches=Bus::batch([])->name('Push To Google')->dispatch();
 
-            foreach ($createChunks as $chunk) {
-                $batchCount++;
-                $batches->add(new pushToGoogleJob($googleToken, $chunk, [], $syncHistory->id));
-                $extimetedTime += 15; // 15 sec take to process
-            }
+            $createPages = 1;
+            do {
+                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 5, "Not sync");
+                $data = $res->data ?? [];
 
-            foreach ($updateChunks as $chunk) {
+                $batches->add(new pushToGoogleJob($googleToken, $data, [], $syncHistory->id, $this->apiToken));
+                $next = isset($res->links->next);
+                $createPages++;
                 $batchCount++;
-                $batches->add(new pushToGoogleJob($googleToken, [], $chunk, $syncHistory->id));
+                $pendingToCreate = $res->meta->total??0;
                 $extimetedTime += 15; // 15 sec take to process
+
+            } while ($next);
+            $updatePages=1;
+            do {
+                $response = (new CrmApiServices($this->apiToken))->getClietsList($updatePages, 5, "Pending");
+                $data = $response->data ?? [];
+                $batches->add(new pushToGoogleJob($googleToken, [], $data, $syncHistory->id, $this->apiToken));
+                $nextUpdate = isset($response->links->next);
+                $updatePages++;
+                $batchCount++;
+                $pendingToUpdate = $response->meta->total??0;
+                $extimetedTime += 15; // 15 sec take to process
+
+            } while ($nextUpdate);
+            $totalPending= ($pendingToUpdate +$pendingToCreate);
+
+             if ($totalPending==0) {
+                $this->isProcessing=false;
+                return response()->json([
+                    'status'=>true,
+                    'message'=>"No data To Push On Google",
+                    'error'=>false,
+                    'data'=>[
+                        'isProcessing'=>$this->isProcessing,
+                        'UpdatingToGoogle'=>$pendingToUpdate,
+                        'CreatingToGoogle'=>$pendingToCreate,
+                    ],
+                ]);
             }
 
             // Update the batches count
             $syncHistory->batches = $batchCount;
+            $syncHistory->pending=$totalPending;
             $syncHistory->extimetedTime = $extimetedTime;
             $syncHistory->save();
 
@@ -242,8 +261,8 @@ class AjaxRequestController extends Controller
 
             $data=[
                 'isProcessing'=>$this->isProcessing,
-                'UpdatingToGoogle'=>count($createIds),
-                'CreatingToGoogle'=>count($updateIds),
+                'UpdatingToGoogle'=>$pendingToUpdate,
+                'CreatingToGoogle'=>$pendingToCreate,
             ];
 
 
@@ -280,7 +299,7 @@ class AjaxRequestController extends Controller
         $newClientSyncHistoyRow->save();
 
         $batches=Bus::batch([
-            new importFormGoogleJob($googleToken, $newClientSyncHistoyRow->id),
+            new importFormGoogleJob($googleToken, $newClientSyncHistoyRow->id, $this->apiToken),
         ])->name('Import From Google')->dispatch();
 
         session(['batch_id'=>$batches->id]);
