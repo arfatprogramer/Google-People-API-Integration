@@ -54,7 +54,6 @@
                 {{-- ---------addrress-------field--------start----------------- --}}
                 <div id="address" class="p-6 tabcontent ">
                     <h2 class="text-xl font-bold mb-4">Address</h2>
-
                     <div class="overflow-x-auto">
                         <table class="min-w-full border border-gray-300 rounded-lg">
                             <thead class="bg-gray-100">
@@ -196,28 +195,69 @@
                 <div class="tabcontent  grid grid-cols-1 md:grid-cols-2 gap-6 " id="overview">
                     <div>
                         <label class="block mb-1 font-medium">First Name</label>
-                        <input type="text" name="firstName" value="{{ old('firstName', $data->firstName ?? '') }}"
+                        <input type="text" name="first_name" value="{{ old('firstName', $data->firstName ?? '') }}"
                             class="w-full border rounded px-3 py-2" />
                         <span class="text-red-500">{{ $errors->first('firstName') }}</span>
 
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Last Name</label>
-                        <input type="text" name="lastName" value="{{ old('lastName', $data->lastName ?? '') }}"
+                        <input type="text" name="last_name" value="{{ old('lastName', $data->lastName ?? '') }}"
                             class="w-full border rounded px-3 py-2" />
                     </div>
 
-                    <div>
+                   
+      
+                    <div class="relative">
                         <label class="block mb-1 font-medium">Phone</label>
                         <div>
                             <div class="flex">
-                                <input type="text" value="{{ old('number', $data->number ?? '') }}" name="number"
-                                    class="flex-1 border rounded-l px-3 py-2" />
-                                <button type="button" class="bg-gray-100 px-4 border border-l-0 rounded-r">+</button>
+                                <input type="text"   name="phone" data-target-input=".popUpinput"
+                                    class="toggle-container-input flex-1 border rounded-l px-3 py-2" />
+                                <button   data-target=".phone-container" type="button" class="toggle-container-btn bg-gray-100 px-4 border border-l-0 rounded-r cursor-pointer">+</button>
                             </div>
                             <span class="text-red-500 ">{{ $errors->first('number') }}</span>
                         </div>
+                        {{-- -------multiple--number---popUp-window---start----- --}}
+                            <div  class="popUpinput dynamic-container phone-container  hidden absolute top-full left-0 mt-2  p-4   border-1 border-gray-400 rounded-md w-full max-w-5xl bg-white shadow-lg z-50" data-type="phone">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">Phone No</label>
+
+                            <!-- Input Group Template -->
+                            <div class="input-group  flex items-center gap-2 mb-2 ">
+                                <input type="text" id="popupPhoneInput" name="phone_json[]" placeholder="Enter phone number"
+                                    class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                                <!-- Icons -->
+                                <label title="set Primary" class="text-gray-600 hover:text-gray-900 cursor-pointer">🔑</label>
+                                <!-- Radio -->
+                                <input type="radio" name="primary" class="form-radio text-blue-500">
+                                <label title="set Whatsapp" class="text-gray-600 hover:text-green-600 cursor-pointer">
+                                    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/whatsapp.svg"
+                            class="h-4 w-4 text-green-500" alt="WhatsApp Icon" />
+
+                                </label>
+                                <!-- Checkboxes -->
+                                <input type="checkbox" class="form-checkbox text-blue-500">
+                                <label title="Unsubscribe" type="button" class="text-gray-600 hover:text-red-600 cursor-pointer">🚫</label>
+                                <input type="checkbox" class="form-checkbox text-blue-500">
+                                <!-- Delete Button -->
+                                <button title="delete" type="button" class="delete-btn text-gray-500 hover:text-red-600 cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+
+                                </button>
+                            </div>
+                            <!-- Add Button -->
+                            <button type="button"  title="add"
+                                class="add-input-btn mt-2 px-4 py-1 bg-blue-100 border border-blue-300 rounded text-sm hover:bg-blue-200 cursor-alias">
+                                Add
+                            </button>
+                        </div>
+
+                        {{-- -------multiple--number------end----- --}}
                     </div>
+                   
                     <div>
                         <label class="block mb-1 font-medium">Family / Organisation Name</label>
                         <input type="text" name="familyOrOrgnization"
@@ -226,16 +266,50 @@
                     </div>
 
 
-                    <div>
+                  
+                      <div class="relative">
                         <label class="block mb-1 font-medium">Email</label>
                         <div>
                             <div class="flex">
-                                <input type="text" name="email" value="{{ old('email', $data->email ?? '') }}"
-                                    class="flex-1 border rounded-l px-3 py-2" />
-                                <button type="button" class="bg-gray-100 px-4 border border-l-0 rounded-r">+</button>
+                                <input type="email"  name="email" data-target-input=".popUpinputEmail"
+                                    class="toggle-container-input flex-1 border rounded-l px-3 py-2" />
+                                <button   data-target=".email-container" type="button" class="toggle-container-btn bg-gray-100 px-4 border border-l-0 rounded-r cursor-pointer">+</button>
                             </div>
-                            <span class="text-red-500">{{ $errors->first('email') }}</span>
+                            <span class="text-red-500 ">{{ $errors->first('email') }}</span>
                         </div>
+                        {{-- -------multiple--number------start----- --}}
+                            <div  class="popUpinputEmail dynamic-container email-container hidden absolute top-full left-0 mt-2  p-4   border-1 border-gray-400 rounded-md w-full max-w-5xl bg-white shadow-lg z-50" data-type="email">
+                            <label class="block mb-2 text-sm font-medium text-gray-700">Email</label>
+
+                            <!-- Input Group Template -->
+                            <div class="input-group  flex items-center gap-2 mb-2 ">
+                                <input type="email" name="email_json[]" 
+                                    class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                                <!-- Icons -->
+                                <label title="set Primary" class="text-gray-600 hover:text-gray-900 cursor-pointer">🔑</label>
+                                <!-- Radio -->
+                                <input type="radio" name="email_primary" class="form-radio text-blue-500">
+                                <label title="Status" class="text-gray-600 hover:text-green-600 cursor-pointer">
+                                  Status
+                                </label>
+                               
+                                <!-- Delete Button -->
+                                <button title="delete" type="button" class="delete-btn text-gray-500 hover:text-red-600 cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+
+                                </button>
+                            </div>
+                            <!-- Add Button -->
+                            <button type="button"  title="add"
+                                class="add-input-btn mt-2 px-4 py-1 bg-blue-100 border border-blue-300 rounded text-sm hover:bg-blue-200 cursor-alias">
+                                Add
+                            </button>
+                        </div>
+
+                        {{-- -------multiple--number------end----- --}}
                     </div>
 
                     <div>
@@ -501,5 +575,77 @@
    
         });
     </script>
+
+
+
+<script>
+    //---crreate--multiple----Phone-NO---or----Email---address----------
+$(document).ready(function () {
+    // Toggle container (+ to ✖)
+    $('.toggle-container-btn').on('click', function () {
+        const $btn = $(this);
+        const $target = $($btn.data('target'));
+
+        if ($target.is(':visible')) {
+            $target.slideUp();
+            $btn.text('+');
+        } else {
+            $target.slideDown();
+            $btn.text('✖');
+        }
+    });
+
+     $('.toggle-container-input').on('click',function(){
+         const $input = $(this);
+        const $targetinput = $($input.data('target-input'));
+       
+        //    const value1 = $input.val();
+        //    $('#popupPhoneInput').val(value1);
+
+
+        if ($targetinput.is(':visible')) {
+            $targetinput.slideUp();
+            // $btn.text('+');
+        } else {
+            $targetinput.slideDown();
+            // $btn.text('✖');
+        }
+     });
+
+      // 2. Show popup when clicking into phone input
+    // $('.phone-input').on('focus', function () {
+    //     const value = $(this).val(); // get current value from input
+    //     $('#popupPhoneInput').val(value); // auto-fill popup input
+    //     $('#popup').slideDown(); // show popup
+    // });
+
+    // // 3. Optional: close popup button
+    // $('#closePopup').on('click', function () {
+    //     $('#popup').slideUp();
+    // });
+
+    // Add new input group
+    $('.dynamic-container').on('click', '.add-input-btn', function () {
+        const $container = $(this).closest('.dynamic-container');
+        const $group = $container.find('.input-group').first().clone();
+
+        // Clear input values
+        $group.find('input[type="text"], input[type="email"]').val('');
+        $group.find('input[type="radio"], input[type="checkbox"]').prop('checked', false);
+
+        $container.find('.input-group').last().after($group);
+    });
+
+    // Delete input group
+    $('.dynamic-container').on('click', '.delete-btn', function () {
+        const $container = $(this).closest('.dynamic-container');
+        if ($container.find('.input-group').length > 1) {
+            $(this).closest('.input-group').remove();
+        }
+    });
+});
+
+
+</script>
 
 @endsection

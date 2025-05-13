@@ -2,26 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\DataTables\clietsSyncedHistoryDataTable;
-use App\DataTables\SyncContactsDataTable;
-use App\Jobs\importFormGoogleJob;
-use App\Jobs\pushToGoogleJob;
-use App\Models\client;
-use App\Models\clientContatSyncHistory;
-use App\Models\GoogleAuth;
-use App\Services\GoogleService;
-use Carbon\Carbon;
 use Exception;
-use Google\Http\Batch;
-use Google\Service\PeopleService;
+use Carbon\Carbon;
 use Google_Client;
+use App\Models\client;
+use Google\Http\Batch;
+use App\Models\GoogleAuth;
 use Illuminate\Http\Request;
+use App\Jobs\pushToGoogleJob;
+use App\Services\GoogleService;
+use App\Services\CrmApiServices;
+use App\Jobs\importFormGoogleJob;
+use Google\Service\PeopleService;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
-use Yajra\DataTables\Facades\DataTables;
-
 use function Laravel\Prompts\progress;
+use App\Models\clientContatSyncHistory;
 use function PHPUnit\Framework\isEmpty;
+
+use Yajra\DataTables\Facades\DataTables;
+use App\DataTables\SyncContactsDataTable;
+use App\DataTables\clietsSyncedHistoryDataTable;
 
 class AjaxRequestController extends Controller
 {
@@ -42,23 +43,95 @@ class AjaxRequestController extends Controller
         Log::info('Ajac Controller Constructor Method: ' . (memory_get_usage(true)/1024/1024)." MB");
     }
 
-    public function index(SyncContactsDataTable $contactsTable, clietsSyncedHistoryDataTable $historyTable){
+    public function index(Request $req,SyncContactsDataTable $contactsTable, clietsSyncedHistoryDataTable $historyTable, CrmApiServices $getlist_crm){
+      
         try {
-            //If table is empty then sign in user
+              //If table is empty then sign in user
             if (!$this->googleToken || $this->googleToken == null) {
                 // $this->redirectToGoogle();
                 return redirect()->route('client.redirect');
             }
+            $payload = [
+                 "rest_data" => [
+                "module_name" => "Contact",
+                // "max_result" => 25,
+                "sort" => "updated_at",
+                "order_by" => "DESC",
+                "query" => "",
+                "favorite" => false,
+                "save_search" => false,
+                "save_search_id" => "",
+                "assigned_user_id" => "1",
+                "advance_search" => false,
+                "advance_search_json" => "",
+                "multi_initial_filter" => "",
+                "name_value_list" => [
+                    "select_fields" => [
+                        "name",
+                        "designation",
+                        // "phone_json",
+                        "phone_primary",
+                        // "email_json",
+                        "email_primary",
+                        "sync_status_c",
+                        "last_sync_c",
+                        "id",
+                        
+                       
+                    ]
+                ]
+            ]
+         ];
+         
+        if ($req->ajax()) {
+    try {
+        $response = $getlist_crm->getContacts($payload);
+
+        // Use only the actual data array
+        $data = collect($response['data'] ?? $response);
+
+        // Filter out any invalid rows (non-array)
+        $cleaned = $data->filter(fn($item) => is_array($item) || is_object($item));
+
+        return DataTables::of($cleaned)
+            ->addColumn('action', function ($client) {
+                $id = $client['id'] ?? '';
+                return "<a href='" . route('client.edit', $id) . "'>
+                            <i class='bi bi-pencil text-blue-500 hover:text-blue-600'></i>
+                        </a>
+                        <button class='deleteGoogleContact cursor-pointer' data-bs-id='{$id}'>
+                            <i class='bi bi-trash text-red-500 hover:text-red-600'></i>
+                        </button>";
+            })
+            ->editColumn('email_primary', fn($client) => $client['email_primary'] ?? '-')
+            ->editColumn('phone_primary', fn($client) => $client['phone_primary'] ?? '-')
+            ->editColumn('created_at', fn($client) =>
+                isset($client['created_at']) ? \Carbon\Carbon::parse($client['created_at'])->format('Y-m-d') : '-'
+            )
+            ->rawColumns(['action'])
+            ->make(true);
+
+    } catch (\Throwable $e) {
+        \Log::error('AJAX DataTables Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+        return response()->json([
+            'error' => true,
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+        //   return view('client.enjayDesign');
             return view('client.enjayDesign', [
                 'contactsTable' => $contactsTable->html(),
                 'historyTable' => $historyTable->html(),
 
             ]);
 
+          
         } catch (\Throwable $th) {
             dd($th);
         }
-
+     
     }
 
     public function refreshReq(){

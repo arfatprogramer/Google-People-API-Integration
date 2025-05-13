@@ -421,7 +421,7 @@
 
         <div id="content-settings" class="tab-panel" hidden>
             <!-- Settings Table -->
-            <div class="w-full bg-white p-6 rounded-lg shadow">
+            {{-- <div class="w-full bg-white p-6 rounded-lg shadow">
                 <h1 class="text-2xl font-semibold mb-4">Google Contacts Integration Settings</h1>
 
                 <div class="mb-6">
@@ -476,8 +476,31 @@
                     <button class="px-4 py-2 rounded border border-gray-300 hover:bg-gray-100">Cancel</button>
                     <button class="px-4 py-2 rounded bg-black text-white hover:bg-gray-800">Save Settings</button>
                 </div>
-            </div>
-
+            </div> --}}
+          <div class="container">
+    <h2>CRM Contact List</h2>
+    <table class="contactsTable display">
+       <thead>
+                <tr>
+                    
+                    <th class="whitespace-nowrap px-3">Contact Name</th>
+                    <th class="whitespace-nowrap px-3">Email</th>
+                    <th class="whitespace-nowrap px-3">Phone</th>
+                    <th class="whitespace-nowrap px-3">Sync_status</th>
+                    <th class="whitespace-nowrap px-3">Action</th>
+                    {{-- <th class="whitespace-nowrap px-3">Investmant Preferences</th>
+                    <th class="whitespace-nowrap px-3">Total Investmant</th>
+                    <th class="whitespace-nowrap px-3">Kyc Status</th>
+                    <th class="whitespace-nowrap px-3">Email</th>
+                    <th class="whitespace-nowrap px-3">Phone</th>
+                    <th class="whitespace-nowrap px-3">Aadhar card</th>
+                    <th class="whitespace-nowrap px-3">Relationship Manager</th>
+                    <th class="whitespace-nowrap px-3">Created At</th>
+                    <th class="whitespace-nowrap px-3">Updated At</th> --}}
+                </tr>
+            </thead>
+    </table>
+</div>
         </div>
     </div>
 
@@ -869,6 +892,112 @@
 
     })
 
+   
+</script>
+{{-- //////---- --}}
+{{-- <script>
+     
+$(document).ready(function() {
+    $('#contactsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{{ route('ajax.index') }}", // Use the route defined earlier
+            type: 'GET'
+        },
+        columns: [
+            { data: 'id' },
+            { data: 'name' },
+            { data: 'designation' },
+            { data: 'email' },
+            { data: 'phone' },
+            { data: 'sync_status_c' }
+        ],
+        error: function(xhr, error, code) {
+            console.error("Error fetching data: ", error);
+        }
+    });
+});  
+</script> --}}
+
+<script type="text/javaScript">
+    // $(document).ready( function () {
+    //     $('#contactsTable').DataTable({
+    //         colReorder: true,
+    //         processing: true,
+    //         serverSide:true,
+    //         searchable:false,
+
+    //         ajax:{
+    //             url:"{{route('ajax.index')}}",
+    //         },
+    //         columns: [
+    //             { data: 'action', name: 'action', orderable:false, searchable:false,},
+    //             { data: 'firstName', name: 'firstName' },
+    //             { data: 'totalSIP', name: 'totalSIP' },
+    //             { data: 'familyOrOrgnization', name: 'familyOrOrgnization' },
+    //             { data: 'panCardNumber', name: 'panCardNumber' },
+    //             { data: 'occupation', name: 'occupation' },
+    //             { data: 'anulIncome', name: 'anulIncome' },
+    //             { data: 'kycStatus', name: 'kycStatus' },
+    //             { data: 'email', name: 'email' },
+    //             { data: 'number', name: 'number' },
+    //             { data: 'aadharCardNumber', name: 'aadharCardNumber' },
+    //             { data: 'relationshipManager', name: 'relationshipManager' },
+    //             { data: 'created_at', name: 'created_at' },
+    //             { data: 'updated_at', name: 'updated_at' }
+    //         ],
+    //         error:function(){
+    //             consoel
+    //         }
+    //     });
+
+    // } );
+
+    $(document).ready(function () {
+    $('.contactsTable').DataTable({
+        colReorder: true,
+        processing: true,
+        serverSide: true,
+        searching: false, // Corrected from `searchable` to `searching`
+
+        ajax: {
+            url: "{{ route('ajax.index') }}",
+            type: "GET",
+            // dataSrc: function (json) {
+            //     console.log("✅ Success response:", json); // Logs the response on success
+            //     return json.data;
+            // },
+            error: function (xhr, error, thrown) {
+                console.error("❌ AJAX Error:", {
+                    status: xhr.status,
+                    responseText: xhr.responseText,
+                    error: error,
+                    thrown: thrown
+                });
+            }
+        },
+
+        columns: [
+      
+            { data: 'name', name: 'name' },
+            { data: 'email_primary', name: 'email_primary' },
+            { data: 'phone_primary', name: 'phone_primary' },
+            { data: 'sync_status_c', name: 'sync_status_c' },
+            { data: 'last_sync_c', name: 'last_sync_c' },
+            { data: 'action', name: 'action', orderable: false, searchable: false },
+            // { data: 'occupation', name: 'occupation' },
+            // { data: 'anulIncome', name: 'anulIncome' },
+            // { data: 'kycStatus', name: 'kycStatus' },
+            // { data: 'email', name: 'email' },
+            // { data: 'number', name: 'number' },
+            // { data: 'aadharCardNumber', name: 'aadharCardNumber' },
+            // { data: 'relationshipManager', name: 'relationshipManager' },
+            // { data: 'created_at', name: 'created_at' },
+            // { data: 'updated_at', name: 'updated_at' }
+        ]
+    });
+});
 
 </script>
 @endsection

@@ -21,6 +21,7 @@
    {{-- //----toaster--css------------ --}}
    <link rel="stylesheet" href="{{ asset('asset/toastr.css') }}">
 
+  
   @stack('styles')
 
     <title>CRM</title>
@@ -39,7 +40,7 @@
             </div>
             <div class="flex items-center space-x-4 border-l px-4">
                 <div class="w-8 h-8  bg-purple-500 text-white rounded-full flex items-center justify-center font-semibold border-2 p-1">MA</div>
-                <span class=" font-sm ">Mo Arfat Ansari</span>
+                <span class=" font-sm ">{{session('crm_user')}}</span>
             </div>
         </div>
     </nav>
@@ -130,28 +131,29 @@
         if (type === 'info') toastr.info(message);
     }
 
-    // @if(session('success'))
-    //     showToastr('success', @json(session('success')));
-    // @elseif(session('error'))
-    //     showToastr('error', @json(session('error')));
-    // @elseif(session('warning'))
-    //     showToastr('warning', @json(session('warning')));
-    // @elseif(session('info'))
-    //     showToastr('info', @json(session('info')));
-    // @endif
+    @if(session('success'))
+        showToastr('success', @json(session('success')));
+    @elseif(session('error'))
+        showToastr('error', @json(session('error')));
+    @elseif(session('warning'))
+        showToastr('warning', @json(session('warning')));
+    @elseif(session('info'))
+        showToastr('info', @json(session('info')));
+    @endif
 
 
 </script>
 
-@if(session('success'))
+{{-- @if(session('success'))
      showToastr('success', @json(session('success')));
+     
  @elseif(session('error'))
      showToastr('error', @json(session('error')));
  @elseif(session('warning'))
      showToastr('warning', @json(session('warning')));
  @elseif(session('info'))
      showToastr('info', @json(session('info')));
- @endif
+ @endif --}}
 
 </body>
 
