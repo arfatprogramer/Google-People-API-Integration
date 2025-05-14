@@ -12,7 +12,7 @@ class CrmApiServices
     protected string $baseUrl = 'https://uat.sanchaycrm.com/api';
     protected string  $token='';
 
-     public function __construct($token){
+     public function __construct($token=''){
         $this->token= $token;
      }
 

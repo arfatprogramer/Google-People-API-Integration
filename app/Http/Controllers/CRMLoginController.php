@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 class CRMLoginController extends Controller
 {
-    
+
     protected $crm;
 
     public function __construct(CrmApiServices $crm)

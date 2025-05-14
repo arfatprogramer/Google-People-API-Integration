@@ -19,6 +19,7 @@ class SyncContactsDataTable extends DataTable
      */
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
+       
         return (new EloquentDataTable($query))
             ->filterColumn('syncStatus', function($query, $keyword) {
                 $query->where('syncStatus', 'like', "%{$keyword}%");

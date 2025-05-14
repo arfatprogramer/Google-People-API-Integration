@@ -275,16 +275,17 @@ $(function(){
                         let processing = response.data?.processing;
                         let width = response.data.progress;
                         let extimatedTime = response.data.extimetedTime;
+                        console.log(processing);
 
                         // Animate the progress bar width with CSS transition
                         $("#processBar").css("transition", "width 1s ease-out");
-                        $("#processBarSyned").text(response.data.lastSync.synced??0);
-                        $("#processBarPending").text(response.data.lastSync.pending??0);
-                        $("#processBarErros").text(response.data.lastSync.errors??0);
+                        $("#processBarSyned").text(response.data.lastSync?.synced??0);
+                        $("#processBarPending").text(response.data.lastSync?.pending??0);
+                        $("#processBarErros").text(response.data.lastSync?.errors??0);
                         $('#cancelProcessing').removeAttr('hidden')
 
                         // Change colors and text based on sync status
-                        if (width == 0) {
+                        if (width == 0 && processing) {
                             // $("#processBar").css("width", 100 + "%");
                             $("#processBar").css('backgroundColor', 'yellow');
                             $("#processBarText").text("Pending");
@@ -314,18 +315,24 @@ $(function(){
                             $(".syncNow").prop("disabled", false);
                             $('#cancelProcessing').attr('hidden',true)
 
-                            let lastSynced = new Date(response.data.lastSync.created_at);
-                            let now = new Date();
+                            let lastSynced = response.data.lastSync?.created_at??null;
+                            console.log(lastSynced);
 
-                            let diffMinutes = Math.floor((now - lastSynced) / 60000); // Difference in minutes
-                            let diffHours = Math.floor(diffMinutes / 60);
-                            let minutesOnly = diffMinutes % 60;
+                            if(lastSynced==null){
+                                $("#processBarText").text("Never Syned");
 
-                            let text = diffHours > 0
+                            }else{
+                                let now = new Date();
+                                lastSynced=new Date(lastSynced);
+                                let diffMinutes = Math.floor((now - lastSynced) / 60000); // Difference in minutes
+                                let diffHours = Math.floor(diffMinutes / 60);
+                                let minutesOnly = diffMinutes % 60;
+
+                                let text = diffHours > 0
                                 ? `Last Synced ${diffHours}h ${minutesOnly}m ago`
                                 : `Last Synced ${diffMinutes} minutes ago`;
-
-                            $("#processBarText").text(text);
+                                $("#processBarText").text(text);
+                            }
 
                         }
 
