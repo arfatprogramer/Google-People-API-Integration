@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\client;
-use App\Models\ClientAddress;
-
 use Illuminate\Http\Request;
+
+use App\Models\ClientAddress;
 use Illuminate\Support\Carbon;
+use App\Services\CrmApiServices;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Vatidator;
+
+
 class clientController extends Controller
 {
 
@@ -18,9 +21,10 @@ class clientController extends Controller
     }
 
 
-    function show(Request $req){
+    function show(Request $req ){
         if ($req->ajax()) {
 
+       
             $clients=client::query();
 
             return DataTables::eloquent($clients)
@@ -47,149 +51,210 @@ class clientController extends Controller
         return view('client.createForm');
     }
 
-    function create(Request $req){
-        $validate = $req->validate([
-            'firstName'=>'required|string',
-            "number"=>'required',
-            "email"=>'required|email',
-          ]);
-        try {
-            //code...
+   
+public function create(Request $request, CrmApiServices $create)
+{
+    try {
+        
+        $validate = $request->validate([
+            'phone' => 'required',
+            'email' => 'required',
+        ]);
 
-                $newClient=new client;
-                $newClient->firstName=$req->firstName;//"firstName" => null
-                $newClient->lastName=$req->lastName;               //"lastName" => null
-                $newClient->number=$req->number;                //"number" => null
-                $newClient->familyOrOrgnization=$req->familyOrOrgnization;    //"familyOrOrgnization" => null
-                $newClient->email=$req->email;                  //"email" => null
-                $newClient->panCardNumber=$req->panCardNumber;                //"panCardNumber" => null
-                $newClient->aadharCardNumber=$req->aadharCardNumber;             //"aadharCardNumber" => null
-                $newClient->occupation=$req->occupation;              //"occupation" => "Select"
-                $newClient->kycStatus=$req->kycStatus;              //"kycStatus" => "Select"
-                $newClient->anulIncome=$req->anulIncome;            //"anulIncome" => null
-                $newClient->referredBy=$req->referredBy;              //"referredBy" => null
-                $newClient->totalInvestment=$req->totalInvestment;        //"totalInvestment" => null
-                $newClient->comments=$req->comments;                //"comments" => null
-                $newClient->relationshipManager=$req->relationshipManager;    //"relationshipManager" => "Mo Arfat Ansari"
-                $newClient->serviceRM=$req->serviceRM;              //"serviceRM" => null
-                $newClient->totalSIP=$req->totalSIP;              //"totalSIP" => null
-                $newClient->primeryContactPerson=$req->primeryContactPerson;   //"primeryContactPerson" => null
-                $newClient->meetinSchedule=$req->meetinSchedule;         //"meetinSchedule" => "Select"
-                $newClient->firstMeetingDate=$req->firstMeetingDate;       //"firstMeetingDate" => null
-                $newClient->typeOfRelation=$req->typeOfRelation;         //"typeOfRelation" => "Select"
-                $newClient->maritalStatus=$req->maritalStatus;          //"maritalStatus" => "Select"
-                $newClient->save();
+                // Address
+            $address = collect($request->addresses)->map(function ($address, $index) {
+            return [
+                'table_name'      => 'addresses',
+                'related_table_name' => 'addresses_rel',
+                'address_type'    => $address['address_type'] ?? 'Other',
+                'street'          => $address['street'] ?? '',
+                'area'            => $address['area'] ?? '',
+                'city'            => $address['city'] ?? '',
+                'state'           => $address['state'] ?? '',
+                'country'         => $address['country'] ?? '',
+                'postal_code'     => $address['postal_code'] ?? '',
+                'primary'         => $index === 0, // First address is primary
+                'verified_at'     => now()->toDateTimeString(),
+            ];
+        });
 
-                // Now save addresses
-                if ($req->addresses && is_array($req->addresses)) {
-                    foreach ($req->addresses as $address) {
-                        $clientAddress = new ClientAddress();
-                        $clientAddress->client_id = $newClient->id; // get newly created client's id
-                        $clientAddress->address_type = $address['address_type'] ?? null;
-                        $clientAddress->street = $address['street'] ?? null;
-                        $clientAddress->area = $address['area'] ?? null;
-                        $clientAddress->city = $address['city'] ?? null;
-                        $clientAddress->state = $address['state'] ?? null;
-                        $clientAddress->postal_code = $address['postal_code'] ?? null;
-                        $clientAddress->country = $address['country'] ?? null;
-                        $clientAddress->save();
-                    }
-                }
+       
+        $phone_json = collect($request->phone_json)->map(function ($phone, $index) {
+            return [
+                'table_name'         => 'phone_numbers',
+                'related_table_name' => 'phone_numbers_rel',
+                'phone_number'       => $phone,
+                'primary'            => $index === 0  ,
+                'invalid'            => false,
+                'unsubscribed'       => false,
+                'verified_at'        => now()->toDateTimeString(),
+            ];
+        });
+       
+        $email_json = collect($request->email_json)->map(function ($email, $index) {
+            return [
+                'table_name'         => 'email_addresses',
+                'related_table_name' => 'email_address_rel',
+                'email_address'      => $email,
+                'primary'            => $index === 0,
+                'status'             => 'invalid',
+                'suppression'        => $index === 0 ? $email : '',
+                'verified_at'        => now()->toDateTimeString(),
+            ];
+        });
 
-                return redirect()->route("client.list")->with('success','Contact Create Successfully');
-            }catch (\Throwable $e) {
-                   dd($e);
-                   return back()->with('error','form is not create successfully');
-                }
+       
+         $payload = [
+            "rest_data" => [
+                "module_name" => "Contact",
+                "name_value_list" => [
+                    "first_name" => $request->first_name ?? '',
+                    "last_name" => $request->last_name ?? '',
+                    "designation" => "Developer",
+                    "hiddenPhone" => $phone_json,
+                    "hiddenEmail" => $email_json,
+                    "hiddenAddress" => $address,
+                    "sync_status_c" => "Not Synced",
+                    "hierarchy" =>"03",
+                    "assigned_user_id" => "1",
+                    "teamsSet" => "1"
+                ]
+            ]
+    ];
+
+        // return $payload;
+        // ✅ Step 5: Send to service
+        $response = $create->createContact($payload);
+
+       return redirect(route('ajax.index'))->with('success',"Contact is create successfully");
+        // return response()->json(['status' => true, 'message' => 'Contact created', 'data' => $response]);
+
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Error: ' . $e->getMessage(),
+        ], 500);
     }
+}
 
-    public function editContact($id){
-        $data = client::where('id',$id)->find($id);
 
-        return view("client.createForm",compact('data'));
+   
+        
+    public function editContact($id,CrmApiServices $getContactById){
+        // $data = client::where('id',$id)->find($id);
+           $payload = [
+            'rest_data' => [
+                'action' => 'show',
+                'module_name' => 'Contact',
+                'id' => $id,
+                'select_fields' => [
+                    "id", "name", "phone", "email_json", "phone_primary", "designation",
+                    "birth_date",  "first_name", "last_name",
+                    "email_primary", "phone_json","address_type",'address_json','street','city','area','state','postal_code','country',
+                    'occupation','sync_status_c'
+                ],
+                'select_relate_fields' => []
+            ]
+        ];
 
-       $clientAddress = ClientAddress::where('client_id',$id)->get();
-        return view("client.createForm",compact('data','clientAddress'));
+        $getdataById = $getContactById->getContactById($payload);
+        $data = $getdataById;
+  
+       $nameValueList = $data['entry_list']['name_value_list'] ?? [];
+//            $response = $yourApiResponse['entry_list'] ?? [];
+// $nameValueList = $response['name_value_list'] ?? [];
+
+$contacts = collect($nameValueList)->mapWithKeys(function ($item) {
+    return [$item['name'] => $item['value']];
+})->toArray();
+ 
+        return view("client.createForm",compact('contacts'));
 
     }
 ///------UpdateForm------------------
-public function UpdateFormContact(Request $request){
-      $validate = $request->validate([
-        'firstName'=>'required|string',
-        "number"=>'required',
-        "email"=>'required|email',
-      ]);
+        public function UpdateFormContact(Request $request,CrmApiServices $updateCrmData){
+            $validate = $request->validate([
+                'first_name'=>'required|string',
+                "phone"=>'required',
+                "email"=>'required|email',
+            ]);
+            // dd($request->sync_status_c);
+                 // Address
+            $address = collect($request->addresses)->map(function ($address, $index) {
+            return [
+                'table_name'      => 'addresses',
+                'related_table_name' => 'addresses_rel',
+                'address_type'    => $address['address_type'] ?? 'Other',
+                'street'          => $address['street'] ?? '',
+                'area'            => $address['area'] ?? '',
+                'city'            => $address['city'] ?? '',
+                'state'           => $address['state'] ?? '',
+                'country'         => $address['country'] ?? '',
+                'postal_code'     => $address['postal_code'] ?? '',
+                'primary'         => $index === 0, // First address is primary
+                'verified_at'     => now()->toDateTimeString(),
+            ];
+        });
 
+        // return $address; 
+        // Format phone_json
+        $phone_json = collect($request->phone_json)->map(function ($phone, $index) {
+            return [
+                'table_name'         => 'phone_numbers',
+                'related_table_name' => 'phone_numbers_rel',
+                'phone_number'       => $phone,
+                'primary'            => $index === 0  ,
+                'invalid'            => false,
+                'unsubscribed'       => false,
+                'verified_at'        => now()->toDateTimeString(),
+            ];
+        });
+        // return $phone_json;
+        //  Format email_json
+        $email_json = collect($request->email_json)->map(function ($email, $index) {
+            return [
+                'table_name'         => 'email_addresses',
+                'related_table_name' => 'email_address_rel',
+                'email_address'      => $email,
+                'primary'            => $index === 0,
+                'status'             => 'invalid',
+                'suppression'        => $index === 0 ? $email : '',
+                'verified_at'        => now()->toDateTimeString(),
+            ];
+        });
+             $payload = [
+            "rest_data" => [
+                "module_name" => "Contact",
+                "id" => $request->id,
+                "maping_records_upadate" => true,
+                "mapping_parent_fields" => [
+                    "first_name", "last_name", "designation", "account_id",
+                    "phone", "email", "hierarchy", "department"
+                ],
+                "name_value_list" => [
+                    "first_name" => $request->first_name ?? '',
+                    "last_name" => $request->last_name ?? '',
+                    "designation" => "Developer",
+                    "hiddenPhone" => $phone_json,
+                    "hiddenEmail" => $email_json,
+                    "hiddenAddress" => $address,
+                    "sync_status_c" => $request->sync_status_c === 'Synced' ? 'Pending' : ($request->sync_status_c ?? 'Not Synced'),
+                    "hierarchy" =>"03",
+                    "assigned_user_id" => "1",
+                    "teamsSet" => "1"
+            ]
+            ]
+        ];
+        
+       $response = $updateCrmData->updateContact($payload);
 
-    //   return "updateto = ". $request->id;
-      $newClient = Client::find($request->id);
-
-      if( $newClient){
-
-        $newClient->firstName=$request->firstName;//"firstName" => null
-        $newClient->lastName=$request->lastName;               //"lastName" => null
-        $newClient->number=$request->number;                //"number" => null
-        $newClient->familyOrOrgnization=$request->familyOrOrgnization;    //"familyOrOrgnization" => null
-        $newClient->email=$request->email;                  //"email" => null
-        $newClient->panCardNumber=$request->panCardNumber;                //"panCardNumber" => null
-        $newClient->aadharCardNumber=$request->aadharCardNumber;             //"aadharCardNumber" => null
-        $newClient->occupation=$request->occupation;              //"occupation" => "Select"
-        $newClient->kycStatus=$request->kycStatus;              //"kycStatus" => "Select"
-        $newClient->anulIncome=$request->anulIncome;            //"anulIncome" => null
-        $newClient->referredBy=$request->referredBy;              //"referredBy" => null
-        $newClient->totalInvestment=$request->totalInvestment;        //"totalInvestment" => null
-        $newClient->comments=$request->comments;                //"comments" => null
-        $newClient->relationshipManager=$request->relationshipManager;    //"relationshipManager" => "Mo Arfat Ansari"
-        $newClient->serviceRM=$request->serviceRM;              //"serviceRM" => null
-        $newClient->totalSIP=$request->totalSIP;              //"totalSIP" => null
-        $newClient->primeryContactPerson=$request->primeryContactPerson;   //"primeryContactPerson" => null
-        $newClient->meetinSchedule=$request->meetinSchedule;         //"meetinSchedule" => "Select"
-        $newClient->firstMeetingDate=$request->firstMeetingDate;       //"firstMeetingDate" => null
-        $newClient->typeOfRelation=$request->typeOfRelation;         //"typeOfRelation" => "Select"
-        $newClient->maritalStatus=$request->maritalStatus;          //"maritalStatus" => "Select"
-
-        $newClient->maritalStatus=$request->maritalStatus;
-
-        $newClient->syncStatus = $newClient->syncStatus=="Synced" ?("Pending"):($newClient->syncStatus);
-        $newClient->save();
-
-        // Retrieve existing addresses for the client
-             $existingAddresses = ClientAddress::where('client_id', $request->id)->get();
-
-            if ($request->addresses && is_array($request->addresses)) {
-                foreach ($request->addresses as $address) {
-                    // Check if the address already exists (you may want to check by address type or another unique identifier)
-                    $clientAddress = $existingAddresses->firstWhere('address_type', $address['address_type'] ?? null);
-
-                    if ($clientAddress) {
-                        // Update existing address
-                        $clientAddress->street = $address['street'] ?? null;
-                        $clientAddress->area = $address['area'] ?? null;
-                        $clientAddress->city = $address['city'] ?? null;
-                        $clientAddress->state = $address['state'] ?? null;
-                        $clientAddress->postal_code = $address['postal_code'] ?? null;
-                        $clientAddress->country = $address['country'] ?? null;
-                        $clientAddress->save();
-                    } else {
-                        // Create a new address if it doesn't exist
-                        $newClientAddress = new ClientAddress();
-                        $newClientAddress->client_id = $request->id; // Use the client's ID
-                        $newClientAddress->address_type = $address['address_type'] ?? null;
-                        $newClientAddress->street = $address['street'] ?? null;
-                        $newClientAddress->area = $address['area'] ?? null;
-                        $newClientAddress->city = $address['city'] ?? null;
-                        $newClientAddress->state = $address['state'] ?? null;
-                        $newClientAddress->postal_code = $address['postal_code'] ?? null;
-                        $newClientAddress->country = $address['country'] ?? null;
-                        $newClientAddress->save(); // Save the new address
-                    }
-                }
-            }
-
-        return redirect()->route("client.list")->with('success','Client Update Successfully');
-      }else{
-        return redirect()->back()->with('error','client not found');
-      }
+        if ($response) {
+            return redirect()->route('ajax.index')->with('success', 'CRM Contact updated successfully!');
+        } else {
+            return redirect()->back()->with('error', 'Failed to update CRM Contact.');
+        }
+ 
+    
 
   }
     public function __destruct() {

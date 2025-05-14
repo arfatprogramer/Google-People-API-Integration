@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Services\CrmApiServices;
 use Illuminate\Http\Request;
+use App\Services\CrmApiServices;
+use Illuminate\Support\Facades\Session;
 
 class CRMLoginController extends Controller
 {
@@ -40,6 +41,10 @@ class CRMLoginController extends Controller
         ], 401);
     }
 
+    public function logout(){
+         Session::flush();
+        return redirect(route('login'))->with('success','logout successfully!');
+    }
     // public function fetchCrmContacts()
     // {
     //     $data = $this->crm->getContacts();

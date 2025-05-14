@@ -12,15 +12,16 @@ use App\DataTables\clietsSyncedHistoryDataTable;
 
 
 Route::get('crm/login',[CRMLoginController::class,'ViewcrmLogin'])->name('login');
-
+//--login---route
+Route::post('/crmlogin',[CRMLoginController::class,'login']);
 //--login---auth--miggleware--route
 Route::middleware(loginAuthMiddleware::class)->group(function(){
-
+//logout--route----
+Route::post('/logout',[CRMLoginController::class,'logout'])->name('logout');
 Route::get('/', function () {
     return view('client.list');
 });
-//--login---route
-Route::post('/crmlogin',[CRMLoginController::class,'login']);
+
 Route::post('/create',[clientController::class, 'create'])->name('client.create');
 Route::get('/create',[clientController::class, 'createForm'])->name('client.createForm');
 Route::get('/list',[clientController::class, 'show'])->name('client.list');
