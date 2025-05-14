@@ -26,7 +26,7 @@ class CrmApiServices
         return $response->json();
     }
 
-    public function getContacts()
+    public function getContacts($payload)
     {
         $token = session('crm_token');
 
@@ -57,23 +57,9 @@ class CrmApiServices
         return $response->json();
     }
 
-    public function getContactById($id)
+    public function getContactById($payload)
     {
         $token = session('crm_token');
-
-        $payload = [
-            'rest_data' => [
-                'action' => 'show',
-                'module_name' => 'Contact',
-                'id' => $id,
-                'select_fields' => [
-                    "id", "name", "phone", "email", "phone_primary", "designation",
-                    "birth_date", "comment", "first_name", "last_name",
-                    "email_primary", "phone_json"
-                ],
-                'select_relate_fields' => []
-            ]
-        ];
 
         $response = Http::withToken($token)
             ->acceptJson()

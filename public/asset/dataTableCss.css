@@ -1,0 +1,28 @@
+/* Hover effect on entire row */
+table.dataTable tbody tr:hover {
+    background-color: #f1f5f9; /* light gray-blue */
+    transition: background-color 0.3s ease;
+}
+/* //srarchbar */
+/* Style the default DataTables search box */
+.dataTables_filter input {
+    border-radius: 9999px !important;
+    border: 1px solid #ccc !important;
+    padding: 6px 12px 6px 36px !important;
+    width: 100% !important;
+    background: url('https://cdn-icons-png.flaticon.com/512/622/622669.png') no-repeat 10px center !important;
+    background-size: 16px !important;
+    display: none;
+}
+
+table.dataTable tbody tr:hover td {
+    background-color: inherit !important;
+}
+
+.dataTables_paginate {
+ text-align: center !important;
+ justify-content: end;
+ background-color: blue;
+    }
+
+

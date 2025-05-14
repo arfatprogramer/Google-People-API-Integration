@@ -18,13 +18,15 @@ Route::get('crm/login',[CRMLoginController::class,'ViewcrmLogin'])->name('login'
 
 Route::post('/crmlogin',[CRMLoginController::class,'login']);
 
+
 //--login---auth--miggleware--route
 Route::middleware(loginAuthMiddleware::class)->group(function(){
-
+//logout--route----
+Route::post('/logout',[CRMLoginController::class,'logout'])->name('logout');
 Route::get('/', function () {
     return view('client.list');
 });
-//--login---route
+
 Route::post('/create',[clientController::class, 'create'])->name('client.create');
 Route::get('/create',[clientController::class, 'createForm'])->name('client.createForm');
 Route::get('/list',[clientController::class, 'show'])->name('client.list');
@@ -152,7 +154,7 @@ Route::get('/test',function(){
 
   $pairmeter = 1;
     // do {
-        $res = (new CrmApiServices(session('crm_token')))->getContacts();
+        $res = (new CrmApiServices(session('crm_token')))->getContacts("");
         $pendingToCreate = $res['meta']['total']??0;
 
         dump($res??"no Data");

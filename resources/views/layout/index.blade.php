@@ -19,8 +19,14 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
    {{-- //----toaster--css------------ --}}
-   <link rel="stylesheet" href="{{ asset('asset/toastr.css') }}">
 
+   <link rel="stylesheet" href="{{ asset('asset/toastr.css') }}">
+   <link rel="stylesheet" href="{{ asset('asset/dataTableCss.css') }}">
+
+   {{-- //fontawasome--icon--lib--}}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<!-- Include Alpine.js (place in your layout if not already) -->
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   @stack('styles')
 
     <title>CRM</title>
@@ -37,13 +43,44 @@
                 <button class="text-black px-4">search</button>
             </form>
             </div>
-            <div class="flex items-center space-x-4 border-l px-4">
+            {{-- <div class="flex items-center space-x-4 border-l px-4">
                 <div class="w-8 h-8  bg-purple-500 text-white rounded-full flex items-center justify-center font-semibold border-2 p-1">MA</div>
-                <span class=" font-sm ">Mo Arfat Ansari</span>
-            </div>
+                <span class=" font-sm ">{{session('crm_user')}}</span>
+            </div> --}}
+            
+
+<div x-data="{ open: false }" class="relative">
+    <div @click="open = !open" class="flex items-center space-x-4 border-l px-4 cursor-pointer">
+        @php
+            $fullName = session('crm_user');
+            $initials = collect(explode(' ', $fullName))->map(function ($part) {
+                return strtoupper(Str::substr($part, 0, 1));
+            })->implode('');
+        @endphp
+        <div class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-semibold border-2 p-1">
+            {{ $initials}}
+        </div>
+        <span class="text-sm">{{ $fullName }}</span>
+    </div>
+
+    <!-- Dropdown -->
+    <div x-show="open" @click.away="open = false"
+         class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md z-50">
+        <a href="#"
+           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+        <form method="POST" action="{{route('logout')}}">
+            @csrf
+            <button type="submit"
+                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                Logout
+            </button>
+        </form>
+    </div>
+</div>
+
         </div>
     </nav>
-
+ 
     <div class="flex h-[calc(100vh-75px)] relative shadow-lg">
         <!-- Sidebar -->
         <aside class=" w-12 bg-white border-r border-gray-300  shadow-lg absolute h-full overflow-hidden hover:w-fit z-50">
@@ -130,28 +167,18 @@
         if (type === 'info') toastr.info(message);
     }
 
-    // @if(session('success'))
-    //     showToastr('success', @json(session('success')));
-    // @elseif(session('error'))
-    //     showToastr('error', @json(session('error')));
-    // @elseif(session('warning'))
-    //     showToastr('warning', @json(session('warning')));
-    // @elseif(session('info'))
-    //     showToastr('info', @json(session('info')));
-    // @endif
-
+    @if(session('success'))
+        showToastr('success', @json(session('success')));
+    @elseif(session('error'))
+        showToastr('error', @json(session('error')));
+    @elseif(session('warning'))
+        showToastr('warning', @json(session('warning')));
+    @elseif(session('info'))
+        showToastr('info', @json(session('info')));
+    @endif
 
 </script>
 
-@if(session('success'))
-     showToastr('success', @json(session('success')));
- @elseif(session('error'))
-     showToastr('error', @json(session('error')));
- @elseif(session('warning'))
-     showToastr('warning', @json(session('warning')));
- @elseif(session('info'))
-     showToastr('info', @json(session('info')));
- @endif
 
 </body>
 
