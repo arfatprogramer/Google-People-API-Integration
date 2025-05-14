@@ -96,19 +96,48 @@ class AjaxRequestController extends Controller
         return DataTables::of($cleaned)
             ->addColumn('action', function ($client) {
                 $id = $client['id'] ?? '';
-                return "<a href='" . route('client.edit', $id) . "'>
-                            <i class='bi bi-pencil text-blue-500 hover:text-blue-600'></i>
-                        </a>
-                        <button class='deleteGoogleContact cursor-pointer' data-bs-id='{$id}'>
-                            <i class='bi bi-trash text-red-500 hover:text-red-600'></i>
-                        </button>";
+                return "
+                        <button class='px-4 deleteGoogleContact cursor-pointer' data-bs-id='{$id}'>
+                            <i class='fas fa-sync-alt  text-[17px] text-gray-500 w-2 h-2 hover:text-blue-500'></i>
+                             </button>
+                            <a href='" . route('client.edit', $id) . "' class='hover:text-blue-500 text-2xl'>+</a>
+                            ";
             })
             ->editColumn('email_primary', fn($client) => $client['email_primary'] ?? '-')
             ->editColumn('phone_primary', fn($client) => $client['phone_primary'] ?? '-')
             ->editColumn('created_at', fn($client) =>
                 isset($client['created_at']) ? \Carbon\Carbon::parse($client['created_at'])->format('Y-m-d') : '-'
             )
-            ->rawColumns(['action'])
+               
+
+             ->editColumn('sync_status_c', function ($client) {
+            $status = $client['sync_status_c'] ?? 'Not Synced';
+                        if ($status === 'Synced') {
+                    return '<span class="px-2 py-1 text-xs border border-green-400 text-green-600 rounded-full">Synced</span>';
+                } elseif ($status === 'Pending') {
+                    return '<span class="px-2 py-1 text-xs border border-yellow-400 text-yellow-600 rounded-full">Pending</span>';
+                } else {
+                    return '<span class="px-2 py-1 text-xs border border-gray-400 text-gray-600 rounded-full">Not Synced</span>';
+                }
+             })
+        
+            ->editColumn('last_sync_c', function ($client) {
+                $value = $client['last_sync_c'] ?? null;
+
+                try {
+                     if (!$value) {
+                        return '<span class="px-2 py-1 text-xs border border-gray-400 text-gray-600 rounded-full">Never</span>';;
+                    }
+                     $diff = Carbon::parse($value)->diffForHumans(); // e.g. "5 minutes ago"
+                    // return '<span class="text-green-600">' . e($diff) . '</span>';
+                    return '<span class="px-2 py-1 text-xs border border-green-400 text-green-600 rounded-full">'. e($diff) .'</span>';
+
+                } catch (\Exception $e) {
+                    return '<span class="text-red-500">Invalid date</span>';
+                }
+            })
+
+            ->rawColumns(['sync_status_c','last_sync_c','action'])
             ->make(true);
 
     } catch (\Throwable $e) {

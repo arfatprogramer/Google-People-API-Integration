@@ -38,8 +38,6 @@ class CrmApiServices
     {
         $token = session('crm_token');
 
-       
-
         $response = Http::withToken($token)
             ->acceptJson()
             ->post("{$this->baseUrl}/v1/getentry-detail", $payload);
@@ -51,8 +49,6 @@ class CrmApiServices
     {
         $token = session('crm_token');
 
-       
-        
         $response = Http::withToken($token)
             ->acceptJson()
             ->contentType('application/json')
@@ -61,27 +57,9 @@ class CrmApiServices
         return $response->json();
     }
 
-    public function updateContact($id, $data)
+    public function updateContact($payload)
     {
         $token = session('crm_token');
-
-        $payload = [
-            "rest_data" => [
-                "module_name" => "Contact",
-                "id" => $id,
-                "maping_records_upadate" => true,
-                "mapping_parent_fields" => [
-                    "first_name", "last_name", "designation", "account_id",
-                    "phone", "email", "hierarchy", "department"
-                ],
-                "name_value_list" => $data,
-                "hierarchy" => "03",
-                "department" => "",
-                "lead_source" => "News Paper",
-                "assigned_user_id" => "1",
-                "teamsSet" => "1"
-            ]
-        ];
 
         $response = Http::withToken($token)
             ->acceptJson()

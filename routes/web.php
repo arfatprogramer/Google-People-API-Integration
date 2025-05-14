@@ -16,7 +16,8 @@ Route::get('crm/login',[CRMLoginController::class,'ViewcrmLogin'])->name('login'
 Route::post('/crmlogin',[CRMLoginController::class,'login']);
 //--login---auth--miggleware--route
 Route::middleware(loginAuthMiddleware::class)->group(function(){
-
+//logout--route----
+Route::post('/logout',[CRMLoginController::class,'logout'])->name('logout');
 Route::get('/', function () {
     return view('client.list');
 });
