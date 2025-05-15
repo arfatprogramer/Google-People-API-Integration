@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Models\Client;
 use App\Models\clientContatSyncHistory;
+use App\Services\CrmApiServices;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -25,17 +25,19 @@ class pushToGoogleJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $ceateIdList;
+    protected $ceateDataList;
     protected $GoogleToken;
-    protected $updateIdList;
+    protected $updateIdDataList;
     protected $clientSyncHistoyEmptyRowId;
+    protected $apiToken;
 
-    public function __construct($GoogleToken, $ceateIdList=[],$updateIdList=[],$clientSyncHistoyEmptyRowId=null)
+    public function __construct($GoogleToken, $ceateIdDataList=[],$updateDataList=[],$clientSyncHistoyEmptyRowId=null,$apiToken)
     {
         $this->GoogleToken = $GoogleToken;
-        $this->ceateIdList = $ceateIdList;
-        $this->updateIdList = $updateIdList;
+        $this->ceateDataList = $ceateIdDataList;
+        $this->updateIdDataList = $updateDataList;
         $this->clientSyncHistoyEmptyRowId = $clientSyncHistoyEmptyRowId;
+        $this->apiToken=$apiToken;
 
         Log::info('Before Push to Google Constructor: ' . (memory_get_usage(true)/1024/1024)." MB");
 
@@ -148,11 +150,11 @@ class pushToGoogleJob implements ShouldQueue
         $timeStamp = Carbon::now();
 
         // === BATCH CREATE ===
-        if (!empty($this->ceateIdList)) {
-            $contacts = Client::whereIn('id', $this->ceateIdList)->get();
+        if (!empty($this->ceateDataList)) {
+            $contacts = $this->ceateDataList;
             $requests = [];
-            $contactMap = [];
-
+            $contactId = [];
+            dump("Contas that hase been create on google");
             foreach ($contacts as $index => $contact) {
                 try {
                     $person = (new GoogleService())->getPerson($contact);
@@ -161,7 +163,7 @@ class pushToGoogleJob implements ShouldQueue
                     $contactToCreate->setContactPerson($person);
 
                     $requests[] = $contactToCreate;
-                    $contactMap[$index] = $contact;
+                    $contactId[$index] = $contact->id;
 
                 } catch (\Exception $e) {
 
@@ -175,17 +177,14 @@ class pushToGoogleJob implements ShouldQueue
                 $batchCreateRequest->setReadMask('names,emailAddresses,phoneNumbers,userDefined,organizations,biographies'); ;
 
                 try {
+                    Log::info("Geting Response");
                     $response = $peopleService->people->batchCreateContacts($batchCreateRequest);
                     $response=$response->toSimpleObject();
 
                     foreach ($response->createdPeople as $index => $createdPerson) {
-                        if (isset($contactMap[$index])) {
-                            $originalContact = $contactMap[$index];
-                            $originalContact->resourceName = $createdPerson->person->resourceName;
-                            $originalContact->etag = $createdPerson->person->etag;
-                            $originalContact->lastSync = $timeStamp;
-                            $originalContact->syncStatus = 'Synced';
-                            $originalContact->save();
+                        if (isset($contactId[$index])) {
+                            $id = $contactId[$index];
+                            $data=(new CrmApiServices($this->apiToken))->updateSyncStatus($id, $createdPerson->person->resourceName,$createdPerson->person->etag,'Synced');
 
                             $syncHistory->increment('createdAtGoogle');
                             $syncHistory->increment('synced');
@@ -196,7 +195,7 @@ class pushToGoogleJob implements ShouldQueue
                     $message=json_decode($e->getMessage());
                     $errorCode=$message->error->code;
                     if ($errorCode==429) {
-                        $syncHistory->error +=count($contactMap);
+                        $syncHistory->error +=count($contactId);
                         $syncHistory->decrement('pending');
                     }
                 }
@@ -204,19 +203,23 @@ class pushToGoogleJob implements ShouldQueue
         }
 
         // === BATCH UPDATE ===
-        if (!empty($this->updateIdList)) {
-            $contacts = Client::whereIn('id', $this->updateIdList)->get();
+        if (!empty($this->updateIdDataList)) {
+            $contacts =$this->updateIdDataList;
 
             $batchUpdateRequest = new BatchUpdateContactsRequest();
             $updateMap = [];
+            $updateId = [];
+
             $updateMask = 'names,emailAddresses,phoneNumbers,userDefined,organizations,biographies';
             $readMask = 'names,emailAddresses,phoneNumbers';
 
-            foreach ($contacts as $contact) {
+            foreach ($contacts as  $index => $contact) {
                 try {
                     $person = (new GoogleService())->getPerson($contact);
-                    $person->setEtag($contact->etag); // Ensure etag is fresh before batch
-                    $updateMap[$contact->resourceName] = $person;
+                    $person->setEtag($contact->etag_c); // Ensure etag is fresh before batch
+                    $updateMap[$contact->resource_name_c] = $person;
+                    $updateId[$contact->resource_name_c] = $contact->id;
+
                 } catch (\Exception $e) {
                     Log::error("Error preparing update for contact ID {$contact->id}: {$e->getMessage()}");
                 }
@@ -232,19 +235,17 @@ class pushToGoogleJob implements ShouldQueue
                     $response = $peopleService->people->batchUpdateContacts($batchUpdateRequest);
                 } catch (\Exception $e) {
                     $message=json_decode($e->getMessage());
+                    dump($message);
                     $Resoucres=$message->error->details[0]->fieldViolations[0]->field;
                     $resourceName = Str::between($Resoucres, 'contacts[', ']');
+                    print_r($resourceName);
                     if (isEmpty($resourceName)) {
                         $return=true;
-                        print_r($resourceName);
+                        $id=$updateId[$resourceName];
                         unset($updateMap[$resourceName]);
                         $updateMap=$updateMap;
-                        $contact = $contacts->where('resourceName', $resourceName)->first();
-                        if ($contact) {
-                            $contact->lastSync = $timeStamp;
-                            $contact->syncStatus = 'Deleted';
-                            $contact->save();
-
+                        if ($id) {
+                            $data=(new CrmApiServices($this->apiToken))->updateSyncStatus($id, $createdPerson->person->resourceName,$createdPerson->person->etag,'Deleted');
                             $syncHistory->increment('deleted');
                             $syncHistory->increment('synced');
                             $syncHistory->decrement('pending');
@@ -253,21 +254,15 @@ class pushToGoogleJob implements ShouldQueue
                 }
             } while ($return);
 
-
-
             try {
                 $results = $response->getUpdateResult(); // Must call getter method
 
                 foreach ($results as $resourceName => $updateResult) {
                     $updatedPerson = $updateResult->getPerson();
                     if ($updatedPerson) {
-                        $contact = $contacts->where('resourceName', $resourceName)->first();
-                        if ($contact) {
-                            $contact->etag = $updatedPerson->getEtag();
-                            $contact->lastSync = $timeStamp;
-                            $contact->syncStatus = 'Synced';
-                            $contact->save();
-
+                        $id = $updateId[$resourceName];
+                        if ($id) {
+                            $data=(new CrmApiServices($this->apiToken))->updateSyncStatus($id, $resourceName,$updatedPerson->getEtag(),'Synced');
                             $syncHistory->increment('updatedAtGoogle');
                             $syncHistory->increment('synced');
                             $syncHistory->decrement('pending');

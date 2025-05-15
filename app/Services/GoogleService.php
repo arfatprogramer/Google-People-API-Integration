@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\clientContatSyncHistory;
 use App\Models\GoogleAuth;
 use Carbon\Carbon;
 use Exception;
 use Google\Service\PeopleService;
+use Google\Service\PeopleService\Biography;
+use Google\Service\PeopleService\Address;
 use Google\Service\PeopleService\EmailAddress;
 use Google_Client;
 use Google\Service\PeopleService\Person;
@@ -47,6 +48,7 @@ class GoogleService
         $client->setClientId(config('services.google.client_id'));
         $client->setClientSecret(config('services.google.client_secret'));
 
+        Log::info('Return get GoogleCliet form Google Services class: ' . (memory_get_usage(true)/1024/1024)." MB");
 
         return ($client);
     }
@@ -92,44 +94,83 @@ class GoogleService
          1 createContactToGoogle
          2 updateContactToGoogle
         **/
-      public function getPerson($contact){
+
+
+    public function getPerson($contact)
+    {
         $person = new Person();
 
-        // Set name
+        //  Set name
         $name = new Name();
-        $name->setGivenName($contact->firstName);
-        $name->setFamilyName($contact->lastName);
+        $name->setGivenName($contact->first_name ?? '');
+        $name->setFamilyName($contact->last_name ?? '');
         $person->setNames([$name]);
 
-        // Set email
-        $email = new EmailAddress();
-        $email->setValue($contact->email);
-        $person->setEmailAddresses([$email]);
+        //Set emails
+        $emailAddresses = [];
+        $emails = json_decode($contact->email_json ?? '[]', true);
+        foreach ($emails as $email) {
+            if (!empty($email['email_address'])) {
+                $emailObj = new EmailAddress();
+                $emailObj->setValue($email['email_address']);
+                $emailAddresses[] = $emailObj;
+            }
+        }
+        $person->setEmailAddresses($emailAddresses);
 
-        // Set phone
-        $phone = new PhoneNumber();
-        $phone->setValue($contact->number);
-        $person->setPhoneNumbers([$phone]);
+        //  Set phones
+        $phoneNumbers = [];
+        $phones = json_decode($contact->phone_json ?? '[]', true);
+        foreach ($phones as $phone) {
+            if (!empty($phone['phone_number'])) {
+                $phoneObj = new PhoneNumber();
+                $phoneObj->setValue($phone['phone_number']);
+                $phoneNumbers[] = $phoneObj;
+            }
+        }
+        $person->setPhoneNumbers($phoneNumbers);
 
-        // Set userDefined fields
+        //  Set addresses
+        $addresses = [];
+        $addressData = json_decode($contact->address_json ?? '[]', true);
+        foreach ($addressData as $addr) {
+            $address = new Address();
+            $address->setStreetAddress($addr['street'] ?? '');
+            $address->setCity($addr['city'] ?? '');
+            $address->setRegion($addr['state'] ?? '');
+            $address->setPostalCode($addr['postal_code'] ?? '');
+            $address->setCountry($addr['country'] ?? '');
+            $addresses[] = $address;
+        }
+        $person->setAddresses($addresses);
+
+        //  Add comment to Notes (biography)
+        if (!empty($contact->comment)) {
+            $bio = new Biography();
+            $bio->setValue($contact->comment);
+            $bio->setContentType('TEXT_PLAIN');
+            $person->setBiographies([$bio]);
+        }
+
+        //  Set userDefined fields
         $userDefinedFields = [];
-
         $userDefinedPairs = [
-            'panCardNumber' => $contact->panCardNumber,
-            'aadharCardNumber' => $contact->aadharCardNumber,
-            'occupation' => $contact->occupation,
-            'kycStatus' => $contact->kycStatus,
-            'anulIncome' => (string)$contact->anulIncome,
-            'referredBy' => $contact->referredBy,
-            'totalInvestment' => (string)$contact->totalInvestment,
-            'relationshipManager' => $contact->relationshipManager,
-            'serviceRM' => $contact->serviceRM,
-            'totalSIP' => (string)$contact->totalSIP,
-            'primeryContactPerson' => $contact->primeryContactPerson,
-            'meetinSchedule' => $contact->meetinSchedule,
-            'firstMeetingDate' => $contact->firstMeetingDate,
-            'typeOfRelation' => $contact->typeOfRelation,
-            'maritalStatus' => $contact->maritalStatus,
+            'designation'             => $contact->designation ?? '',
+            'anniversary'             => $contact->anniversary ?? '',
+            'birth_date'              => $contact->birth_date ?? '',
+            'account_id'              => $contact->account_id ?? '',
+            'account_id_name'         => $contact->account_id_name ?? '',
+            'customer_type'           => $contact->customer_type ?? '',
+            'hierarchy'               => $contact->hierarchy ?? '',
+            'department'              => $contact->department ?? '',
+            'lead_source'             => $contact->lead_source ?? '',
+            'created_at'              => $contact->created_at ?? '',
+            'updated_at'              => $contact->updated_at ?? '',
+            'tag'                     => $contact->tag ?? '',
+            'created_by'              => $contact->created_by ?? '',
+            'created_by_name'         => $contact->created_by_name ?? '',
+            'assigned_user_id'        => $contact->assigned_user_id ?? '',
+            'assigned_user_id_name'   => $contact->assigned_user_id_name ?? '',
         ];
 
         foreach ($userDefinedPairs as $key => $value) {
@@ -144,7 +185,8 @@ class GoogleService
         $person->setUserDefined($userDefinedFields);
 
         return $person;
-     }
+    }
+
 
      public function getContacts($googleToken, $pageSize, $personFields, $nextPageToken = null, $nextSyncToken=null): object
      {
