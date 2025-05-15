@@ -61,66 +61,12 @@ public function create(Request $request, CrmApiServices $create)
             'email' => 'required',
         ]);
 
-                // Address
-            $address = collect($request->addresses)->map(function ($address, $index) {
-            return [
-                'table_name'      => 'addresses',
-                'related_table_name' => 'addresses_rel',
-                'address_type'    => $address['address_type'] ?? 'Other',
-                'street'          => $address['street'] ?? '',
-                'area'            => $address['area'] ?? '',
-                'city'            => $address['city'] ?? '',
-                'state'           => $address['state'] ?? '',
-                'country'         => $address['country'] ?? '',
-                'postal_code'     => $address['postal_code'] ?? '',
-                'primary'         => $index === 0, // First address is primary
-                'verified_at'     => now()->toDateTimeString(),
-            ];
-        });
-
+        
+          $phone_json = $create->formatPhones($request->phone_json);
+          $email_json = $create->formatEmails($request->email_json);
+          $address_json = $create->formatAddress($request->email_json);
        
-        $phone_json = collect($request->phone_json)->map(function ($phone, $index) {
-            return [
-                'table_name'         => 'phone_numbers',
-                'related_table_name' => 'phone_numbers_rel',
-                'phone_number'       => $phone,
-                'primary'            => $index === 0  ,
-                'invalid'            => false,
-                'unsubscribed'       => false,
-                'verified_at'        => now()->toDateTimeString(),
-            ];
-        });
-       
-        $email_json = collect($request->email_json)->map(function ($email, $index) {
-            return [
-                'table_name'         => 'email_addresses',
-                'related_table_name' => 'email_address_rel',
-                'email_address'      => $email,
-                'primary'            => $index === 0,
-                'status'             => 'invalid',
-                'suppression'        => $index === 0 ? $email : '',
-                'verified_at'        => now()->toDateTimeString(),
-            ];
-        });
-
-       
-         $payload = [
-            "rest_data" => [
-                "module_name" => "Contact",
-                "name_value_list" => [
-                    "first_name" => $request->first_name ?? '',
-                    "last_name" => $request->last_name ?? '',
-                    "designation" => "Developer",
-                    "hiddenPhone" => $phone_json,
-                    "hiddenEmail" => $email_json,
-                    "hiddenAddress" => $address,
-                    "sync_status_c" => "Not Synced",
-                    "hierarchy" =>"03",
-                    "assigned_user_id" => "1",
-                    "teamsSet" => "1"
-                ]
-            ]
-    ];
+         
 
         // return $payload;
         // ✅ Step 5: Send to service
@@ -178,74 +124,13 @@ $contacts = collect($nameValueList)->mapWithKeys(function ($item) {
                 "phone"=>'required',
                 "email"=>'required|email',
             ]);
-            // dd($request->sync_status_c);
-                 // Address
-            $address = collect($request->addresses)->map(function ($address, $index) {
-            return [
-                'table_name'      => 'addresses',
-                'related_table_name' => 'addresses_rel',
-                'address_type'    => $address['address_type'] ?? 'Other',
-                'street'          => $address['street'] ?? '',
-                'area'            => $address['area'] ?? '',
-                'city'            => $address['city'] ?? '',
-                'state'           => $address['state'] ?? '',
-                'country'         => $address['country'] ?? '',
-                'postal_code'     => $address['postal_code'] ?? '',
-                'primary'         => $index === 0, // First address is primary
-                'verified_at'     => now()->toDateTimeString(),
-            ];
-        });
+            
 
-        // return $address; 
-        // Format phone_json
-        $phone_json = collect($request->phone_json)->map(function ($phone, $index) {
-            return [
-                'table_name'         => 'phone_numbers',
-                'related_table_name' => 'phone_numbers_rel',
-                'phone_number'       => $phone,
-                'primary'            => $index === 0  ,
-                'invalid'            => false,
-                'unsubscribed'       => false,
-                'verified_at'        => now()->toDateTimeString(),
-            ];
-        });
-        // return $phone_json;
-        //  Format email_json
-        $email_json = collect($request->email_json)->map(function ($email, $index) {
-            return [
-                'table_name'         => 'email_addresses',
-                'related_table_name' => 'email_address_rel',
-                'email_address'      => $email,
-                'primary'            => $index === 0,
-                'status'             => 'invalid',
-                'suppression'        => $index === 0 ? $email : '',
-                'verified_at'        => now()->toDateTimeString(),
-            ];
-        });
-             $payload = [
-            "rest_data" => [
-                "module_name" => "Contact",
-                "id" => $request->id,
-                "maping_records_upadate" => true,
-                "mapping_parent_fields" => [
-                    "first_name", "last_name", "designation", "account_id",
-                    "phone", "email", "hierarchy", "department"
-                ],
-                "name_value_list" => [
-                    "first_name" => $request->first_name ?? '',
-                    "last_name" => $request->last_name ?? '',
-                    "designation" => "Developer",
-                    "hiddenPhone" => $phone_json,
-                    "hiddenEmail" => $email_json,
-                    "hiddenAddress" => $address,
-                    "sync_status_c" => $request->sync_status_c === 'Synced' ? 'Pending' : ($request->sync_status_c ?? 'Not Synced'),
-                    "hierarchy" =>"03",
-                    "assigned_user_id" => "1",
-                    "teamsSet" => "1"
-            ]
-            ]
-        ];
-        
+          $phone_json = $updateCrmData->formatPhones($request->phone_json);
+          $email_json = $updateCrmData->formatEmails($request->email_json);
+          $address_json = $updateCrmData->formatAddress($request->email_json);
+          $payload = $updateCrmData->UpdatePayload($request, $phone_json, $email_json , $address_json);
+        // dd($payload);
        $response = $updateCrmData->updateContact($payload);
 
         if ($response) {
