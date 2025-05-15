@@ -24,7 +24,7 @@ class clientController extends Controller
     function show(Request $req ){
         if ($req->ajax()) {
 
-       
+
             $clients=client::query();
 
             return DataTables::eloquent($clients)
@@ -51,11 +51,11 @@ class clientController extends Controller
         return view('client.createForm');
     }
 
-   
-public function create(Request $request, CrmApiServices $create)
+
+public function create(Request $request)
 {
     try {
-        
+
         $validate = $request->validate([
             'phone' => 'required',
             'email' => 'required',
@@ -78,7 +78,7 @@ public function create(Request $request, CrmApiServices $create)
             ];
         });
 
-       
+
         $phone_json = collect($request->phone_json)->map(function ($phone, $index) {
             return [
                 'table_name'         => 'phone_numbers',
@@ -90,7 +90,7 @@ public function create(Request $request, CrmApiServices $create)
                 'verified_at'        => now()->toDateTimeString(),
             ];
         });
-       
+
         $email_json = collect($request->email_json)->map(function ($email, $index) {
             return [
                 'table_name'         => 'email_addresses',
@@ -103,7 +103,7 @@ public function create(Request $request, CrmApiServices $create)
             ];
         });
 
-       
+
          $payload = [
             "rest_data" => [
                 "module_name" => "Contact",
@@ -124,7 +124,7 @@ public function create(Request $request, CrmApiServices $create)
 
         // return $payload;
         // ✅ Step 5: Send to service
-        $response = $create->createContact($payload);
+        $response = (new CrmApiServices(session('crm_token')))->createContact($payload);
 
        return redirect(route('ajax.index'))->with('success',"Contact is create successfully");
         // return response()->json(['status' => true, 'message' => 'Contact created', 'data' => $response]);
@@ -137,10 +137,7 @@ public function create(Request $request, CrmApiServices $create)
     }
 }
 
-
-   
-        
-    public function editContact($id,CrmApiServices $getContactById){
+    public function editContact($id){
         // $data = client::where('id',$id)->find($id);
            $payload = [
             'rest_data' => [
@@ -157,9 +154,9 @@ public function create(Request $request, CrmApiServices $create)
             ]
         ];
 
-        $getdataById = $getContactById->getContactById($payload);
+        $getdataById = (new CrmApiServices(session('crm_token')))->getContactById($payload);
         $data = $getdataById;
-  
+
        $nameValueList = $data['entry_list']['name_value_list'] ?? [];
 //            $response = $yourApiResponse['entry_list'] ?? [];
 // $nameValueList = $response['name_value_list'] ?? [];
@@ -167,12 +164,12 @@ public function create(Request $request, CrmApiServices $create)
 $contacts = collect($nameValueList)->mapWithKeys(function ($item) {
     return [$item['name'] => $item['value']];
 })->toArray();
- 
+
         return view("client.createForm",compact('contacts'));
 
     }
 ///------UpdateForm------------------
-        public function UpdateFormContact(Request $request,CrmApiServices $updateCrmData){
+        public function UpdateFormContact(Request $request){
             $validate = $request->validate([
                 'first_name'=>'required|string',
                 "phone"=>'required',
@@ -196,7 +193,7 @@ $contacts = collect($nameValueList)->mapWithKeys(function ($item) {
             ];
         });
 
-        // return $address; 
+        // return $address;
         // Format phone_json
         $phone_json = collect($request->phone_json)->map(function ($phone, $index) {
             return [
@@ -225,7 +222,7 @@ $contacts = collect($nameValueList)->mapWithKeys(function ($item) {
              $payload = [
             "rest_data" => [
                 "module_name" => "Contact",
-                "id" => $request->id,
+                "id"=>$request->id,
                 "maping_records_upadate" => true,
                 "mapping_parent_fields" => [
                     "first_name", "last_name", "designation", "account_id",
@@ -245,16 +242,15 @@ $contacts = collect($nameValueList)->mapWithKeys(function ($item) {
             ]
             ]
         ];
-        
-       $response = $updateCrmData->updateContact($payload);
-
+        //   dd($payload);
+       $response = (new CrmApiServices(session('crm_token')))->updateContact($request->id,$payload);
         if ($response) {
             return redirect()->route('ajax.index')->with('success', 'CRM Contact updated successfully!');
         } else {
             return redirect()->back()->with('error', 'Failed to update CRM Contact.');
         }
- 
-    
+
+
 
   }
     public function __destruct() {

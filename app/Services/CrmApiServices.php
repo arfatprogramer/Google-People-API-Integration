@@ -26,31 +26,41 @@ class CrmApiServices
         return $response->json();
     }
 
-    public function getContacts($payload)
+    public function getContacts()
     {
-        $token = session('crm_token');
+         $payload = [
+                "rest_data" => [
+                    "module_name" => "Contact",
+                    "max_result" => 1000,
+                    "sort" => "updated_at",
+                    "order_by" => "DESC",
+                    "query" => "",
+                    "favorite" => false,
+                    "save_search" => false,
+                    "save_search_id" => "",
+                    "assigned_user_id" => "1",
+                    "advance_search" => false,
+                    "advance_search_json" => "",
+                    "multi_initial_filter" => "",
+                    "name_value_list" => [
+                        "select_fields" => [
+                            "name",
+                            "designation",
+                            // "phone_json",
+                            "phone_primary",
+                            // "email_json",
+                            "email_primary",
+                            "sync_status_c",
+                            "last_sync_c",
+                            "id",
 
-        $payload = [
-            'rest_data' => [
-                'module_name' => 'Contact',
-                'max_result' => 25,
-                'sort' => 'updated_at',
-                'order_by' => 'DESC',
-                'query' => '',
-                'favorite' => false,
-                'save_search' => false,
-                'assigned_user_id' => '1',
-                'name_value_list' => [
-                    'select_fields' => [
-                        'name', 'designation', 'phone_json', 'phone_primary',
-                        'email_json', 'email_primary', 'id', 'created_at',
-                        'updated_at', 'assigned_user_id', 'phone', 'birth_date', 'anniversary'
+
+                        ]
                     ]
                 ]
-            ]
-        ];
+            ];
 
-        $response = Http::withToken($token)
+        $response = Http::withToken($this->token)
             ->acceptJson()
             ->post("{$this->baseUrl}/v2/get-listview-data", $payload);
 
@@ -59,9 +69,8 @@ class CrmApiServices
 
     public function getContactById($payload)
     {
-        $token = session('crm_token');
 
-        $response = Http::withToken($token)
+        $response = Http::withToken($this->token)
             ->acceptJson()
             ->post("{$this->baseUrl}/v1/getentry-detail", $payload);
 
@@ -76,42 +85,35 @@ class CrmApiServices
             ->acceptJson()
             ->contentType('application/json')
             ->post("{$this->baseUrl}/v1/setentry-create",$payload);
-            dump(json_decode($response));
         } catch (\Throwable $th) {
             dump($th);
         }
 
-        return ;
+        return $response->json() ;
     }
 
     public function updateContact($id, $payload)
     {
         $payload['rest_data']['id'] = $id;
-        dump("Update Function");
-        dump(json_encode($payload));
         $response = Http::withToken($this->token)
         ->acceptJson()
         ->contentType('application/json')
         ->post("{$this->baseUrl}/v1/setentry-update", $payload);
-
-        dump(($response));
-        return;
-
+        // return $response->json();
+        return $payload;
     }
 
     public function updateSyncStatus($id,$resourceName,$etag,$status) {
-        dump("Update Status Function");
         $payload = [
             "rest_data"=> [
                 "module_name"=> "Contact",
                 "id"=>$id,
-
                 "name_value_list"=> [
                     "etag_c"=>$etag,
                     "resource_name_c"=>$resourceName,
                     "last_sync_c"=>Carbon::now(),
-                "sync_status_c"=>$status
-            ]
+                    "sync_status_c"=>$status
+                ]
             ]
         ];
          $response = Http::withToken($this->token)
@@ -124,7 +126,6 @@ class CrmApiServices
 
     // to get the inform mation data is existing in data base or noe
     public function getExistingDataFromCrm($resourceName=[]) {
-        // $token = session('crm_token');
         $string = "('" . implode("','", $resourceName) . "')";
         dump($string);
         $payload=[
@@ -180,14 +181,15 @@ class CrmApiServices
 
 
     // Get list of Clietsfrom Crm
-    public function getClietsList($pairameter,$max_result,$status){
+    public function getClietsList($pairameter,$pageSize,$search){
          $payload=[
             "rest_data"=>[
                 "module_name"=> "Contact",
-                "max_result"=> $max_result,
+                "max_result"=> $pageSize,
                 "sort"=> "updated_at",
                 "order_by"=> "DESC",
-                "query"=> "sync_status_c='$status'",
+                // "query"=> "sync_status_c='$status'",
+                "query"=>$search,
                 "favorite"=> false,
                 "save_search"=> false,
                 "save_search_id"=> "",
@@ -245,8 +247,24 @@ class CrmApiServices
      $response = Http::withToken($this->token)
             ->acceptJson()
             ->post("{$this->baseUrl}/v2/get-listview-data?page=$pairameter", $payload);
-    $response=json_decode($response);
-    return ($response);
+        $response=json_decode($response);
+        return ($response);
+
+    }
+
+    public function deleteFromCRM($id){
+        $payload=[
+                    "rest_data"=> [
+                        "module_name"=> "Contact",
+                        "id"=> $id
+                    ]
+
+                ];
+     $response = Http::withToken($this->token)
+            ->acceptJson()
+            ->post("{$this->baseUrl}/v1/setentry-delete", $payload);
+        $response=json_decode($response);
+        return ($response);
 
     }
 }
