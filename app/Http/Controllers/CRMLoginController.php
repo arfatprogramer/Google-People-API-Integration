@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Session;
 
 class CRMLoginController extends Controller
 {
-    
+
     protected $crm;
 
     public function __construct(CrmApiServices $crm)
