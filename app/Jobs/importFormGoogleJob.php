@@ -47,7 +47,7 @@ class importFormGoogleJob implements ShouldQueue
     {    sleep(5);
         try {
          $timeStamp=Carbon::now();
-            $personFields=['names,phoneNumbers,emailAddresses,userDefined,organizations,biographies,addresses,birthdays'];
+            $personFields=['names,phoneNumbers,emailAddresses,userDefined,organizations,biographies,addresses,birthdays,urls,relations'];
             $pageSize=1000;
             //contact come here ny the functon
 
@@ -67,6 +67,7 @@ class importFormGoogleJob implements ShouldQueue
 
 
                 if (empty($googleContacts->connections)) {
+                    dump("No Data Found On Google");
                     continue;
                 }
                 $contacts = [];
@@ -81,6 +82,13 @@ class importFormGoogleJob implements ShouldQueue
                     $biographies = $person->biographies[0]->value ?? '';
                     $organizations = $person->organizations[0] ?? null;
                     $addresses = collect($person->addresses ?? []);
+                    $urls = collect($person->urls ?? []); // no files are avalable
+                    $relations = collect($person->relations ?? []); // no files are avalable
+                    // birth Date
+                    $birthDate=$person->birthdays[0]->date??"";
+                    $day=$birthDate->day??"";
+                    $month=$birthDate->month??"";
+                    $year=$birthDate->year??"";
 
                     $contacts[$resourceName] = [
                         'rest_data' => [
@@ -88,13 +96,30 @@ class importFormGoogleJob implements ShouldQueue
                             'name_value_list' => [
                                 'first_name' => $name->givenName ?? '',
                                 'last_name' => $name->familyName ?? '',
-                                'designation' => $organizations->title ?? '',
-                                'birth_date' => '',
-                                'anniversary' => '',
+                                'company_name' => $organizations->name ?? '',   // No Feilds to store
+                                'occupation_c' => $organizations->title ?? '',
+                                // 'designation' => $organizations->title ?? '',
+                                'birth_date' => "$year/$month/$day", // need to fix
+                                // 'anniversary' => '',
+                                'urls'=>$urls->map(function($url){           ///  No data fields in Crm To store this
+                                    return[
+                                        'type'=>$url->formattedType??$url->type??'',
+                                        'value'=>$url->value??'',
+                                        'primary'=>$url->metadata->primary??false,
+                                    ];
+                                })->values()->all(),
+                                'relations'=>$relations->map(function($relation){        ///  No data fields in Crm To store this
+                                return[
+                                        'type'=>$relation->formattedType?? $relation->type??'',
+                                        'person'=>$relation->person?? '',
+                                        'primary'=>$relation->metadata->primary??'',
+                                    ];
+                                })->values()->all(),
                                 'customer_type' => '',
                                 'hiddenPhone' => $phones->map(function ($phone) {
                                     return [
-                                        'phone_number' => $phone->value ?? '',
+                                        // $phone->formattedType??'';    // no Avalable filed in crm to Store this
+                                        'phone_number' =>$phone->canonicalForm?? preg_replace('/[^0-9]/', '', $phone->value??0) ?? '',
                                         'verified_at' => '',
                                         'unsubscribed' => false,
                                         'invalid' => false,
@@ -103,6 +128,7 @@ class importFormGoogleJob implements ShouldQueue
                                 })->values()->all(),
                                 'hiddenEmail' => $emails->map(function ($email) {
                                     return [
+                                        //  $email->type ?? '';       // No Avalable field in crm to Store
                                         'email_address' => $email->value ?? '',
                                         'primary' => $email->metadata->primary ?? false,
                                         'status' => 'invalid',
@@ -112,13 +138,17 @@ class importFormGoogleJob implements ShouldQueue
                                 })->values()->all(),
                                 'hiddenAddress' => $addresses->map(function ($address) {
                                     return [
-                                        'street' => $address->streetAddress ?? '',
-                                        'city' => $address->city ?? '',
-                                        'region' => $address->region ?? '',
-                                        'postal_code' => $address->postalCode ?? '',
-                                        'country' => $address->country ?? '',
-                                        'type' => $address->type ?? '',
-                                        'primary' => $address->metadata->primary ?? false,
+                                        'table_name'      => 'addresses',
+                                        'related_table_name' => 'addresses_rel',
+                                        'address_type'    =>$address->type ?? '',
+                                        'street'          => $address->streetAddress ?? '',
+                                        'area'            => "",
+                                        'city'            => $address->city ?? '',
+                                        'state'           =>$address->region ?? '',
+                                        'country'         => $address->country ?? '',
+                                        'postal_code'     => $address->postalCode ?? '',
+                                        'primary'         => $address->metadata->primary ?? false,
+                                        'verified_at'     => null,
                                     ];
                                 })->values()->all(),
                                 'comment' => $biographies ? [['description' => $biographies]] : [],
@@ -126,12 +156,12 @@ class importFormGoogleJob implements ShouldQueue
                                 'resource_name_c'=>$resourceName,
                                 'sync_status_c'=>'Synced',
                                 'last_sync_c'=>$timeStamp,
-                                'assigned_user_id'=>1,
-                                'duration_c' => '12:00 AM',
-                                'hierarchy' => '',
-                                'department' => '',
-                                'lead_source' => '',
-                                'teamsSet' => '1'
+                                // 'assigned_user_id'=>'',
+                                // 'duration_c' => '',
+                                // 'hierarchy' => '',
+                                // 'department' => '',
+                                // 'lead_source' => '',
+                                // 'teamsSet' => ''
                             ]
                         ]
                     ];
@@ -149,6 +179,7 @@ class importFormGoogleJob implements ShouldQueue
                             // Create new contact in CRM
                             if (!empty($payload['rest_data']['name_value_list']['first_name']) || !empty($payload['rest_data']['name_value_list']['last_name'])) {
                                $data=(new CrmApiServices($this->apiToken))->createContact($payload);
+                               dump($data);
                                 // this for captur data in Sync History Table
                                 $lastRowInContactSyncHistoryTable->created+=1;
                             }
@@ -164,7 +195,8 @@ class importFormGoogleJob implements ShouldQueue
                                 continue;
                             }
 
-                            (new CrmApiServices($this->apiToken))->updateContact($existingData[$resource]['id'],$payload);
+                            $data=(new CrmApiServices($this->apiToken))->updateContact($existingData[$resource]['id'],$payload);
+                            dump($data);
                             // this for captur data in Sync History Table
                             $lastRowInContactSyncHistoryTable->updated+=1;
                             $lastRowInContactSyncHistoryTable->save();

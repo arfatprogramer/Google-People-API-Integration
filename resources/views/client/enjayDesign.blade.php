@@ -77,10 +77,15 @@
 @endpush
 
 @section('container')
+
+    <div id="loader" class="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50">
+        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+
     <div class=" mx-auto px-4  sm:px-6 lg:px-8 py-6 bg-gray-50">
 
 
-        <div class="mb-6 flex items-center justify-between bg-white shadow-xl p-2">
+        <div class="mb-6 flex items-center justify-between bg-white shadow-xl p-2" >
             <div class="flex items-center gap-2">
                 <h1 class="text-xl font-semibold text-gray-800">Dashboard</h1><span class="text-gray-400">›</span><span
                     class="text-gray-600">Google Contacts Integration</span>

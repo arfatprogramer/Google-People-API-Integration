@@ -38,7 +38,7 @@ class CrmApiServices
                     "favorite" => false,
                     "save_search" => false,
                     "save_search_id" => "",
-                    "assigned_user_id" => "1",
+                    "assigned_user_id" => "",
                     "advance_search" => false,
                     "advance_search_json" => "",
                     "multi_initial_filter" => "",
@@ -79,7 +79,7 @@ class CrmApiServices
 
     public function createContact($payload)
     {
-
+        dump($payload);
         try {
             $response = Http::withToken($this->token)
             ->acceptJson()
@@ -88,7 +88,7 @@ class CrmApiServices
         } catch (\Throwable $th) {
             dump($th);
         }
-
+        // dump($response);
         return $response->json() ;
     }
 
@@ -127,7 +127,7 @@ class CrmApiServices
     // to get the inform mation data is existing in data base or noe
     public function getExistingDataFromCrm($resourceName=[]) {
         $string = "('" . implode("','", $resourceName) . "')";
-        dump($string);
+        
         $payload=[
             "rest_data"=> [
                 "module_name"=> "Contact",
@@ -138,15 +138,12 @@ class CrmApiServices
                 "favorite"=> false,
                 "save_search"=> false,
                 "save_search_id"=> "",
-                "assigned_user_id"=> "1",
-                "teamsSet"=> "1",
+                "assigned_user_id"=> "",
+                "teamsSet"=> "",
                 "advance_search"=> false,
                 "advance_search_json"=> "",
                 "multi_initial_filter"=> "",
                 "name_value_list"=> [
-                    "name_value_list"=>[
-                        "resource_name_c"=>$resourceName ,
-                    ],
                     "select_fields"=> [
                         "resource_name_c",
                         "etag_c",
@@ -167,7 +164,7 @@ class CrmApiServices
             Log::info("error in getExistingDataFromCrm CrmAPIService");
         }
         $response=json_decode($response);
-        dump($response);
+        // dump($response);
         $existingData=[];
         $responseData=$response->data??[];
         foreach($responseData as $data){
@@ -193,7 +190,7 @@ class CrmApiServices
                 "favorite"=> false,
                 "save_search"=> false,
                 "save_search_id"=> "",
-                "assigned_user_id"=> "1",
+                "assigned_user_id"=> "",
                 "teamsSet"=> "1",
                 "advance_search"=> false,
                 "advance_search_json"=> "",

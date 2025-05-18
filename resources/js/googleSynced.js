@@ -1,10 +1,8 @@
 
-$(function(){
+$(function () {
     const synccontacts = $('#synccontacts-table').DataTable();
-    let isProcessingSync=false;
-    // setInterval(() => {
-    //     refresh();
-    // }, 15000);
+    let isProcessingSync = false;
+
     SyncStatus();
 
     $.ajaxSetup({
@@ -20,39 +18,39 @@ $(function(){
     });
 
     // this function update data to google single
-    $(document).on('click', '.singleSyncContact', function(e) {
+    $(document).on('click', '.singleSyncContact', function (e) {
         e.preventDefault();
         let id = $(this).data('sync-id'); // Get contact ID dynamically
         let syncStatus = $(this).data('sync-status'); // Get contact ID dynamically
 
-            // sync function
+        // sync function
         const performSync = (DeletedConfirmation) => {
 
-            $(this).css({ 'animation': 'spin 2s linear infinite','color':'blue' });
+            $(this).css({ 'animation': 'spin 2s linear infinite', 'color': 'blue' });
             $.ajax({
-            url:'/singleSyncById',
-            method:'post',
-            data:{
-                Cliet_id:id,
-                deletedReSync:DeletedConfirmation,
-            },
-            success:function(response) {
-                console.log(response);
-                if (response.status) {
-                    toastr.success(response.message);
-                    setTimeout(() => {
+                url: '/singleSyncById',
+                method: 'post',
+                data: {
+                    Cliet_id: id,
+                    deletedReSync: DeletedConfirmation,
+                },
+                success: function (response) {
+                    console.log(response);
+                    if (response.status) {
+                        toastr.success(response.message);
+                        setTimeout(() => {
+                            synccontacts.ajax.reload(null, false);
+                        }, 2000);
+                    } else {
+                        toastr.error(response.message);
                         synccontacts.ajax.reload(null, false);
-                    }, 2000);
-                }else{
-                    toastr.error(response.message);
-                    synccontacts.ajax.reload(null, false);
-                }
+                    }
 
-            }
+                }
             });
         }
 
-        if (syncStatus==='Deleted') {
+        if (syncStatus === 'Deleted') {
             $('#ReCreateDeletedContactConfirmBox').removeAttr('hidden')
             // deletedReSync=confirm("This contact was deleted from Google. Do you want to re-create it on Google Contacts?");
             // deletedReSync ? (performSync()):(console.log("Canceld"));
@@ -70,7 +68,7 @@ $(function(){
             });
 
 
-        }else{
+        } else {
             performSync(false);
         }
 
@@ -86,8 +84,8 @@ $(function(){
     $('#synccontacts-table-search').html($('.synccontacts-table-search'));
 
 
-        // To swith table
-    $('.tab-button').on('click', function() {
+    // To swith table
+    $('.tab-button').on('click', function () {
         // Deactivate all tabs
         $('.tab-button').attr('aria-selected', 'false');
         // $('.tab-button').removeAtt('style');
@@ -113,41 +111,43 @@ $(function(){
     });
 
     // for Refreh data
-    $("#refresh").click(function(){
+    $("#refresh").click(function () {
         console.log("Refresh Button was Clicked");
         refresh()
+        loader(true);
     });
 
 
-    $("#pushToGoogle").click(function(){
+    $("#pushToGoogle").click(function () {
         console.log("pushToGoogle Button was Clicked");
-            pushToGoogle()
+        pushToGoogle()
     });
 
-    $("#importFromGoogle").click(function(){
+    $("#importFromGoogle").click(function () {
         console.log("importFromGoogle Button was Clicked");
 
-            importFromGoogle();
+        importFromGoogle();
 
     });
 
-    $(".syncNow").click(function(){
-            synNow();
+    $(".syncNow").click(function () {
+        synNow();
     });
 
     // this for cancel an ProcessWhile in pending state
-    $('#cancelProcessing').click(function(){
+    $('#cancelProcessing').click(function () {
         $.ajax({
-            url: "{{ route('ajax.cancelPendingGoogleSync') }}", // Use this inside a Blade template
+            // url: "{{route('ajax.cancelPendingGoogleSync')}}", // Use this inside a Blade template
+            url: "/cancelPendingGoogleSync", // Use this inside a Blade template
             method: 'DELETE',
-            success:function(response){
+            success: function (response) {
                 if (response.status) {
                     toastr.success(response.message);
                     console.log(response);
                 }
 
             },
-            error:function(error){
+            error: function (error) {
                 console.log(error);
 
             }
@@ -156,14 +156,16 @@ $(function(){
 
 
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  Only Function Defination <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    function refresh(){
-        $("#refresh").attr('disabled',true);
-        $.ajax({url: "/refreshUrl",
+    function refresh() {
+        $("#refresh").attr('disabled', true);
+
+        $.ajax({
+            url: "/refreshUrl",
             // method:'post',
-                success: function(result){
+            success: function (result) {
                 console.log(result);
                 if (result.status) {
-                    $("#refresh").attr('disabled',false);
+                    $("#refresh").attr('disabled', false);
                     $('#contactsInCrm').text(result?.data?.crm);
                     $('#contactsInCrm1').text(result?.data?.crm);
                     $('#crmTotalClientSynced').text(result?.data?.crmTotalClientSynced);
@@ -177,31 +179,36 @@ $(function(){
                     $('#lastSyncDate').text(timeToDateFormater(result?.data?.lastSync?.created_at));
                     $('#lastSyncNewContact').text(result?.data?.lastSync?.created);
                     $('#lastSyncNewContact1').text((result?.data?.lastSync?.created) + (result?.data?.lastSync?.createdAtGoogle));
-                    $('#lastSyncUpdatedContact').text((result?.data?.lastSync?.updated)+(result?.data?.lastSync?.updatedAtGoogle));
+                    $('#lastSyncUpdatedContact').text((result?.data?.lastSync?.updated) + (result?.data?.lastSync?.updatedAtGoogle));
                     $('#lastSyncDeletedContact').text(result?.data?.lastSync?.deleted);
                     $('#lastSyncChangesDeteted').text(result?.data?.lastSyncChangesDeteted);
 
-                    // SyncStatus();
+                    loader(); // hide Loder
+                    // setTimeout(() => {
+                    //     refresh();
+                    //     console.log("auto Refresh Is Runnig in Refresh Function");
+                    // }, 20000);
                 }
             },
-            error:function(error){
+            error: function (error) {
                 console.log(error);
+                loader();
             },
         });
     }
 
-    function pushToGoogle(){
+    function pushToGoogle() {
         console.log("pushToGoogle Started");
         $.ajax({
-            url:'pushToGoogle',
-            method:'get',
-            success:function(response){
+            url: 'pushToGoogle',
+            method: 'get',
+            success: function (response) {
                 if (response.status) {
                     SyncStatus();
                     toastr.success(response.message);
                 }
             },
-            error:function(error){
+            error: function (error) {
                 console.log(error);
                 toastr.error(response.error);
             },
@@ -210,19 +217,19 @@ $(function(){
 
     }
 
-    function importFromGoogle(){
+    function importFromGoogle() {
         console.log("importFromGoogle Started");
         $.ajax({
-            url:'importFromGoogle',
-            method:'get',
-            success:function(response){
+            url: 'importFromGoogle',
+            method: 'get',
+            success: function (response) {
                 if (response.status) {
 
                     SyncStatus();
                     toastr.success(response.message);
                 }
             },
-            error:function(error){
+            error: function (error) {
                 console.log(error);
                 toastr.error(response.error);
             },
@@ -231,19 +238,19 @@ $(function(){
 
     }
 
-    function synNow(){
+    function synNow() {
         console.log("SynNow Started");
         $.ajax({
-            url:'synNow',
-            method:'get',
-            success:function(response){
+            url: 'synNow',
+            method: 'get',
+            success: function (response) {
                 if (response.status) {
                     SyncStatus();
                     toastr.success(response.message);
                 }
 
             },
-            error:function(error){
+            error: function (error) {
                 console.log(error);
                 toastr.error(response.error);
             },
@@ -276,12 +283,13 @@ $(function(){
                         let width = response.data.progress;
                         let extimatedTime = response.data.extimetedTime;
                         console.log(processing);
+                        loader();
 
                         // Animate the progress bar width with CSS transition
                         $("#processBar").css("transition", "width 1s ease-out");
-                        $("#processBarSyned").text(response.data.lastSync?.synced??0);
-                        $("#processBarPending").text(response.data.lastSync?.pending??0);
-                        $("#processBarErros").text(response.data.lastSync?.errors??0);
+                        $("#processBarSyned").text(response.data.lastSync?.synced ?? 0);
+                        $("#processBarPending").text(response.data.lastSync?.pending ?? 0);
+                        $("#processBarErros").text(response.data.lastSync?.errors ?? 0);
                         $('#cancelProcessing').removeAttr('hidden')
 
                         // Change colors and text based on sync status
@@ -295,7 +303,7 @@ $(function(){
                             $("#processBar").css("width", width + "%");
                             $("#processPersentage").text(width + "%");
                             $("#processBar").css('backgroundColor', '#00C951');
-                            $("#processBarText").text("Sync in Process Extimard Time : "+extimatedTime);
+                            $("#processBarText").text("Sync in Process Extimard Time : " + extimatedTime);
                             $("#processBarText").css('color', '#00C951');
                         }
 
@@ -313,24 +321,24 @@ $(function(){
                             $("#pushToGoogle").prop("disabled", false);
                             $("#importFromGoogle").prop("disabled", false);
                             $(".syncNow").prop("disabled", false);
-                            $('#cancelProcessing').attr('hidden',true)
+                            $('#cancelProcessing').attr('hidden', true)
 
-                            let lastSynced = response.data.lastSync?.created_at??null;
+                            let lastSynced = response.data.lastSync?.created_at ?? null;
                             console.log(lastSynced);
 
-                            if(lastSynced==null){
+                            if (lastSynced == null) {
                                 $("#processBarText").text("Never Syned");
 
-                            }else{
+                            } else {
                                 let now = new Date();
-                                lastSynced=new Date(lastSynced);
+                                lastSynced = new Date(lastSynced);
                                 let diffMinutes = Math.floor((now - lastSynced) / 60000); // Difference in minutes
                                 let diffHours = Math.floor(diffMinutes / 60);
                                 let minutesOnly = diffMinutes % 60;
 
                                 let text = diffHours > 0
-                                ? `Last Synced ${diffHours}h ${minutesOnly}m ago`
-                                : `Last Synced ${diffMinutes} minutes ago`;
+                                    ? `Last Synced ${diffHours}h ${minutesOnly}m ago`
+                                    : `Last Synced ${diffMinutes} minutes ago`;
                                 $("#processBarText").text(text);
                             }
 
@@ -370,6 +378,15 @@ $(function(){
             minute: '2-digit',
             hour12: true
         });
+    }
+
+    //Loder Function
+    function loader(params=false) {
+        if (params) {
+            $('#loader').show();
+        } else {
+            $('#loader').hide();
+        }
     }
 
 })

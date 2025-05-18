@@ -35,10 +35,11 @@ class SyncContactsDataTable extends DataTable
                 $tempData=[];
                 $tempData['id']=$data['id'];
                 $tempData['firstName']=$data['name'];
-                $tempData['email']=$data['phone_primary'];
-                $tempData['number']=$data['email_primary'];
+                $tempData['number']=$data['phone_primary'];
+                $tempData['email']=$data['email_primary'];
                 $tempData['syncStatus']=$data['sync_status_c'];
                 $tempData['lastSync']=$data['last_sync_c'];
+                $tempData['updated_at']=$data['updated_at'];
                 $contacts[]=$tempData;
             }
 
@@ -51,7 +52,10 @@ class SyncContactsDataTable extends DataTable
             // ->addColumn('Check', function($row) {
             //     return '<input type="checkbox" class="h-4 w-4 rounded border-gray-300">';
             // })
-           ->addIndexColumn()
+            ->addIndexColumn()
+            ->addColumn('firstName',function($data){
+                return "<td> <a href='https://uat.sanchaycrm.com/contacts/".$data['id']."' target='_blank' rel='noopener noreferrer'>".$data['firstName']??''."</a> </td>";
+            })
             ->setRowClass('rowHoverClass ')
             ->setRowId('id')
             ->addColumn('action', function($row) {
@@ -67,6 +71,23 @@ class SyncContactsDataTable extends DataTable
                 </svg></button><a href='.route('client.edit',$row['id']).'> <button class="hover:text-blue-600 cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground rounded-md h-8 w-8 p-0"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 6V18M18 12H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                 </svg></button></a></div>';
+            })
+             ->addColumn('syncStatus',function($row){
+                $data='';
+                if ($row['syncStatus']=='Synced') {
+
+                    $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700' data-v0-t='badge'>".$row['syncStatus']."</div>";
+                }elseif ($row['syncStatus']=='Pending'){
+
+                    $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-yellow-50 text-yellow-700' data-v0-t='badge'>".$row['syncStatus']."</div>";
+                }elseif($row['syncStatus']=='Deleted'){
+                    $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-gray-50 text-red-700' data-v0-t='badge'>".$row['syncStatus']."</div>";
+                }
+                else{
+                    // $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-gray-50 text-gray-700' data-v0-t='badge'>".$row['syncStatus']."</div>";
+                    $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-gray-50 text-gray-700' data-v0-t='badge'>Not Synced</div>";
+                }
+                return $data;
             })
             ->addColumn('updated_at',function($row){
                 if ($row['lastSync']==null) {
@@ -91,23 +112,8 @@ class SyncContactsDataTable extends DataTable
                 }
 
             })
-            ->addColumn('syncStatus',function($row){
-                $data='';
-                if ($row['syncStatus']=='Synced') {
 
-                    $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700' data-v0-t='badge'>".$row['syncStatus']."</div>";
-                }elseif ($row['syncStatus']=='Pending'){
-
-                    $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-yellow-50 text-yellow-700' data-v0-t='badge'>".$row['syncStatus']."</div>";
-                }elseif($row['syncStatus']=='Deleted'){
-                    $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-gray-50 text-red-700' data-v0-t='badge'>".$row['syncStatus']."</div>";
-                }
-                else{
-                    $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-gray-50 text-gray-700' data-v0-t='badge'>".$row['syncStatus']."</div>";
-                }
-                return $data;
-            })
-            ->rawColumns(['Sr','action','syncStatus']);
+            ->rawColumns(['Sr','firstName','action','syncStatus']);
             // ->setTotalRecords(10);
     }
 
@@ -132,7 +138,7 @@ class SyncContactsDataTable extends DataTable
             ->setTableId('synccontacts-table')
             ->columns($this->getColumns())
             ->minifiedAjax(route('sync.contacts.data'))
-            ->orderBy(4)
+            // ->orderBy(5)
             ->selectStyleSingle()
             ->parameters([
                 // 'dom' => 'Bfrt<bottom ip>',

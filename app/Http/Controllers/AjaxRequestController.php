@@ -147,7 +147,7 @@ class AjaxRequestController extends Controller
 
             $res = (new CrmApiServices(session('crm_token')))->getClietsList(1, 1, "sync_status_c= 'Synced'");
             $crmTotalClientSynced = $res->meta->total ?? 0;
-            $res = (new CrmApiServices(session('crm_token')))->getClietsList(1, 1, "sync_status_c='Pending'");
+            $res = (new CrmApiServices(session('crm_token')))->getClietsList(1, 1, "sync_status_c='Pending' OR sync_status_c is null OR sync_status_c='Not Synced'");
             $pendingChangesOnCRM = $res->meta->total ?? 0;
 
 
@@ -211,7 +211,7 @@ class AjaxRequestController extends Controller
             $batches = Bus::batch([])->name("Synk Both")->dispatch();
             $createPages = 1;
             do {
-                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 5, "sync_status_c='Not Synced'");
+                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 5, "sync_status_c is null OR sync_status_c='Not Synced'");
                 $data = $res->data ?? [];
 
                 $batches->add(new pushToGoogleJob($googleToken, $data, [], $syncHistory->id, $this->apiToken));
@@ -283,7 +283,7 @@ class AjaxRequestController extends Controller
 
             $createPages = 1;
             do {
-                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 200, "sync_status_c='Not Synced'");
+                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 200, "sync_status_c is null OR sync_status_c='Not Synced");
                 $data = $res->data ?? [];
 
                 $batches->add(new pushToGoogleJob($googleToken, $data, [], $syncHistory->id, $this->apiToken));
@@ -525,15 +525,25 @@ class AjaxRequestController extends Controller
             }
 
             $message = "Synced status function";
+
             $lastSync = clientContatSyncHistory::orderBy('created_at', 'desc')->first();
-            $extimetedTime = ($lastSync->extimetedTime ?? 0);
-            $extimetedTime = round(($extimetedTime / 60)) . ":" . ($extimetedTime % 60) . " Min";
+            $estimatedTime = $lastSync->extimetedTime ?? 0; // total estimated time in seconds
+            $startTime = $lastSync->startTime ?? null;
+            $remainingTime = 0;
+            if ($startTime && $estimatedTime > 0) {
+                $elapsedTime = time()-$startTime;
+                $remainingTime = max(0, $estimatedTime - $elapsedTime); // never negative
+            }
+            // Format to MM:SS Min
+            $minutes = str_pad(floor($remainingTime / 60), 2, '0', STR_PAD_LEFT);
+            $seconds = str_pad($remainingTime % 60, 2, '0', STR_PAD_LEFT);
+            $formattedRemainingTime = "{$minutes}:{$seconds} Min";
 
             $data = [
                 'processing' => $processing,
                 'progress' => $progress,
                 'lastSync' => $lastSync,
-                'extimetedTime' => $extimetedTime,
+                'extimetedTime' => $formattedRemainingTime,
             ];
 
             return response()->json([
@@ -561,9 +571,10 @@ class AjaxRequestController extends Controller
         $client = new Google_Client();
         $client->setClientId(config('services.google.client_id'));
         $client->setRedirectUri(config('services.google.redirect'));
-        $client->addScope([
-            'https://www.googleapis.com/auth/userinfo.profile',
-            'https://www.googleapis.com/auth/contacts'
+                $client->addScope([
+            // 'https://www.googleapis.com/auth/userinfo.profile',
+            'https://www.googleapis.com/auth/contacts',
+            'https://www.googleapis.com/auth/contacts.other.readonly' //  Required for otherContacts
         ]);
         $client->setAccessType('offline');
         $client->setPrompt('consent');
@@ -673,7 +684,6 @@ class AjaxRequestController extends Controller
 
     public function cancelPendingGoogleSync()
     {
-
         try {
 
             $lastRow = clientContatSyncHistory::latest('id')->first();
@@ -705,14 +715,15 @@ class AjaxRequestController extends Controller
     {
         try {
 
-            $response = (new CrmApiServices($this->apiToken))->getClietsList(1, 200, "");
+            $response = (new CrmApiServices($this->apiToken))->getClietsList(1, 200,"sync_status_c = 'pending'");
             $resData = $response->data ?? [];
             $ids = [];
             foreach ($resData as $data) {
                 $ids[] = $data->id;
             }
             foreach ($ids as $id) {
-                $res = (new CrmApiServices($this->apiToken))->deleteFromCRM($id);
+                // $res = (new CrmApiServices($this->apiToken))->deleteFromCRM($id);
+                $res = (new CrmApiServices($this->apiToken))->updateSyncStatus($id,null,null,null);
             }
 
             return response()->json([
