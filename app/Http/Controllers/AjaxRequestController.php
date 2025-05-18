@@ -407,6 +407,9 @@ class AjaxRequestController extends Controller
                     "select_fields" => [
                         "id",
                         "name",
+                        "pancard_c",
+                        "adhaar_card_c",
+                        "kyc_status_c",
                         "designation",
                         "anniversary",
                         "birth_date",
@@ -448,6 +451,7 @@ class AjaxRequestController extends Controller
                     'select_relate_fields' => []
                 ]
             ];
+
             $response = (new CrmApiServices(session('crm_token')))->getContactById($payload);
             $data = $response;
             $contact = $data['entry_list']['name_value_list'] ?? [];

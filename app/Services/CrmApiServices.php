@@ -127,7 +127,7 @@ class CrmApiServices
     // to get the inform mation data is existing in data base or noe
     public function getExistingDataFromCrm($resourceName=[]) {
         $string = "('" . implode("','", $resourceName) . "')";
-        
+
         $payload=[
             "rest_data"=> [
                 "module_name"=> "Contact",
@@ -197,11 +197,14 @@ class CrmApiServices
                 "multi_initial_filter"=> "",
                 "name_value_list"=>[
                     "select_fields"=> [
-                        "id",
+                    "id",
                     "name",
                     "designation",
                     "anniversary",
                     "birth_date",
+                    "pancard_c",
+                    "adhaar_card_c",
+                    "kyc_status_c",
                     "account_id",
                     "attachment1_c",
                     "customer_type",

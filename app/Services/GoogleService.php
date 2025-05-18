@@ -8,6 +8,8 @@ use Exception;
 use Google\Service\PeopleService;
 use Google\Service\PeopleService\Biography;
 use Google\Service\PeopleService\Address;
+use Google\Service\PeopleService\Birthday;
+use Google\Service\PeopleService\Date;
 use Google\Service\PeopleService\EmailAddress;
 use Google_Client;
 use Google\Service\PeopleService\Person;
@@ -106,6 +108,19 @@ class GoogleService
         $name->setFamilyName($contact->last_name ?? '');
         $person->setNames([$name]);
 
+        //Set Birth date
+      if (!empty($contact->birth_date)) {
+            $dobParts = explode('-', $contact->birth_date); // [2001, 04, 04]
+            $birthDate = new Date();
+            $birthDate->setYear((int)$dobParts[0]);
+            $birthDate->setMonth((int)$dobParts[1]);
+            $birthDate->setDay((int)$dobParts[2]);
+
+            $birthday = new Birthday();
+            $birthday->setDate($birthDate);
+            $person->setBirthdays([$birthday]);
+        }
+
         //Set emails
         $emailAddresses = [];
         $emails = json_decode($contact->email_json ?? '[]', true);
@@ -155,6 +170,10 @@ class GoogleService
         //  Set userDefined fields
         $userDefinedFields = [];
         $userDefinedPairs = [
+
+            'PAN card'                => $contact->pancard_c ?? '',
+            'Adhaar card'             => $contact->adhaar_card_c ?? '',
+            'kyc status'             => $contact->kyc_status_c ?? '',
             'designation'             => $contact->designation ?? '',
             'anniversary'             => $contact->anniversary ?? '',
             'birth_date'              => $contact->birth_date ?? '',

@@ -96,19 +96,19 @@ class importFormGoogleJob implements ShouldQueue
                             'name_value_list' => [
                                 'first_name' => $name->givenName ?? '',
                                 'last_name' => $name->familyName ?? '',
-                                'company_name' => $organizations->name ?? '',   // No Feilds to store
+                                'company_name' => $organizations->name ?? '',   // No Feilds to store // name of company
                                 'occupation_c' => $organizations->title ?? '',
                                 // 'designation' => $organizations->title ?? '',
-                                'birth_date' => "$year/$month/$day", // need to fix
+                                'birth_date' => "$year/$month/$day",
                                 // 'anniversary' => '',
-                                'urls'=>$urls->map(function($url){           ///  No data fields in Crm To store this
+                                'urls_c'=>$urls->map(function($url){           ///  No data fields in Crm To store this
                                     return[
                                         'type'=>$url->formattedType??$url->type??'',
                                         'value'=>$url->value??'',
                                         'primary'=>$url->metadata->primary??false,
                                     ];
                                 })->values()->all(),
-                                'relations'=>$relations->map(function($relation){        ///  No data fields in Crm To store this
+                                'relations_c'=>$relations->map(function($relation){        ///  No data fields in Crm To store this
                                 return[
                                         'type'=>$relation->formattedType?? $relation->type??'',
                                         'person'=>$relation->person?? '',
