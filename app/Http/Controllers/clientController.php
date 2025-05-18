@@ -61,49 +61,12 @@ public function create(Request $request)
             'email' => 'required',
         ]);
 
-                // Address
-            $address = collect($request->addresses)->map(function ($address, $index) {
-            return [
-                'table_name'      => 'addresses',
-                'related_table_name' => 'addresses_rel',
-                'address_type'    => $address['address_type'] ?? 'Other',
-                'street'          => $address['street'] ?? '',
-                'area'            => $address['area'] ?? '',
-                'city'            => $address['city'] ?? '',
-                'state'           => $address['state'] ?? '',
-                'country'         => $address['country'] ?? '',
-                'postal_code'     => $address['postal_code'] ?? '',
-                'primary'         => $index === 0, // First address is primary
-                'verified_at'     => now()->toDateTimeString(),
-            ];
-        });
 
+        $birth_date = Carbon::parse($request->birth_date)->format('d/m/y');
 
-        $phone_json = collect($request->phone_json)->map(function ($phone, $index) {
-            return [
-                'table_name'         => 'phone_numbers',
-                'related_table_name' => 'phone_numbers_rel',
-                'phone_number'       => $phone,
-                'primary'            => $index === 0  ,
-                'invalid'            => false,
-                'unsubscribed'       => false,
-                'verified_at'        => now()->toDateTimeString(),
-            ];
-        });
-
-        $email_json = collect($request->email_json)->map(function ($email, $index) {
-            return [
-                'table_name'         => 'email_addresses',
-                'related_table_name' => 'email_address_rel',
-                'email_address'      => $email,
-                'primary'            => $index === 0,
-                'status'             => 'invalid',
-                'suppression'        => $index === 0 ? $email : '',
-                'verified_at'        => now()->toDateTimeString(),
-            ];
-        });
-
-
+        $address = (new CrmApiServices())->formatAddress($request->addresses);
+        $phone_json = (new CrmApiServices())->formatPhones($request->phone_json);
+        $email_json = (new CrmApiServices())->formatEmails($request->email_json);
          $payload = [
             "rest_data" => [
                 "module_name" => "Contact",
@@ -115,6 +78,21 @@ public function create(Request $request)
                     "hiddenEmail" => $email_json,
                     "hiddenAddress" => $address,
                     "sync_status_c" => "Not Synced",
+                     "birth_date"=> $birth_date,
+                    "occupation_c"=>$request->occupation_c,
+                    "adhaar_card_c"=>$request->adhaar_card_c,
+                    "pancard_c"=>$request->pancard_c,
+                    "kyc_status_c"=>$request->kyc_status_c,
+                    "annual_income_c"=>$request->annual_income_c,
+                    "total_investment_c"=>$request->total_investment_c,
+                    "comment"=>$request->comment,
+                    "total_sip_c"=>$request->total_sip_c,
+                    "meeting_schedule_c"=>$request->meeting_schedule_c,
+                    "first_meeting_date_c"=>$request->first_meeting_date_c,
+                    "marital_status_c"=>$request->marital_status_c,
+                    "anniversary"=>$request->anniversary,
+                    "protfolio_no_c"=>$request->protfolio_no_c,
+                    "gender_c"=>$request->gender_c,
                     "hierarchy" =>"03",
                     "assigned_user_id" => "1",
                     "teamsSet" => "1"
@@ -122,8 +100,10 @@ public function create(Request $request)
             ]
     ];
 
-        // return $payload;
-        // ✅ Step 5: Send to service
+
+//    return response()->json($payload, 200, [], JSON_PRETTY_PRINT);
+
+        //  Step 5: Send to service
         $response = (new CrmApiServices(session('crm_token')))->createContact($payload);
 
        return redirect(route('ajax.index'))->with('success',"Contact is create successfully");
@@ -147,8 +127,12 @@ public function create(Request $request)
                 'select_fields' => [
                     "id", "name", "phone", "email_json", "phone_primary", "designation",
                     "birth_date",  "first_name", "last_name",
-                    "email_primary", "phone_json","address_type",'address_json','street','city','area','state','postal_code','country',
-                    'occupation','sync_status_c'
+                    "email_primary", "phone_json","address_type",'address_json','street','city','area','state','postal_code','country'
+                    ,'sync_status_c','account_id_name','pancard_c','adhaar_card_c','occupation_c','kyc_status_c',
+                    'annual_income_c','by_person_name _c_name','total_investment_c','comment','assigned_user_id_name',
+                    'total_sip_c','contact_id_name','meeting_schedule_c','first_meeting_date_c','type_of_relation_c',
+                    'marital_status_c','anniversary','protfolio_no_c','gender_c',
+
                 ],
                 'select_relate_fields' => []
             ]
@@ -158,12 +142,11 @@ public function create(Request $request)
         $data = $getdataById;
 
        $nameValueList = $data['entry_list']['name_value_list'] ?? [];
-//            $response = $yourApiResponse['entry_list'] ?? [];
-// $nameValueList = $response['name_value_list'] ?? [];
+    //    return response()->json($nameValueList, 200, [], JSON_PRETTY_PRINT);
 
-$contacts = collect($nameValueList)->mapWithKeys(function ($item) {
-    return [$item['name'] => $item['value']];
-})->toArray();
+            $contacts = collect($nameValueList)->mapWithKeys(function ($item) {
+                return [$item['name'] => $item['value']];
+            })->toArray();
 
         return view("client.createForm",compact('contacts'));
 
@@ -175,54 +158,17 @@ $contacts = collect($nameValueList)->mapWithKeys(function ($item) {
                 "phone"=>'required',
                 "email"=>'required|email',
             ]);
-            // dd($request->sync_status_c);
-                 // Address
-            $address = collect($request->addresses)->map(function ($address, $index) {
-            return [
-                'table_name'      => 'addresses',
-                'related_table_name' => 'addresses_rel',
-                'address_type'    => $address['address_type'] ?? 'Other',
-                'street'          => $address['street'] ?? '',
-                'area'            => $address['area'] ?? '',
-                'city'            => $address['city'] ?? '',
-                'state'           => $address['state'] ?? '',
-                'country'         => $address['country'] ?? '',
-                'postal_code'     => $address['postal_code'] ?? '',
-                'primary'         => $index === 0, // First address is primary
-                'verified_at'     => now()->toDateTimeString(),
-            ];
-        });
+            
+            // return response()->json($request->all(), 200, [], JSON_PRETTY_PRINT);
 
-        // return $address;
-        // Format phone_json
-        $phone_json = collect($request->phone_json)->map(function ($phone, $index) {
-            return [
-                'table_name'         => 'phone_numbers',
-                'related_table_name' => 'phone_numbers_rel',
-                'phone_number'       => $phone,
-                'primary'            => $index === 0  ,
-                'invalid'            => false,
-                'unsubscribed'       => false,
-                'verified_at'        => now()->toDateTimeString(),
-            ];
-        });
-        // return $phone_json;
-        //  Format email_json
-        $email_json = collect($request->email_json)->map(function ($email, $index) {
-            return [
-                'table_name'         => 'email_addresses',
-                'related_table_name' => 'email_address_rel',
-                'email_address'      => $email,
-                'primary'            => $index === 0,
-                'status'             => 'invalid',
-                'suppression'        => $index === 0 ? $email : '',
-                'verified_at'        => now()->toDateTimeString(),
-            ];
-        });
+           
+        $address = (new CrmApiServices())->formatAddress($request->addresses);
+        $phone_json = (new CrmApiServices())->formatPhones($request->phone_json);
+        $email_json = (new CrmApiServices())->formatEmails($request->email_json);
+        // return $birth_date;
              $payload = [
             "rest_data" => [
                 "module_name" => "Contact",
-                "id"=>$request->id,
                 "maping_records_upadate" => true,
                 "mapping_parent_fields" => [
                     "first_name", "last_name", "designation", "account_id",
@@ -236,14 +182,30 @@ $contacts = collect($nameValueList)->mapWithKeys(function ($item) {
                     "hiddenEmail" => $email_json,
                     "hiddenAddress" => $address,
                     "sync_status_c" => $request->sync_status_c === 'Synced' ? 'Pending' : ($request->sync_status_c ?? 'Not Synced'),
+                    "birth_date"=> $request->birth_date,
+                    "occupation_c"=>$request->occupation_c,
+                    "adhaar_card_c"=>$request->adhaar_card_c,
+                    "pancard_c"=>$request->pancard_c,
+                    "kyc_status_c"=>$request->kyc_status_c,
+                    "annual_income_c"=>$request->annual_income_c,
+                    "total_investment_c"=>$request->total_investment_c,
+                    "comment"=>$request->comment,
+                    "total_sip_c"=>$request->total_sip_c,
+                    "meeting_schedule_c"=>$request->meeting_schedule_c,
+                    "first_meeting_date_c"=>$request->first_meeting_date_c,
+                    "marital_status_c"=>$request->marital_status_c,
+                    "anniversary"=>$request->anniversary,
+                    "protfolio_no_c"=>$request->protfolio_no_c,
+                    "gender_c"=>$request->gender_c,
                     "hierarchy" =>"03",
-                    "assigned_user_id" => "1",
+                    "assigned_user_id" => "",
                     "teamsSet" => "1"
             ]
             ]
         ];
-        //   dd($payload);
+        // return $payload;
        $response = (new CrmApiServices(session('crm_token')))->updateContact($request->id,$payload);
+
         if ($response) {
             return redirect()->route('ajax.index')->with('success', 'CRM Contact updated successfully!');
         } else {

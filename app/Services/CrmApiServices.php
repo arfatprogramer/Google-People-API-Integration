@@ -2,9 +2,12 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use App\Models\Client;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Session;
 
 
 class CrmApiServices
@@ -34,11 +37,14 @@ class CrmApiServices
                     "max_result" => 1000,
                     "sort" => "updated_at",
                     "order_by" => "DESC",
-                    "query" => "",
+                //    "query" => "sync_status_c IS NULL OR sync_status_c = ''",
+                    "query" =>'',
                     "favorite" => false,
                     "save_search" => false,
                     "save_search_id" => "",
-                    "assigned_user_id" => "",
+
+                    //"assigned_user_id" => "",
+
                     "advance_search" => false,
                     "advance_search_json" => "",
                     "multi_initial_filter" => "",
@@ -267,4 +273,56 @@ class CrmApiServices
         return ($response);
 
     }
+
+
+    public static function formatPhones(array $phones): Collection
+    {
+        return collect($phones)->map(function ($phone, $index) {
+            return [
+                'table_name'         => 'phone_numbers',
+                'related_table_name' => 'phone_numbers_rel',
+                'phone_number'       => $phone,
+                'primary'            => $index === 0,
+                'invalid'            => false,
+                'unsubscribed'       => false,
+                'verified_at'        => now()->toDateTimeString(),
+            ];
+        });
+    }
+
+     public static function formatEmails(array $emails): Collection
+    {
+        return collect($emails)->map(function ($email, $index) {
+            return [
+                'table_name'         => 'email_addresses',
+                'related_table_name' => 'email_address_rel',
+                'email_address'      => $email,
+                'primary'            => $index === 0,
+                'status'             => 'invalid',
+                'suppression'        => $index === 0 ? $email : '',
+                'verified_at'        => now()->toDateTimeString(),
+            ];
+        });
+    }
+
+         public static function formatAddress(array $address): Collection
+        {
+            return collect($address)->map(function ($address, $index) {
+            return [
+                'table_name'      => 'addresses',
+                'related_table_name' => 'addresses_rel',
+                'address_type'    => $address['address_type'] ?? 'Other',
+                'street'          => $address['street'] ?? '',
+                'area'            => $address['area'] ?? '',
+                'city'            => $address['city'] ?? '',
+                'state'           => $address['state'] ?? '',
+                'country'         => $address['country'] ?? '',
+                'postal_code'     => $address['postal_code'] ?? '',
+                'primary'         => $index === 0, // First address is primary
+                'verified_at'     => now()->toDateTimeString(),
+            ];
+        });
+    }
+
+
 }

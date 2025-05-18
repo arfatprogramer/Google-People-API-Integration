@@ -1,15 +1,15 @@
 @extends('layout.index')
 
 @section('container')
-   
+
     <div class="w-full bg-white  rounded-lg shadow-md  ">
         <form action="{{ isset($contacts) ? route('client.ContactUpdate') : route('client.create') }}" method="post"
             class="w-full">
             {{-- {{print_r($contacts['email_json']);}} --}}
-              {{-- {{dd($contacts);}} --}}
-              {{-- {{dd($contacts['first_name']); }} --}}
+            {{-- {{dd($contacts);}} --}}
+            {{-- {{dd($contacts['first_name']); }} --}}
             {{-- ----------save-cancle--button-------------------- --}}
-            <input type="hidden" name="sync_status_c" value="{{$contacts['sync_status_c'] ?? ''}}">
+            <input type="hidden" name="sync_status_c" value="{{ $contacts['sync_status_c'] ?? '' }}">
             <div class="w-[95vw]  p-2 border-b border-gray-100 shadow-lg fixed top-12  bg-white  z-5  ">
                 <div class="flex justify-between  ">
 
@@ -41,7 +41,8 @@
                         <button type="button" id="defaultOpen" onclick="changeCon(event, 'overview')"
                             class="tablinks p-3  hover:border-blue-400 hover:text-blue-400 cursor-pointer">Overview</button>
                         <button type="button" onclick="changeCon(event, 'address')"
-                            class="tablinks p-3  hover:border-blue-400  hover:text-blue-400 cursor-pointer">Address Information</button>
+                            class="tablinks p-3  hover:border-blue-400  hover:text-blue-400 cursor-pointer">Address
+                            Information</button>
                     </ul>
                 </div>
 
@@ -75,65 +76,57 @@
                                 @if (!empty($contacts['address_type']))
                                     <!-- Default empty input row -->
                                     {{-- @foreach ($clientAddress as $address) --}}
-                                        <tr>
-                                            <td class="px-4 py-2">
-                                                <input type="text" 
-                                                    name="address_type"
-                                                    value="{{ old('address_type', $contacts['address_type'] ?? '') }}"
-                                                    class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300 "
-                                                    placeholder="Type">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="text" name="addresses[0][street]"
-                                                    {{-- value="{{ old('street', $contacts['street'] ?? '') }}" --}}
-                                                    class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
-                                                    placeholder="Street">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="text" name="addresses[0][area]"
-                                                    {{-- value="{{ old('area', $contacts['area'] ?? '') }}" --}}
-                                                    class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
-                                                    placeholder="Area">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="text" name="addresses[0][city]"
-                                                    {{-- value="{{ old('city', $contacts['area'] ?? '') }}" --}}
-                                                    class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
-                                                    placeholder="City">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="text" name="addresses[0][state]"
-                                                    {{-- value="{{ old('state', $contacts['state'] ?? '') }}" --}}
-                                                    class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
-                                                    placeholder="State">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="text"
-                                                    name="addresses[0][postal_code]"
-                                                    {{-- value="{{ old('postal_code', $contacts['postal_code'] ?? '') }}" --}}
-                                                    class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
-                                                    placeholder="Postal Code">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="text" name="addresses[0][country]"
-                                                    {{-- value="{{ old('country', $contacts['country'] ?? '') }}" --}}
-                                                    class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
-                                                    placeholder="Country">
-                                            </td>
-                                            <td class="px-4 py-2 flex space-x-2 justify-center">
-                                                <button  class="setPrimary text-blue-500 hover:text-blue-700 cursor-pointer" type="button"
-                                                    title="Set Primary">🔑</button>
-                                                <button class="markWarning text-yellow-500 hover:text-yellow-700 cursor-pointer"
-                                                    type="button" title="Warning">⚠️</button>
-                                                <button class="deleteRow text-red-500 hover:text-red-700 cursor-pointer" type="button"
-                                                    title="Delete">🗑️</button>
-                                            </td>
-                                        </tr>
+                                    <tr>
+                                        <td class="px-4 py-2">
+                                            <input type="text" name="address_type"
+                                                value="{{ old('address_type', $contacts['address_type'] ?? '') }}"
+                                                class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300 "
+                                                placeholder="Type">
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <input type="text" name="addresses[0][street]" {{-- value="{{ old('street', $contacts['street'] ?? '') }}" --}}
+                                                class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
+                                                placeholder="Street">
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <input type="text" name="addresses[0][area]" {{-- value="{{ old('area', $contacts['area'] ?? '') }}" --}}
+                                                class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
+                                                placeholder="Area">
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <input type="text" name="addresses[0][city]" {{-- value="{{ old('city', $contacts['area'] ?? '') }}" --}}
+                                                class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
+                                                placeholder="City">
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <input type="text" name="addresses[0][state]" {{-- value="{{ old('state', $contacts['state'] ?? '') }}" --}}
+                                                class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
+                                                placeholder="State">
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <input type="text" name="addresses[0][postal_code]" {{-- value="{{ old('postal_code', $contacts['postal_code'] ?? '') }}" --}}
+                                                class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
+                                                placeholder="Postal Code">
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <input type="text" name="addresses[0][country]" {{-- value="{{ old('country', $contacts['country'] ?? '') }}" --}}
+                                                class="w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300"
+                                                placeholder="Country">
+                                        </td>
+                                        <td class="px-4 py-2 flex space-x-2 justify-center">
+                                            <button class="setPrimary text-blue-500 hover:text-blue-700 cursor-pointer"
+                                                type="button" title="Set Primary">🔑</button>
+                                            <button class="markWarning text-yellow-500 hover:text-yellow-700 cursor-pointer"
+                                                type="button" title="Warning">⚠️</button>
+                                            <button class="deleteRow text-red-500 hover:text-red-700 cursor-pointer"
+                                                type="button" title="Delete">🗑️</button>
+                                        </td>
+                                    </tr>
                                     {{-- @endforeach --}}
                                 @else
                                     <tr>
                                         <td class="px-4 py-2">
-                                            <input type="text" name="addresses[0][address_type]" 
+                                            <input type="text" name="addresses[0][address_type]"
                                                 value="{{ old('addressType', $data->addressType ?? '') }}"
                                                 class="firstaddress w-full border  border-gray-300 p-0.5 shadow-sm outline-none focus:border-blue-300 "
                                                 placeholder="Type">
@@ -175,12 +168,13 @@
                                                 placeholder="Country">
                                         </td>
                                         <td class="px-4 py-2 flex space-x-2 justify-center">
-                                            <button class="setPrimary text-blue-500 hover:text-blue-700 cursor-pointer" type="button"
-                                                title="Set Primary">🔑</button>
-                                            <button class="markWarning text-yellow-500 hover:text-yellow-700 cursor-pointer"
+                                            <button class="setPrimary text-blue-500 hover:text-blue-700 cursor-pointer"
+                                                type="button" title="Set Primary">🔑</button>
+                                            <button
+                                                class="markWarning text-yellow-500 hover:text-yellow-700 cursor-pointer"
                                                 type="button" title="Warning">⚠️</button>
-                                            <button  class="deleteRow text-red-500 hover:text-red-700 cursor-pointer" type="button"
-                                                title="Delete">🗑️</button>
+                                            <button class="deleteRow text-red-500 hover:text-red-700 cursor-pointer"
+                                                type="button" title="Delete">🗑️</button>
                                         </td>
                                     </tr>
                                 @endif
@@ -195,108 +189,126 @@
                 </div>
                 {{-- ---------addrress-------field--------start----------------- --}}
 
-                <div class="tabcontent  grid grid-cols-1 md:grid-cols-2 gap-6 " id="overview">
+                <div class="tabcontent  grid grid-cols-1 md:grid-cols-2 gap-6  mb-8" id="overview">
                     <div>
                         <label class="block mb-1 font-medium">First Name</label>
-                        <input type="text" name="first_name" value="{{ old('first_name', $contacts['first_name']  ?? '') }}"
+                        <input type="text" name="first_name"
+                            value="{{ old('first_name', $contacts['first_name'] ?? '') }}" id="firstname";
                             class="w-full border rounded px-3 py-2" />
                         <span class="text-red-500">{{ $errors->first('firstName') }}</span>
 
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Last Name</label>
-                        <input type="text" name="last_name" value="{{ old('last_name', $contacts['last_name'] ?? '') }}"
+                        <input type="text" name="last_name"
+                            value="{{ old('last_name', $contacts['last_name'] ?? '') }}" id="lastname"
                             class="w-full border rounded px-3 py-2" />
                     </div>
 
-                   {{-- {{print_r($contacts)}} --}}
-                     <!-- Phone Numbers -->
-                       
+                    {{-- {{print_r($contacts)}} --}}
+                    <!-- Phone Numbers -->
+
                     <div class="relative">
                         <label class="block mb-1 font-medium">Phone</label>
                         <div>
                             <div class="flex relative">
-                                
-                                <input type="text"   value="{{old('phone',$contacts['phone_primary'] ?? '')}}"
-                                 name="phone" data-target-input=".popUpinput"
+
+                                <input type="text" value="{{ old('phone_primary', $contacts['phone_primary'] ?? '') }}"
+                                    name="phone" data-target-input=".popUpinput" id="phone"
                                     class="toggle-container-input flex-1 border rounded-l px-3 py-2" />
-                                    <span id="countNumber" class="absolute bg-blue-500 text-white rounded-lg  right-12 top-2   z-50 "></span>
-                                <button   data-target=".phone-container" type="button" class="toggle-container-btn bg-gray-100 px-4 border border-l-0 rounded-r cursor-pointer">+</button>
+                                <span id="countNumber"
+                                    class="absolute bg-blue-500 text-white rounded-lg  right-12 top-2   z-50 "></span>
+                                <button data-target=".phone-container" type="button"
+                                    class="toggle-container-btn bg-gray-100 px-4 border border-l-0 rounded-r cursor-pointer">+</button>
                             </div>
-                            <span class="text-red-500">{{ $errors->first('phone') }}</span>
+                            <span class="text-red-500">{{ $errors->first('phone_json') }}</span>
                         </div>
                         {{-- -------multiple--number---popUp-window---start----- --}}
-                            <div  class="popUpinput dynamic-container phone-container  hidden absolute top-full left-0 mt-2  p-4   border-1 border-gray-400 rounded-md w-full max-w-5xl bg-white shadow-lg z-50" data-type="phone">
+                        <div class="popUpinput dynamic-container phone-container  hidden absolute top-full left-0 mt-2  p-4   border-1 border-gray-400 rounded-md w-full max-w-5xl bg-white shadow-lg z-50"
+                            data-type="phone">
                             <label class="block mb-2 text-sm font-medium text-gray-700">Phone No</label>
 
                             <!-- Input Group Template -->
-                             @php
-                            $phones = json_decode($contacts['phone_json'] ?? '[]', true);
-                            // dd($phones);
+                            @php
+                                $phones = json_decode($contacts['phone_json'] ?? '[]', true);
+                                // dd($phones);
                             @endphp
-                            
-                            @if(!empty($phones))
-                            @foreach ($phones as $index => $phone)
-                            <div class="input-group  flex items-center gap-2 mb-2 ">
-                                 <label for="phone_{{ $index }}" class="block font-medium">Phone #{{ $index + 1 }}</label>
-                                <input type="text" id="popupPhoneInput"  value="{{ $phone['phone_number'] ?? '' }}"
-                                name="phone_json[]" placeholder="Enter phone number"
-                                    class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
 
-                                <!-- Icons -->
-                                <label title="set Primary" class="text-gray-600 hover:text-gray-900 cursor-pointer">🔑</label>
-                                <!-- Radio --> 
-                                <input type="radio" name="phone_primary" value="{{$index}}" 
-                                       {{ $phone['primary'] ? 'checked' : '' }} 
-                                class="form-radio accent-blue-600 cursor-pointer">
-                                <label title="set Whatsapp" class="text-gray-600 hover:text-green-600 cursor-pointer">
-                                    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/whatsapp.svg"
-                            class="h-4 w-4 accent-green-500" alt="WhatsApp Icon" />
+                            @if (!empty($phones))
+                                @foreach ($phones as $index => $phone)
+                                    <div class="input-group  flex items-center gap-2 mb-2 ">
+                                        <label for="phone_{{ $index }}" class="block font-medium">Phone
+                                            #{{ $index + 1 }}</label>
+                                        <input type="text" value="{{ $phone['phone_number'] ?? '' }}"
+                                            id="phone_json2" name="phone_json[]" placeholder="Enter phone number"
+                                            class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
 
-                                </label>
-                                <!-- Checkboxes -->
-                                <input type="checkbox" title="unsubscribe" class="form-checkbox accent-blue-600 cursor-pointer">
-                                <label title="Unsubscribe" type="button" class="text-gray-600 hover:text-red-600 cursor-pointer">🚫</label>
-                                <input type="checkbox" class="form-checkbox accent-blue-600 cursor-pointer">
-                                <!-- Delete Button -->
-                                <button title="delete" type="button" class="delete-btn text-gray-500 hover:text-red-600 cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                        </svg>
-                                </button>
-                            </div>
-                            @endforeach
+                                        <!-- Icons -->
+                                        <label title="set Primary"
+                                            class="text-gray-600 hover:text-gray-900 cursor-pointer">🔑</label>
+                                        <!-- Radio -->
+                                        <input type="radio" name="phone_primary" value="{{ $index }}"
+                                            {{ $phone['primary'] ? 'checked' : '' }}
+                                            class="form-radio accent-blue-600 cursor-pointer">
+                                        <label title="set Whatsapp"
+                                            class="text-gray-600 hover:text-green-600 cursor-pointer">
+                                            <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/whatsapp.svg"
+                                                class="h-4 w-4 accent-green-500" alt="WhatsApp Icon" />
+
+                                        </label>
+                                        <!-- Checkboxes -->
+                                        <input type="checkbox" title="unsubscribe"
+                                            class="form-checkbox accent-blue-600 cursor-pointer">
+                                        <label title="Unsubscribe" type="button"
+                                            class="text-gray-600 hover:text-red-600 cursor-pointer">🚫</label>
+                                        <input type="checkbox" class="form-checkbox accent-blue-600 cursor-pointer">
+                                        <!-- Delete Button -->
+                                        <button title="delete" type="button"
+                                            class="delete-btn text-gray-500 hover:text-red-600 cursor-pointer">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                @endforeach
                             @else
-                            <div class="input-group  flex items-center gap-2 mb-2 ">
-                                <input type="text" id="popupPhoneInput"  
-                                name="phone_json[]" placeholder="Enter phone number"
-                                    class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <div class="input-group  flex items-center gap-2 mb-2 ">
+                                    <input type="text" id="phone_json2" name="phone_json[]"
+                                        placeholder="Enter phone number"
+                                        class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
 
-                                <!-- Icons -->
-                                <label title="set Primary" class="text-gray-600 hover:text-gray-900 cursor-pointer">🔑</label>
-                                <!-- Radio --> 
-                                <input type="radio" name="phone_primary"  
-                                       
-                                class="form-radio accent-blue-600 cursor-pointer">
-                                <label title="set Whatsapp" class="text-gray-600 hover:text-green-600 cursor-pointer">
-                                    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/whatsapp.svg"
-                            class="h-4 w-4 accent-green-500" alt="WhatsApp Icon" />
+                                    <!-- Icons -->
+                                    <label title="set Primary"
+                                        class="text-gray-600 hover:text-gray-900 cursor-pointer">🔑</label>
+                                    <!-- Radio -->
+                                    <input type="radio" name="phone_primary"
+                                        class="form-radio accent-blue-600 cursor-pointer">
+                                    <label title="set Whatsapp" class="text-gray-600 hover:text-green-600 cursor-pointer">
+                                        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/whatsapp.svg"
+                                            class="h-4 w-4 accent-green-500" alt="WhatsApp Icon" />
 
-                                </label>
-                                <!-- Checkboxes -->
-                                <input type="checkbox" title="unsubscribe" class="form-checkbox accent-blue-600 cursor-pointer">
-                                <label title="Unsubscribe" type="button" class="text-gray-600 hover:text-red-600 cursor-pointer">🚫</label>
-                                <input type="checkbox" class="form-checkbox accent-blue-600 cursor-pointer">
-                                <!-- Delete Button -->
-                                <button title="delete" type="button" class="delete-btn text-gray-500 hover:text-red-600 cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                        </svg>
-                                </button>
-                            </div>
+                                    </label>
+                                    <!-- Checkboxes -->
+                                    <input type="checkbox" title="unsubscribe"
+                                        class="form-checkbox accent-blue-600 cursor-pointer">
+                                    <label title="Unsubscribe" type="button"
+                                        class="text-gray-600 hover:text-red-600 cursor-pointer">🚫</label>
+                                    <input type="checkbox" class="form-checkbox accent-blue-600 cursor-pointer">
+                                    <!-- Delete Button -->
+                                    <button title="delete" type="button"
+                                        class="delete-btn text-gray-500 hover:text-red-600 cursor-pointer">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                        </svg>
+                                    </button>
+                                </div>
                             @endif
                             <!-- Add Button -->
-                            <button type="button"  title="add"
+                            <button type="button" title="add"
                                 class="add-input-btn mt-2 px-4 py-1 bg-blue-100 border border-blue-300 rounded text-sm hover:bg-blue-200 cursor-alias">
                                 Add
                             </button>
@@ -304,87 +316,97 @@
 
                         {{-- -------multiple--number------end----- --}}
                     </div>
-                   
+
                     <div>
                         <label class="block mb-1 font-medium">Family / Organisation Name</label>
-                        <input type="text" name="familyOrOrgnization"
-                            value="{{ old('familyOrOrgnization', $data->familyOrOrgnization ?? '') }}"
+                        <input type="text" name="account_id_name"
+                            value="{{ old('account_id_name', $contacts['account_id_name'] ?? '') }}"
                             class="w-full border rounded px-3 py-2" />
                     </div>
 
 
-                  
-                      <div class="relative">
+
+                    <div class="relative">
                         <label class="block mb-1 font-medium">Email</label>
                         <div>
                             <div class="flex">
-                                <input type="email"  value="{{old('email',$contacts['email_primary'] ?? '')}}"
-                                 name="email" data-target-input=".popUpinputEmail"
+                                <input type="email" value="{{ old('email', $contacts['email_primary'] ?? '') }}"
+                                    id="email" name="email" data-target-input=".popUpinputEmail"
                                     class="toggle-container-input flex-1 border rounded-l px-3 py-2" />
-                                <button   data-target=".email-container" type="button" class="toggle-container-btn bg-gray-100 px-4 border border-l-0 rounded-r cursor-pointer">+</button>
+                                <button data-target=".email-container" type="button"
+                                    class="toggle-container-btn bg-gray-100 px-4 border border-l-0 rounded-r cursor-pointer">+</button>
                             </div>
                             <span class="text-red-500 ">{{ $errors->first('email') }}</span>
                         </div>
 
                         {{-- -------multiple--email------start----- --}}
-                            <div  class="popUpinputEmail dynamic-container email-container hidden absolute top-full left-0 mt-2  p-4   border-1 border-gray-400 rounded-md w-full max-w-5xl bg-white shadow-lg z-50" data-type="email">
+                        <div class="popUpinputEmail dynamic-container email-container hidden absolute top-full left-0 mt-2  p-4   border-1 border-gray-400 rounded-md w-full max-w-5xl bg-white shadow-lg z-50"
+                            data-type="email">
                             <label class="block mb-2 text-sm font-medium text-gray-700">Email</label>
-                              @php
-                                  $email_json = json_decode($contacts['email_json'] ?? '[]',true);
+                            @php
+                                $email_json = json_decode($contacts['email_json'] ?? '[]', true);
                                 //   print_r($email_json);
                                 //   dd($email_json);
-                              @endphp
-                             
-                              @if(!empty($email_json))
-                              
-                            <!-- Input Group Template -->
-                            @foreach ($email_json as $index => $email)
+                            @endphp
 
-                            <div class="input-group  flex items-center gap-2 mb-2 ">
-                                <input type="email" name="email_json[]" value="{{$email['email_address'] ?? ''}}"
-                                    class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @if (!empty($email_json))
+                                <!-- Input Group Template -->
+                                @foreach ($email_json as $index => $email)
+                                    <div class="input-group  flex items-center gap-2 mb-2 ">
+                                        <input type="email" name="email_json[]"
+                                            value="{{ $email['email_address'] ?? '' }}" id="email_json"
+                                            class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
 
-                                <!-- Icons -->
-                                <label title="set Primary" class="text-gray-600 hover:text-gray-900 cursor-pointer">🔑</label>
-                                <!-- Radio -->
-                                <input type="radio" name="email_primary" class="form-radio accent-blue-500" value="{{$index}}" {{$email['primary'] ? 'checked' : ''}}>
-                                <label title="Status" class="text-gray-600 hover:text-green-600 cursor-pointer">
-                                  Status
-                                </label>
-                               
-                                <!-- Delete Button -->
-                                <button title="delete" type="button" class="delete-btn text-gray-500 hover:text-red-600 cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                        </svg>
+                                        <!-- Icons -->
+                                        <label title="set Primary"
+                                            class="text-gray-600 hover:text-gray-900 cursor-pointer">🔑</label>
+                                        <!-- Radio -->
+                                        <input type="radio" name="email_primary" class="form-radio accent-blue-500"
+                                            value="{{ $index }}" {{ $email['primary'] ? 'checked' : '' }}>
+                                        <label title="Status" class="text-gray-600 hover:text-green-600 cursor-pointer">
+                                            Status
+                                        </label>
 
-                                </button>
-                            </div>
-                             @endforeach  
-                            {{-- //else condition --}}
+                                        <!-- Delete Button -->
+                                        <button title="delete" type="button"
+                                            class="delete-btn text-gray-500 hover:text-red-600 cursor-pointer">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            </svg>
+
+                                        </button>
+                                    </div>
+                                @endforeach
+                                {{-- //else condition --}}
                             @else
-                                                        <!-- Input Group Template -->
-                            <div class="input-group  flex items-center gap-2 mb-2 ">
-                                <input type="email" name="email_json[]" 
-                                    class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <!-- Input Group Template -->
+                                <div class="input-group  flex items-center gap-2 mb-2 ">
+                                    <input type="email" name="email_json[]" id="email_json"
+                                        class="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
 
-                                <!-- Icons -->
-                                <label title="set Primary" class="text-gray-600 hover:text-gray-900 cursor-pointer">🔑</label>
-                                <!-- Radio -->
-                                <input type="radio" name="email_primary" class="form-radio accent-blue-500" > 
-                                <label title="Status" class="text-gray-600 hover:text-green-600 cursor-pointer">
-                                  Status
-                                </label>
-                                <!-- Delete Button -->
-                                <button title="delete" type="button" class="delete-btn text-gray-500 hover:text-red-600 cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                        </svg>
-                                </button>
-                            </div>
+                                    <!-- Icons -->
+                                    <label title="set Primary"
+                                        class="text-gray-600 hover:text-gray-900 cursor-pointer">🔑</label>
+                                    <!-- Radio -->
+                                    <input type="radio" name="email_primary" class="form-radio accent-blue-500">
+                                    <label title="Status" class="text-gray-600 hover:text-green-600 cursor-pointer">
+                                        Status
+                                    </label>
+                                    <!-- Delete Button -->
+                                    <button title="delete" type="button"
+                                        class="delete-btn text-gray-500 hover:text-red-600 cursor-pointer">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                        </svg>
+                                    </button>
+                                </div>
                             @endif
                             <!-- Add Button -->
-                            <button type="button"  title="add"
+                            <button type="button" title="add"
                                 class="add-input-btn mt-2 px-4 py-1 bg-blue-100 border border-blue-300 rounded text-sm hover:bg-blue-200 cursor-alias">
                                 Add
                             </button>
@@ -395,20 +417,22 @@
 
                     <div>
                         <label class="block mb-1 font-medium">PAN Card</label>
-                        <input type="text" value="{{ old('panCardNumber',$contacts['panCardNumber']['value'] ?? '') }}"
-                            name="panCardNumber" class="w-full border rounded px-3 py-2" />
+                        <input type="text"
+                            value="{{ old('pancard_c', $contacts['pancard_c'] ?? '') }}"
+                            name="pancard_c" class="w-full border rounded px-3 py-2" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Aadhar Card</label>
-                        <input type="text" value="{{ old('aadharCardNumber', $contacts['panCardNumber']['value'] ?? '') }}"
-                            name="aadharCardNumber" class="w-full border rounded px-3 py-2" />
+                        <input type="text"
+                            value="{{ old('adhaar_card_c', $contacts['adhaar_card_c'] ?? '') }}"
+                            name="adhaar_card_c" class="w-full border rounded px-3 py-2" />
                     </div>
 
                     <div>
                         <label class="block mb-1 font-medium">Occupation</label>
-                        <select name="occupation" class="w-full border rounded px-3 py-2">
-                            <option value="{{ old('occupation', $contacts['occupation'] ?? '') }}">
-                                {{ old('occupation', $contacts['occupation'] ?? '') }}</option>
+                        <select name="occupation_c" class="w-full border rounded px-3 py-2">
+                            <option value="{{ old('occupation_c', $contacts['occupation_c'] ?? '') }}">
+                                {{ old('occupation_c', $contacts['occupation_c'] ?? '') }}</option>
                             <option value="Business">Business</option>
                             <option value="Agriculturist">Agriculturist</option>
                             <option value="Goverment Services">Goverment Services</option>
@@ -427,9 +451,9 @@
 
                     <div>
                         <label class="block mb-1 font-medium">KYC Status</label>
-                        <select name="kycStatus" class="w-full border rounded px-3 py-2">
-                            <option value="{{ old('kycStatus', $contacts['occupation']['value'] ?? '') }}">
-                                {{ old('kycStatus', $contacts['occupation']['value'] ?? '') }}</option>
+                        <select name="kyc_status_c" class="w-full border rounded px-3 py-2">
+                            <option value="{{ old('kyc_status_c', $contacts['kyc_status_c'] ?? '') }}">
+                                {{ old('kyc_status_c', $contacts['kyc_status_c'] ?? '') }}</option>
                             <option value="Not Started">Not Started</option>
                             <option value="In Progress">In Progress</option>
                             <option value="Completed">Completed</option>
@@ -439,15 +463,16 @@
 
                     <div>
                         <label class="block mb-1 font-medium">Annual Income</label>
-                        <input type="text"name="anulIncome" value="{{ old('anulIncome', $contacts['occupation']['value'] ?? '') }}"
+                        <input type="text"name="annual_income_c"
+                            value="{{ old('annual_income_c', $contacts['annual_income_c'] ?? '') }}"
                             class="w-full border rounded px-3 py-2" />
                     </div>
 
                     <div>
                         <label class="block mb-1 font-medium">Referred By Person Name</label>
                         <div class="flex">
-                            <input type="text" name="referredBy"
-                                value="{{ old('referredBy',$contacts['occupation']['value'] ?? '') }}"
+                            <input type="text" name="by_person_name _c_name"
+                                value="{{ old('by_person_name _c_name', $contacts['by_person_name _c']['value'] ?? '') }}"
                                 class="flex-1 border rounded-l px-3 py-2" />
                             <button type="button" class="bg-gray-100 px-3 border border-l-0">🔍</button>
                             <button type="button" class="bg-gray-100 px-3 border border-l">🗑️</button>
@@ -456,31 +481,23 @@
 
                     <div>
                         <label class="block mb-1 font-medium">Total Investment</label>
-                        <input type="text" name="totalInvestment"
-                            value="{{ old('totalInvestment', $contacts['occupation']['value'] ?? '') }}"
+                        <input type="text" name="total_investment_c"
+                            value="{{ old('total_investment_c', $contacts['total_investment_c'] ?? '') }}"
                             class="w-full border rounded px-3 py-2" />
                     </div>
 
                     <div>
                         <label class="block mb-1 font-medium">Comments / History</label>
-                        <textarea name="comments" class="w-full border rounded px-3 py-2" rows="3">{{ old('comments', $contacts['occupation']['value'] ?? '') }}</textarea>
+                        <textarea name="comment" class="w-full border rounded px-3 py-2" rows="3">{{ old('comment', $contacts['comment'] ?? '') }}</textarea>
                     </div>
+
+                  
 
                     <div>
                         <label class="block mb-1 font-medium">Relationship Manager</label>
                         <div class="flex">
-                            <input type="text" name="relationshipManager"
-                                value="{{ old('relationshipManager', $contacts['occupation']['value'] ?? '') }}"
-                                class="flex-1 border rounded-l px-3 py-2" value="Mo Arfat Ansari" />
-                            <button type="button" class="bg-gray-100 px-3 border border-l-0">🔍</button>
-                            <button type="button" class="bg-gray-100 px-3 border border-l">🗑️</button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block mb-1 font-medium">Service RM</label>
-                        <div class="flex">
-                            <input type="text" name="serviceRM" value="{{ old('serviceRM',$contacts['occupation']['value'] ?? '') }}"
+                            <input type="text" name="assigned_user_id_name"
+                                value="{{ old('assigned_user_id_name', $contacts['assigned_user_id_name'] ?? '') }}"
                                 class="flex-1 border rounded-l px-3 py-2" />
                             <button type="button" class="bg-gray-100 px-3 border border-l-0">🔍</button>
                             <button type="button" class="bg-gray-100 px-3 border border-l">🗑️</button>
@@ -489,15 +506,16 @@
 
                     <div>
                         <label class="block mb-1 font-medium">Total SIP</label>
-                        <input type="text" name="totalSIP" value="{{ old('totalSIP', $contacts['occupation']['value'] ?? '') }}"
+                        <input type="text" name="total_sip_c"
+                            value="{{ old('total_sip_c', $contacts['total_sip_c'] ?? '') }}"
                             class="w-full border rounded px-3 py-2" />
                     </div>
 
                     <div>
                         <label class="block mb-1 font-medium">Primary Contact Person</label>
                         <div class="flex">
-                            <input type="text" name="primeryContactPerson"
-                                value="{{ old('primeryContactPerson',$contacts['occupation']['value'] ?? '') }}"
+                            <input type="text" name="contact_id_name"
+                                value="{{ old('contact_id_name', $contacts['contact_id_name'] ?? '') }}"
                                 class="flex-1 border rounded-l px-3 py-2" />
                             <button type="button" class="bg-gray-100 px-3 border border-l-0">🔍</button>
                             <button type="button " class="bg-gray-100 px-3 border border-l">🗑️</button>
@@ -506,9 +524,9 @@
 
                     <div>
                         <label class="block mb-1 font-medium">Meeting Scheduled</label>
-                        <select name="meetinSchedule" class="w-full border rounded px-3 py-2">
-                            <option value="{{ old('meetinSchedule', $contacts['occupation']['value'] ?? '') }}">
-                                {{ old('meetinSchedule', $contacts['occupation']['value'] ?? '') }}</option>
+                        <select name="meeting_schedule_c" class="w-full border rounded px-3 py-2">
+                            <option value="{{ old('meeting_schedule_c', $contacts['meeting_schedule_c'] ?? '') }}">
+                                {{ old('meeting_schedule_c', $contacts['meeting_schedule_c'] ?? '') }}</option>
                             <option value="Monthly">Monthly</option>
                             <option value="Quarterly">Quarterly</option>
                             <option value="Weekely">Weekely</option>
@@ -517,47 +535,78 @@
 
                     <div>
                         <label class="block mb-1 font-medium">First Meeting Date</label>
-                        <input type="date" name="firstMeetingDate"
-                            value="{{ old('firstMeetingDate', $contacts['occupation']['value'] ?? '') }}"
+                        <input type="date" name="first_meeting_date_c"
+                            value="{{ old('first_meeting_date_c', $contacts['first_meeting_date_c'] ?? '') }}"
                             class="w-full border rounded px-3 py-2" />
                     </div>
-
-
+                   
                     <!-- Personal Information -->
-                    <h3 class="text-xl font-semibold mt-10 mb-4">Personal Information</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block mb-1 font-medium">Type of Relation</label>
-                            <select name="typeOfRelation" class="w-full border rounded px-3 py-2">
-                                <option value="{{ old('typeOfRelation', $contacts['occupation']['value'] ?? '') }}">
-                                    {{ old('typeOfRelation', $contacts['occupation']['value'] ?? '') }}</option>
-                                <option value="Father">Father</option>
-                                <option value="Father">Mother</option>
-                                <option value="Father">Sister</option>
-                                <option value="Father">Brother</option>
-                                <option value="Father">Daughter</option>
-                                <option value="Father">Spouse</option>
-                                <option value="Father">Son</option>
-                                <option value="Father">Famaily/Head</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block mb-1 font-medium">Marital Status</label>
-                            <select name="maritalStatus" class="w-full border rounded px-3 py-2">
-                                <option value="{{ old('maritalStatus', $data->maritalStatus ?? '') }}">
-                                    {{ old('maritalStatus', $data->maritalStatus ?? '') }}</option>
-                                <option>Single</option>
-                                <option>Married</option>
-                                <option>Other</option>
-                            </select>
-                        </div>
+                    <div class="col-span-2">
+                        <h3 class="text-xl font-semibold mt-5 mb-4">Personal Information</h3>
                     </div>
 
+                    <div>
+                        <label class="block mb-1 font-medium">Type of Relation</label>
+                        <select name="type_of_relation_c" class="w-full border rounded px-3 py-2">
+                            <option value="{{ old('type_of_relation_c', $contacts['type_of_relation_c'] ?? '') }}">
+                                {{ old('type_of_relation_c', $contacts['type_of_relation_c'] ?? '') }}</option>
+                            <option value="Father">Father</option>
+                            <option value="Father">Mother</option>
+                            <option value="Father">Sister</option>
+                            <option value="Father">Brother</option>
+                            <option value="Father">Daughter</option>
+                            <option value="Father">Spouse</option>
+                            <option value="Father">Son</option>
+                            <option value="Father">Famaily/Head</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Marital Status</label>
+                        <select name="marital_status_c" class="w-full border rounded px-3 py-2">
+                            <option value="{{ old('marital_status_c', $contacts['marital_status_c'] ?? '') }}">
+                                {{ old('marital_status_c', $contacts['marital_status_c'] ?? '') }}</option>
+                            <option>Single</option>
+                            <option>Married</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
 
+                       <div>
+                        <label class="block mb-1 font-medium">Birth Date</label>
+                         <input type="date" name="birth_date" 
+                            value="{{ old('birth_date', $contacts['birth_date'] ?? '') }}"
+                            class="w-full border rounded px-3 py-2" />
+                       
+                    </div>
+                     <div>
+                        <label class="block mb-1 font-medium">Anniversary</label>
+                        <input type="date" name="anniversary"
+                            value="{{ old('anniversary', $contacts['anniversary'] ?? '') }}"
+                            class="w-full border rounded px-3 py-2" />
+                    </div>
+                    
+                     <div>
+                        <label class="block mb-1 font-medium">Portfolio No</label>
+                        <input type="text" name="protfolio_no_c"
+                            value="{{ old('protfolio_no_c', $contacts['protfolio_no_c'] ?? '') }}"
+                            class="w-full border rounded px-3 py-2" />
+                    </div>
+                     <div>
+                        <label class="block mb-1 font-medium">Gender</label>
+                         <select name="gender_c" class="w-full border rounded px-3 py-2">
+                            <option value="{{ old('gender_c', $contacts['gender_c'] ?? '') }}">
+                                {{ old('gender_c', $contacts['gender_c'] ?? '') }}</option>
+                            <option>Male</option>
+                            <option>Famel</option>
+                            <option>Other</option>
+                        </select>
+                       
+                    </div>
                 </div>
 
 
-                    
+
+
             </div>
         </form>
     </div>
@@ -577,11 +626,11 @@
 
             tablinks = document.getElementsByClassName("tablinks");
             for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].classList.remove("border-b-2", "border-blue-500","text-blue-500"); // Remove active styles
+                tablinks[i].classList.remove("border-b-2", "border-blue-500", "text-blue-500"); // Remove active styles
             }
 
             document.getElementById(contact).classList.remove("hidden"); // Show the selected tab
-            evt.currentTarget.classList.add("border-b-2", "border-blue-500",'text-blue-500'); // Highlight active tab
+            evt.currentTarget.classList.add("border-b-2", "border-blue-500", 'text-blue-500'); // Highlight active tab
         }
 
         // Auto-click default tab on page load
@@ -653,84 +702,100 @@
                 $(this).closest('tr').toggleClass('bg-yellow-100');
                 alert('Marked address with warning!');
             });
-   
+
         });
     </script>
 
 
 
-<script>
-    //---crreate--multiple----Phone-NO---or----Email---address----------
-$(document).ready(function () {
-    // Toggle container (+ to ✖)
-    $('.toggle-container-btn').on('click', function () {
-        const $btn = $(this);
-        const $target = $($btn.data('target'));
-
-        if ($target.is(':visible')) {
-            $target.slideUp();
-            $btn.text('+');
-        } else {
-            $target.slideDown();
-            $btn.text('✖');
-        }
-    });
-
-     $('.toggle-container-input').on('click',function(){
-         const $input = $(this);
-        const $targetinput = $($input.data('target-input'));
-       
-        
-           $(this).on('keyup', function () {
-          const value1 = $input.val();
-           $('#popupPhoneInput').val(value1);
-        //    $('#popupPhoneInput').val(value1);
-        });
-
-        $('#emailInput').on('keyup', function () {
-                const email = $(this).val();
-                $('#popupEmailInput').val(email);
+    <script>
+        //---crreate--multiple----Phone-NO---or----Email---address----------
+        $(document).ready(function() {
+            // Toggle container (+ to ✖)
+            $('#email').on('keyup', function() {
+                let value2 = $(this).val();
+                // console.log(value2);
+                let email_json = $('#email_json').val(value2);
+                
+            });
+            //phone auto fill in phone_json
+            $('#phone').on('keyup', function() {
+                let getphone = $(this).val();
+                // console.log(getphone);
+                let phone_json = $('#phone_json2').val(getphone);
+                //    console.log(phone_json[0]);
             });
 
-        if ($targetinput.is(':visible')) {
-            $targetinput.slideUp();
-            // $btn.text('+');
-        } else {
-            $targetinput.slideDown();
-            // $btn.text('✖');
-        }
-     });
+            $('.toggle-container-btn').on('click', function() {
+                const $btn = $(this);
+                const $target = $($btn.data('target'));
+
+                if ($target.is(':visible')) {
+                    $target.slideUp();
+                    $btn.text('+');
+                } else {
+                    $target.slideDown();
+                    $btn.text('✖');
+                }
+            });
+
+            $('.toggle-container-input').on('click', function() {
+                const $input = $(this);
+                console.log($input.val());
+                const $targetinput = $($input.data('target-input'));
+                console.log($targetinput);
+
+                if ($targetinput.is(':visible')) {
+                    $targetinput.slideUp();
+                    // $btn.text('+');
+                } else {
+                    $targetinput.slideDown();
+                    // $btn.text('✖');
+                }
+            });
 
 
-    // Add new input group
-    $('.dynamic-container').on('click', '.add-input-btn', function () {
-        const $container = $(this).closest('.dynamic-container');
+          
 
-        // Count current input groups BEFORE adding the new one
-         let count = $container.find('.input-group').length;
-          // Clone the first group
-        const $group = $container.find('.input-group').first().clone();
+            // Add new input group --- for --- Email -----------Start---------------
+            $('.dynamic-container').on('click', '.add-input-btn', function() {
+                const $container = $(this).closest('.dynamic-container');
 
-        // Clear input values
-        $group.find('input[type="text"], input[type="email"]').val('');
-        $group.find('input[type="radio"], input[type="checkbox"]').prop('checked', false);
-        // Append the cloned group after the last one
-        $container.find('.input-group').last().after($group);
-         // Update the count after adding
-            let newCount = count + 1;
-            $('#countNumber').text(newCount); // Display count
-    });
+                // Count current input groups BEFORE adding the new one
+                let count = $container.find('.input-group').length;
 
-    // Delete input group
-    $('.dynamic-container').on('click', '.delete-btn', function () {
-        const $container = $(this).closest('.dynamic-container');
-        if ($container.find('.input-group').length > 1) {
-            $(this).closest('.input-group').remove();
-        }
-    });
-});
+                // Clone the first group
+                const $group = $container.find('.input-group').first().clone();
 
+                // Clear input values
+                $group.find('input[type="email"]').val('');
+                $group.find('input[type="radio"], input[type="checkbox"]').prop('checked', false);
 
-</script>
+                // Append the cloned group after the last one
+                $container.find('.input-group').last().after($group);
 
+                // Update the count after adding
+                let newCount = count + 1;
+                $('#count').text(newCount); // Display count
+            });
+
+            // Delete email input group
+            $('.dynamic-container').on('click', '.delete-btn', function() {
+                const $container = $(this).closest('.dynamic-container');
+
+                // Only remove if more than one group remains
+                if ($container.find('.input-group').length > 1) {
+                    $(this).closest('.input-group').remove();
+
+                    // Update count
+                    let count = $container.find('.input-group').length;
+                    $('#count').text(count);
+                }
+            });
+
+            // Add new input group---for---Email-----------End---------------
+
+     
+        });
+    </script>
 @endsection
