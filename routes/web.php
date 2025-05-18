@@ -79,7 +79,30 @@ Route::get('/test',function(){
             foreach($googleContacts->connections as $data){
 
                 // dump($data->birthdays[0]->date??'');
-                dump($data??'');
+                // dump($data->userDefined??'');
+                $userDefined=collect($data->userDefined??[]);
+                $arrayKeys=['pan'=>'pancard_c',
+                            'pancard '=>'pancard_c',
+                            'pan card'=>'pancard_c',
+                            'pan card no'=>'pancard_c',
+                            'pan card number'=>'pancard_c',
+                            'pen'=>'pancard_c',
+                            'aadhar'=>'adhaar_card_c',
+                            'aadhaar card'=>'adhaar_card_c',
+                            'adhaar card'=>'adhaar_card_c'
+                        ];
+                $userDefindArray=[];
+                foreach($userDefined as $data){
+
+                    $key=strtolower($data->key);
+                   $newKey=$arrayKeys[$key]??null;
+                    $value=$data->value;
+                    if (!empty($newKey)) {
+                        $userDefindArray[$newKey]=$value;
+                    }
+                }
+
+
 
                 // dump(preg_replace('/[^0-9]/','',$data->phoneNumbers[0]->value??''));
                 // dump($data->addresses[0]??'');

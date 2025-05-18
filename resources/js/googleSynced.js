@@ -184,10 +184,10 @@ $(function () {
                     $('#lastSyncChangesDeteted').text(result?.data?.lastSyncChangesDeteted);
 
                     loader(); // hide Loder
-                    // setTimeout(() => {
-                    //     refresh();
-                    //     console.log("auto Refresh Is Runnig in Refresh Function");
-                    // }, 20000);
+                    setTimeout(() => {
+                        refresh();
+                        console.log("auto Refresh Is Runnig in Refresh Function every 30seconds");
+                    }, 30000);
                 }
             },
             error: function (error) {

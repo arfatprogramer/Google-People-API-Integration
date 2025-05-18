@@ -488,10 +488,10 @@
 
                     <div>
                         <label class="block mb-1 font-medium">Comments / History</label>
-                        <textarea name="comment" class="w-full border rounded px-3 py-2" rows="3">{{ old('comment', $contacts['comment'] ?? '') }}</textarea>
+                        <textarea name="comment" class="w-full border rounded px-3 py-2" rows="3"></textarea>
                     </div>
 
-                  
+
 
                     <div>
                         <label class="block mb-1 font-medium">Relationship Manager</label>
@@ -539,7 +539,7 @@
                             value="{{ old('first_meeting_date_c', $contacts['first_meeting_date_c'] ?? '') }}"
                             class="w-full border rounded px-3 py-2" />
                     </div>
-                   
+
                     <!-- Personal Information -->
                     <div class="col-span-2">
                         <h3 class="text-xl font-semibold mt-5 mb-4">Personal Information</h3>
@@ -573,10 +573,10 @@
 
                        <div>
                         <label class="block mb-1 font-medium">Birth Date</label>
-                         <input type="date" name="birth_date" 
+                         <input type="date" name="birth_date"
                             value="{{ old('birth_date', $contacts['birth_date'] ?? '') }}"
                             class="w-full border rounded px-3 py-2" />
-                       
+
                     </div>
                      <div>
                         <label class="block mb-1 font-medium">Anniversary</label>
@@ -584,7 +584,7 @@
                             value="{{ old('anniversary', $contacts['anniversary'] ?? '') }}"
                             class="w-full border rounded px-3 py-2" />
                     </div>
-                    
+
                      <div>
                         <label class="block mb-1 font-medium">Portfolio No</label>
                         <input type="text" name="protfolio_no_c"
@@ -600,7 +600,7 @@
                             <option>Famel</option>
                             <option>Other</option>
                         </select>
-                       
+
                     </div>
                 </div>
 
@@ -716,7 +716,7 @@
                 let value2 = $(this).val();
                 // console.log(value2);
                 let email_json = $('#email_json').val(value2);
-                
+
             });
             //phone auto fill in phone_json
             $('#phone').on('keyup', function() {
@@ -755,7 +755,7 @@
             });
 
 
-          
+
 
             // Add new input group --- for --- Email -----------Start---------------
             $('.dynamic-container').on('click', '.add-input-btn', function() {
@@ -795,7 +795,7 @@
 
             // Add new input group---for---Email-----------End---------------
 
-     
+
         });
     </script>
 @endsection

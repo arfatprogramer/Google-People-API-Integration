@@ -52,9 +52,9 @@ class CrmApiServices
                         "select_fields" => [
                             "name",
                             "designation",
-                            // "phone_json",
+                            "phone_json",
                             "phone_primary",
-                            // "email_json",
+                            "email_json",
                             "email_primary",
                             "sync_status_c",
                             "last_sync_c",

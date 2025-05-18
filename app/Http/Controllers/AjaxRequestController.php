@@ -211,7 +211,7 @@ class AjaxRequestController extends Controller
             $batches = Bus::batch([])->name("Synk Both")->dispatch();
             $createPages = 1;
             do {
-                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 5, "sync_status_c is null OR sync_status_c='Not Synced'");
+                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 100, "sync_status_c is null OR sync_status_c='Not Synced'");
                 $data = $res->data ?? [];
 
                 $batches->add(new pushToGoogleJob($googleToken, $data, [], $syncHistory->id, $this->apiToken));
@@ -224,7 +224,7 @@ class AjaxRequestController extends Controller
             } while ($next);
             $updatePages = 1;
             do {
-                $response = (new CrmApiServices($this->apiToken))->getClietsList($updatePages, 5, "sync_status_c='Pending'");
+                $response = (new CrmApiServices($this->apiToken))->getClietsList($updatePages, 100, "sync_status_c='Pending'");
                 $data = $response->data ?? [];
                 $batches->add(new pushToGoogleJob($googleToken, [], $data, $syncHistory->id, $this->apiToken));
                 $nextUpdate = isset($response->links->next);
