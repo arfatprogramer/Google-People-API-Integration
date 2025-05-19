@@ -9,8 +9,6 @@ use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
 use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
-use Yajra\DataTables\Html\Editor\Editor;
-use Yajra\DataTables\Html\Editor\Fields;
 use Yajra\DataTables\Services\DataTable;
 
 class clietsSyncedHistoryDataTable extends DataTable
@@ -96,7 +94,9 @@ class clietsSyncedHistoryDataTable extends DataTable
             Column::computed('status')->title('Status')
             ->searchable(false),
             Column::make('created')->title('Added'),
+            Column::make('createdAtGoogle')->title("Added on Google"),
             Column::make('updated')->title("Updated"),
+            Column::make('updatedAtGoogle')->title("Updated on Google"),
             Column::make('deleted')->title('Deleted'),
             Column::make('error')->title('Errors'),
 

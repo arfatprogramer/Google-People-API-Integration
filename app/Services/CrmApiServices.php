@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Client;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
@@ -41,7 +42,9 @@ class CrmApiServices
                     "favorite" => false,
                     "save_search" => false,
                     "save_search_id" => "",
-                    // "assigned_user_id" => "1",
+
+                    //"assigned_user_id" => "",
+
                     "advance_search" => false,
                     "advance_search_json" => "",
                     "multi_initial_filter" => "",
@@ -49,9 +52,9 @@ class CrmApiServices
                         "select_fields" => [
                             "name",
                             "designation",
-                            // "phone_json",
+                            "phone_json",
                             "phone_primary",
-                            // "email_json",
+                            "email_json",
                             "email_primary",
                             "sync_status_c",
                             "last_sync_c",
@@ -82,7 +85,7 @@ class CrmApiServices
 
     public function createContact($payload)
     {
-
+        dump($payload);
         try {
             $response = Http::withToken($this->token)
             ->acceptJson()
@@ -91,7 +94,7 @@ class CrmApiServices
         } catch (\Throwable $th) {
             dump($th);
         }
-
+        // dump($response);
         return $response->json() ;
     }
 
@@ -106,7 +109,7 @@ class CrmApiServices
         return $payload;
     }
 
-    public function updateSyncStatus($id,$resourceName,$etag,$status) {
+    public function updateSyncStatus($id,$resourceName,$etag,$status,$lastSync=null) {
         $payload = [
             "rest_data"=> [
                 "module_name"=> "Contact",
@@ -114,7 +117,7 @@ class CrmApiServices
                 "name_value_list"=> [
                     "etag_c"=>$etag,
                     "resource_name_c"=>$resourceName,
-                    "last_sync_c"=>Carbon::now(),
+                    "last_sync_c"=>$lastSync??Carbon::now(),
                     "sync_status_c"=>$status
                 ]
             ]
@@ -130,7 +133,7 @@ class CrmApiServices
     // to get the inform mation data is existing in data base or noe
     public function getExistingDataFromCrm($resourceName=[]) {
         $string = "('" . implode("','", $resourceName) . "')";
-        dump($string);
+
         $payload=[
             "rest_data"=> [
                 "module_name"=> "Contact",
@@ -141,15 +144,12 @@ class CrmApiServices
                 "favorite"=> false,
                 "save_search"=> false,
                 "save_search_id"=> "",
-                "assigned_user_id"=> "1",
-                "teamsSet"=> "1",
+                "assigned_user_id"=> "",
+                "teamsSet"=> "",
                 "advance_search"=> false,
                 "advance_search_json"=> "",
                 "multi_initial_filter"=> "",
                 "name_value_list"=> [
-                    "name_value_list"=>[
-                        "resource_name_c"=>$resourceName ,
-                    ],
                     "select_fields"=> [
                         "resource_name_c",
                         "etag_c",
@@ -170,7 +170,7 @@ class CrmApiServices
             Log::info("error in getExistingDataFromCrm CrmAPIService");
         }
         $response=json_decode($response);
-        dump($response);
+        // dump($response);
         $existingData=[];
         $responseData=$response->data??[];
         foreach($responseData as $data){
@@ -196,18 +196,21 @@ class CrmApiServices
                 "favorite"=> false,
                 "save_search"=> false,
                 "save_search_id"=> "",
-                "assigned_user_id"=> "1",
+                "assigned_user_id"=> "",
                 "teamsSet"=> "1",
                 "advance_search"=> false,
                 "advance_search_json"=> "",
                 "multi_initial_filter"=> "",
                 "name_value_list"=>[
                     "select_fields"=> [
-                        "id",
+                    "id",
                     "name",
                     "designation",
                     "anniversary",
                     "birth_date",
+                    "pancard_c",
+                    "adhaar_card_c",
+                    "kyc_status_c",
                     "account_id",
                     "attachment1_c",
                     "customer_type",
@@ -271,7 +274,7 @@ class CrmApiServices
 
     }
 
-   
+
     public static function formatPhones(array $phones): Collection
     {
         return collect($phones)->map(function ($phone, $index) {
@@ -321,5 +324,5 @@ class CrmApiServices
         });
     }
 
-    
+
 }

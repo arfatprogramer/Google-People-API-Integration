@@ -8,8 +8,9 @@ use App\Http\Controllers\CRMLoginController;
 use App\Http\Middleware\loginAuthMiddleware;
 use App\Http\Controllers\AjaxRequestController;
 use App\DataTables\clietsSyncedHistoryDataTable;
-use App\Services\CrmApiServices;
-use Google\Service\Docs\Request;
+use App\Models\GoogleAuth;
+use App\Services\GoogleService;
+use Google\Service\PeopleService;
 
 Route::get('crm/login',[CRMLoginController::class,'ViewcrmLogin'])->name('login');
 
@@ -59,213 +60,57 @@ Route::get('/crm/delete',[AjaxRequestController::class,'deleteDataFromCRm'])->na
 }); //login middleware end
 
 Route::get('/test',function(){
-    // $crmContacts = client::whereNotNull('resourceName')->pluck('resourceName')->toArray();
-    // echo"<pre>";
-    // print_r($crmContacts);
-    // $data=(!in_array("people/c8678220737383419328", $crmContacts));
-    // if ($data) {
-    //     echo"Create";
-    // }else
-    // echo"Update";
+    try {
+        // $syncToken=GoogleAuth::orderBy('id', 'desc')->get()->first();
+        // $client=(new GoogleService())->getGoogleCient($syncToken);
+        // $peopleService=new PeopleService($client);
+        // $response = $peopleService->otherContacts->listOtherContacts([
+        //     'readMask' => 'names,emailAddresses',
+        //     'pageSize' => 1000,
+        // ]);
+        // $otherContact=$response->otherContacts??[];
 
-    // $googleToken=GoogleAuth::orderBy('id', 'desc')->get()->first();
-    //  $googleContacts = (new GoogleService())->getContacts($googleToken, 100,['names,phoneNumbers,emailAddresses,userDefined,organizations,biographies,addresses,birthdays']);
+        $personFields=['names,phoneNumbers,emailAddresses,userDefined,organizations,biographies,addresses,birthdays,urls,relations'];
+            $pageSize=1000;
+           $googleToken= GoogleAuth::orderBy('id', 'desc')->get()->first();
 
-    // $peopleArray=$googleContacts->connections;
-    // $contacts = [];
-    // $timeStamp=123;
-    // foreach ($peopleArray as $person) {
-    //  $resourceName = $person->resourceName;
-    //  $etag = $person->etag;
+            $googleContacts = (new GoogleService())->getContacts($googleToken, $pageSize, $personFields);
 
-    //     $name = $person->names[0] ?? null;
-    //     $emails = collect($person->emailAddresses ?? []);
-    //     $phones = collect($person->phoneNumbers ?? []);
-    //     $biographies = $person->biographies[0]->value ?? '';
-    //     $organizations = $person->organizations[0] ?? null;
-    //     $addresses = collect($person->addresses ?? []);
+            foreach($googleContacts->connections as $data){
 
-    //     $contacts[$resourceName] = [
-    //         'rest_data' => [
-    //             'module_name' => 'Contact',
-    //             'name_value_list' => [
-    //                 'first_name' => $name->givenName ?? '',
-    //                 'last_name' => $name->familyName ?? '',
-    //                 'designation' => $organizations->title ?? '',
-    //                 'birth_date' => '',
-    //                 'anniversary' => '',
-    //                 'customer_type' => '',
-    //                 'hiddenPhone' => $phones->map(function ($phone) {
-    //                     return [
-    //                         'phone_number' => $phone->value ?? '',
-    //                         'verified_at' => '',
-    //                         'unsubscribed' => false,
-    //                         'invalid' => false,
-    //                         'primary' => $phone->metadata->primary ?? false,
-    //                     ];
-    //                 })->values()->all(),
-    //                 'hiddenEmail' => $emails->map(function ($email) {
-    //                     return [
-    //                         'email_address' => $email->value ?? '',
-    //                         'primary' => $email->metadata->primary ?? false,
-    //                         'status' => 'invalid',
-    //                         'suppression' => $email->value ?? null,
-    //                         'verified_at' => '',
-    //                     ];
-    //                 })->values()->all(),
-    //                 'hiddenAddress' => $addresses->map(function ($address) {
-    //                     return [
-    //                         'street' => $address->streetAddress ?? '',
-    //                         'city' => $address->city ?? '',
-    //                         'region' => $address->region ?? '',
-    //                         'postal_code' => $address->postalCode ?? '',
-    //                         'country' => $address->country ?? '',
-    //                         'type' => $address->type ?? '',
-    //                         'primary' => $address->metadata->primary ?? false,
-    //                     ];
-    //                 })->values()->all(),
-    //                 'comment' => $biographies ? [['description' => $biographies]] : [],
-    //                 'etag_c'=>$etag,
-    //                 'resource_name_c'=>$resourceName,
-    //                 'sync_status_c'=>'Synced',
-    //                 'last_aync_c'=>$timeStamp,
-    //                 'duration_c' => '12:00 AM',
-    //                 'hierarchy' => '',
-    //                 'department' => '',
-    //                 'lead_source' => '',
-    //                 'teamsSet' => '1'
-    //             ]
-    //         ]
-    //     ];
-    // }
+                // dump($data->birthdays[0]->date??'');
+                // dump($data->userDefined??'');
+                $userDefined=collect($data->userDefined??[]);
+                $arrayKeys=['pan'=>'pancard_c',
+                            'pancard '=>'pancard_c',
+                            'pan card'=>'pancard_c',
+                            'pan card no'=>'pancard_c',
+                            'pan card number'=>'pancard_c',
+                            'pen'=>'pancard_c',
+                            'aadhar'=>'adhaar_card_c',
+                            'aadhaar card'=>'adhaar_card_c',
+                            'adhaar card'=>'adhaar_card_c'
+                        ];
+                $userDefindArray=[];
+                foreach($userDefined as $data){
 
-    // foreach($contacts as $resource => $payload){
-    //     // print_r($payload['rest_data']['name_value_list']);
-    // }
-//    return response()->json($googleContacts);
+                    $key=strtolower($data->key);
+                   $newKey=$arrayKeys[$key]??null;
+                    $value=$data->value;
+                    if (!empty($newKey)) {
+                        $userDefindArray[$newKey]=$value;
+                    }
+                }
 
 
-    // $token=session('crm_token');
-    // $existingData=(new CrmApiServices($token))->getExistingDataFromCrm(['people/c5989124196303340918','people/c4689612350472725237','people/c7543721668131697888']);
-    // // $data=(new CrmApiServices(session('crm_token')))->updateSyncStatus("96510fb0-e87e-4500-a845-5c02d3669c82",'4','eee','Pending');
 
-    // return $existingData;
+                // dump(preg_replace('/[^0-9]/','',$data->phoneNumbers[0]->value??''));
+                // dump($data->addresses[0]??'');
 
-//   $pairmeter = 1;
-//     // do {
-//      $payload = [
-//                 "rest_data" => [
-//                     "module_name" => "Contact",
-//                     "max_result" => 1000,
-//                     "sort" => "updated_at",
-//                     "order_by" => "DESC",
-//                     "query" => "",
-//                     "favorite" => false,
-//                     "save_search" => false,
-//                     "save_search_id" => "",
-//                     "assigned_user_id" => "1",
-//                     "advance_search" => false,
-//                     "advance_search_json" => "",
-//                     "multi_initial_filter" => "",
-//                     "name_value_list" => [
-//                         "select_fields" => [
-//                             "name",
-//                             "phone_primary",
-//                             "email_primary",
-//                             "sync_status_c",
-//                             "last_sync_c",
-//                             "id",
-//                         ]
-//                     ]
-//                 ]
-//             ];
-
-
-//         $res = (new CrmApiServices(session('crm_token')))->getContacts();
-//             $datas=$res['data'];
-//             $newData=[];
-//             foreach($datas as $data){
-//                 $tempData=[];
-//                 $tempData['id']=$data['id'];
-//                 $tempData['firstName']=$data['name'];
-//                 $tempData['email']=$data['phone_primary'];
-//                 $tempData['number']=$data['email_primary'];
-//                 $tempData['syncStatus']=$data['sync_status_c'];
-//                 $tempData['lastSync']=$data['last_sync_c'];
-//                 $newData[]=$tempData;
-//             }
-
-//         return  $newData;
-
-//         $next = isset($res->links->next);
-
-//         $pairmeter++;
-
-//     // } while ($next);
-
-
- $cliet_id ='96510fb0-e87e-4500-a845-5c02d3669c82';
-
-            $payload = [
-                'rest_data' => [
-                    'action' => 'show',
-                    'module_name' => 'Contact',
-                    'id' => $cliet_id,
-                    "select_fields" => [
-                        "id",
-                        "name",
-                        "designation",
-                        "anniversary",
-                        "birth_date",
-                        "account_id",
-                        "attachment1_c",
-                        "customer_type",
-                        "phone",
-                        "phone_json",
-                        "email",
-                        "email_json",
-                        "duration_c",
-                        "hierarchy",
-                        "department",
-                        "lead_source",
-                        "assigned_user_id",
-                        "team_set_id",
-                        "created_at",
-                        "updated_at",
-                        "tag",
-                        "created_by",
-                        "eta_id",
-                        "eta_end_time",
-                        "eta_status",
-                        "first_name",
-                        "last_name",
-                        "phone_json",
-                        "email_json",
-                        "address",
-                        "tally_master_id",
-                        "linked_status",
-
-                        "resource_name_c",
-                        "etag_c",
-                        "last_sync_c",
-                        "sync_status_c"
-
-                    ],
-
-                    'select_relate_fields' => []
-                ]
-            ];
-            $response = (new CrmApiServices(session('crm_token')))->getContactById($payload);
-            $data = $response;
-            $contact = $data['entry_list']['name_value_list'] ?? [];
-
-            $newContact=[];
-
-            foreach($contact as $data){
-                $name=$data['name'];
-                $newContact[$name]=$data['value'];
             }
-            $temp[]=$newContact;
-            return $temp;
+            return;
+    } catch (\Throwable $th) {
+            throw $th;
+     }
 
 });
