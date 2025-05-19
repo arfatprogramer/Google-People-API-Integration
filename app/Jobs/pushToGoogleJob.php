@@ -185,7 +185,7 @@ class pushToGoogleJob implements ShouldQueue
                         if (isset($contactId[$index])) {
                             $id = $contactId[$index];
                             $data=(new CrmApiServices($this->apiToken))->updateSyncStatus($id, $createdPerson->person->resourceName,$createdPerson->person->etag,'Synced');
-
+                            dump($data);
                             $syncHistory->increment('createdAtGoogle');
                             $syncHistory->increment('synced');
                             $syncHistory->decrement('pending');
@@ -263,6 +263,7 @@ class pushToGoogleJob implements ShouldQueue
                         $id = $updateId[$resourceName];
                         if ($id) {
                             $data=(new CrmApiServices($this->apiToken))->updateSyncStatus($id, $resourceName,$updatedPerson->getEtag(),'Synced');
+                             dump($data);
                             $syncHistory->increment('updatedAtGoogle');
                             $syncHistory->increment('synced');
                             $syncHistory->decrement('pending');

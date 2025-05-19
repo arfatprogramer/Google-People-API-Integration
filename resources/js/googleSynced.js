@@ -198,6 +198,9 @@ $(function () {
     }
 
     function pushToGoogle() {
+         $("#pushToGoogle").prop("disabled", true);
+        $("#importFromGoogle").prop("disabled", true);
+        $(".syncNow").prop("disabled", true);
         console.log("pushToGoogle Started");
         $.ajax({
             url: 'pushToGoogle',
@@ -218,6 +221,9 @@ $(function () {
     }
 
     function importFromGoogle() {
+         $("#pushToGoogle").prop("disabled", true);
+        $("#importFromGoogle").prop("disabled", true);
+        $(".syncNow").prop("disabled", true);
         console.log("importFromGoogle Started");
         $.ajax({
             url: 'importFromGoogle',
@@ -239,6 +245,9 @@ $(function () {
     }
 
     function synNow() {
+         $("#pushToGoogle").prop("disabled", true);
+        $("#importFromGoogle").prop("disabled", true);
+        $(".syncNow").prop("disabled", true);
         console.log("SynNow Started");
         $.ajax({
             url: 'synNow',

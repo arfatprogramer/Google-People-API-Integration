@@ -203,12 +203,14 @@ class AjaxRequestController extends Controller
             $nextSynToken = clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
             $pendingChangesOnGoogle = (new GoogleService())->getContacts($this->googleToken, 10, ['names'], null, $nextSynToken->synToken ?? null);
             $totalPending += $pendingChangesOnGoogle->totalPeople ?? 0;
-
+            $extimetedTime += ($totalPending * 5);
             // Create an empty history row
             $syncHistory = new clientContatSyncHistory();
             $syncHistory->save();
 
-            $batches = Bus::batch([])->name("Synk Both")->dispatch();
+            $batches = Bus::batch([
+                 new pushToGoogleJob($googleToken, [], [],null, $this->apiToken),
+            ])->name("Synk Both")->dispatch();
             $createPages = 1;
             do {
                 $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 100, "sync_status_c is null OR sync_status_c='Not Synced'");
@@ -219,7 +221,7 @@ class AjaxRequestController extends Controller
                 $createPages++;
                 $batchCount++;
                 $pendingToCreate = $res->meta->total ?? 0;
-                $extimetedTime += 15; // 15 sec take to process
+                $extimetedTime += ($pendingToCreate * 5); // 5 sec take to process
 
             } while ($next);
             $updatePages = 1;
@@ -231,7 +233,7 @@ class AjaxRequestController extends Controller
                 $updatePages++;
                 $batchCount++;
                 $pendingToUpdate = $response->meta->total ?? 0;
-                $extimetedTime += 15; // 15 sec take to process
+                $extimetedTime += ($pendingToUpdate *5); // 15 sec take to process
 
             } while ($nextUpdate);
             $totalPending = ($pendingToUpdate + $pendingToCreate);
@@ -240,6 +242,7 @@ class AjaxRequestController extends Controller
             $batches->add(new importFormGoogleJob($googleToken, $syncHistory->id, $this->apiToken));
             $batchCount++;
             $extimetedTime += 30; // 30 sec take to process
+            // dummp
 
             // Update the batches count
             $syncHistory->batches = $batchCount;
@@ -279,11 +282,13 @@ class AjaxRequestController extends Controller
             $syncHistory->save();
 
             $batchCount = 0;
-            $batches = Bus::batch([])->name('Push To Google')->dispatch();
+            $batches = Bus::batch([
+                new pushToGoogleJob($googleToken, [], [],null, $this->apiToken),
+            ])->name('Push To Google')->dispatch();
 
             $createPages = 1;
             do {
-                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 200, "sync_status_c is null OR sync_status_c='Not Synced");
+                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 200, "sync_status_c is null OR sync_status_c='Not Synced' ");
                 $data = $res->data ?? [];
 
                 $batches->add(new pushToGoogleJob($googleToken, $data, [], $syncHistory->id, $this->apiToken));
@@ -291,7 +296,7 @@ class AjaxRequestController extends Controller
                 $createPages++;
                 $batchCount++;
                 $pendingToCreate = $res->meta->total ?? 0;
-                $extimetedTime += 15; // 15 sec take to process
+                $extimetedTime += ($pendingToCreate *5); // 15 sec take to process
 
             } while ($next);
             $updatePages = 1;
@@ -303,7 +308,7 @@ class AjaxRequestController extends Controller
                 $updatePages++;
                 $batchCount++;
                 $pendingToUpdate = $response->meta->total ?? 0;
-                $extimetedTime += 15; // 15 sec take to process
+                $extimetedTime += ($pendingToUpdate *5); // 15 sec take to process
 
             } while ($nextUpdate);
             $totalPending = ($pendingToUpdate + $pendingToCreate);
@@ -327,6 +332,7 @@ class AjaxRequestController extends Controller
             $syncHistory->pending = $totalPending;
             $syncHistory->extimetedTime = $extimetedTime;
             $syncHistory->save();
+
 
             session(['batch_id' => $batches->id]);
 
@@ -366,12 +372,14 @@ class AjaxRequestController extends Controller
             $newClientSyncHistoyRow = new clientContatSyncHistory();
             $newClientSyncHistoyRow->batches += 1;
             $newClientSyncHistoyRow->pending = $pendingChangesOnGoogle->totalPeople ?? 0;
-            $newClientSyncHistoyRow->extimetedTime = 30;
+            $newClientSyncHistoyRow->extimetedTime = (($pendingChangesOnGoogle->totalPeople ?? 0) * 5);;
             $newClientSyncHistoyRow->save();
 
             $batches = Bus::batch([
+                new pushToGoogleJob($googleToken, [], [],null, $this->apiToken),
                 new importFormGoogleJob($googleToken, $newClientSyncHistoyRow->id, $this->apiToken),
             ])->name('Import From Google')->dispatch();
+             $batches->add(new pushToGoogleJob($googleToken, [], [],null, $this->apiToken));
 
             session(['batch_id' => $batches->id]);
 
@@ -719,7 +727,8 @@ class AjaxRequestController extends Controller
     {
         try {
 
-            $response = (new CrmApiServices($this->apiToken))->getClietsList(1, 200,"sync_status_c = 'pending'");
+            $response = (new CrmApiServices($this->apiToken))->getClietsList(1, 20,"sync_status_c = 'synced'");
+            // $response = (new CrmApiServices($this->apiToken))->getClietsList(1, 200,"sync_status_c is null OR sync_status_c='Not Synced'");
             $resData = $response->data ?? [];
             $ids = [];
             foreach ($resData as $data) {
@@ -727,7 +736,7 @@ class AjaxRequestController extends Controller
             }
             foreach ($ids as $id) {
                 // $res = (new CrmApiServices($this->apiToken))->deleteFromCRM($id);
-                $res = (new CrmApiServices($this->apiToken))->updateSyncStatus($id,null,null,null);
+                $res = (new CrmApiServices($this->apiToken))->updateSyncStatus($id,null,null,null,null);
             }
 
             return response()->json([

@@ -124,6 +124,7 @@ class GoogleService
         //Set emails
         $emailAddresses = [];
         $emails = json_decode($contact->email_json ?? '[]', true);
+        $emails = $emails??[];
         foreach ($emails as $email) {
             if (!empty($email['email_address'])) {
                 $emailObj = new EmailAddress();
@@ -160,12 +161,12 @@ class GoogleService
         $person->setAddresses($addresses);
 
         //  Add comment to Notes (biography)
-        if (!empty($contact->comment)) {
-            $bio = new Biography();
-            $bio->setValue($contact->comment);
-            $bio->setContentType('TEXT_PLAIN');
-            $person->setBiographies([$bio]);
-        }
+        // if (!empty($contact->comment)) {
+        //     $bio = new Biography();
+        //     $bio->setValue($contact->comment);
+        //     $bio->setContentType('TEXT_PLAIN');
+        //     $person->setBiographies([$bio]);
+        // }
 
         //  Set userDefined fields
         $userDefinedFields = [];

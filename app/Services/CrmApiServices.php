@@ -109,7 +109,7 @@ class CrmApiServices
         return $payload;
     }
 
-    public function updateSyncStatus($id,$resourceName,$etag,$status) {
+    public function updateSyncStatus($id,$resourceName,$etag,$status,$lastSync=null) {
         $payload = [
             "rest_data"=> [
                 "module_name"=> "Contact",
@@ -117,7 +117,7 @@ class CrmApiServices
                 "name_value_list"=> [
                     "etag_c"=>$etag,
                     "resource_name_c"=>$resourceName,
-                    "last_sync_c"=>Carbon::now(),
+                    "last_sync_c"=>$lastSync??Carbon::now(),
                     "sync_status_c"=>$status
                 ]
             ]
