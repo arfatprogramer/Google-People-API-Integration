@@ -78,7 +78,7 @@ class SyncContactsDataTable extends DataTable
                 if ($row['syncStatus']=='Synced') {
 
                     $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-green-50 text-green-700' data-v0-t='badge'>".$row['syncStatus']."</div>";
-                }elseif ($row['syncStatus']=='Pending'){
+                }elseif ($row['syncStatus']=='Pending ' || $row['syncStatus']=='pending'){
 
                     $data= "<div class='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1 bg-yellow-50 text-yellow-700' data-v0-t='badge'>".$row['syncStatus']."</div>";
                 }elseif($row['syncStatus']=='Deleted'){

@@ -137,6 +137,7 @@ class GoogleService
         //  Set phones
         $phoneNumbers = [];
         $phones = json_decode($contact->phone_json ?? '[]', true);
+        $phones =$phones??[];
         foreach ($phones as $phone) {
             if (!empty($phone['phone_number'])) {
                 $phoneObj = new PhoneNumber();
@@ -149,6 +150,7 @@ class GoogleService
         //  Set addresses
         $addresses = [];
         $addressData = json_decode($contact->address_json ?? '[]', true);
+        $addressData=$addressData??[];
         foreach ($addressData as $addr) {
             $address = new Address();
             $address->setStreetAddress($addr['street'] ?? '');

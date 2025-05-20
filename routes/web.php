@@ -27,7 +27,6 @@ Route::post('/logout',[CRMLoginController::class,'logout'])->name('logout');
 
 Route::post('/create',[clientController::class, 'create'])->name('client.create');
 Route::get('/create',[clientController::class, 'createForm'])->name('client.createForm');
-Route::get('/list',[clientController::class, 'show'])->name('client.list');
 Route::get('/edit/{id}',[clientController::class, 'editContact'])->name('client.edit');
 Route::put('/ContactUpdate',[clientController::class, 'UpdateFormContact'])->name('client.ContactUpdate');
 //soft-delete---or-----google--delete---contact----------
@@ -75,7 +74,7 @@ Route::get('/test',function(){
            $googleToken= GoogleAuth::orderBy('id', 'desc')->get()->first();
 
             $googleContacts = (new GoogleService())->getContacts($googleToken, $pageSize, $personFields);
-
+            return response()->json($googleContacts);
             foreach($googleContacts->connections as $data){
 
                 // dump($data->birthdays[0]->date??'');

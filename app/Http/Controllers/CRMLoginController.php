@@ -20,6 +20,10 @@ class CRMLoginController extends Controller
     }
     public function login(Request $request)
     {
+        //  session([
+        //         'crm_token' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiNTdhNjEzOWVhYWI0OGFmMzQzMjU4OWM2MTYwY2EwNTZhZGEyYWU0MDk2ODliY2NhZmNmMzJjNWJiZTkyOTlkZjA5NmUwNGU0ZjBkZmM1NTciLCJpYXQiOjE3NDcwMjY5NjcuNDY5Njc2LCJuYmYiOjE3NDcwMjY5NjcuNDY5NjgsImV4cCI6MTc3ODU2Mjk2Ny40NjMzMjgsInN1YiI6IjUwNjVjMGE4LWVkMzUtNDg3Ni1iY2I3LTBjYjAxZWIzNGY3YyIsInNjb3BlcyI6W119.AB8YK6x7BlUWJIoT6dHv0mnLJWsSkepGfW81ksXpCIQLjqyIJalIM046QX-Qg8pTSCf3d0u0H0cfTtnju84lvyKfr_Hqe9VhFaXzAMEn7a76FT5m9n4ci5-9cXEuThw-OOw1HNGkPQHIUdoBPVFXPYnhBgjuaM5cwUAJNOEz-H1mi-FDy96iGKf9V7QGFzyGBP2c7o9vU0JP8xdson7btlWpIDkmIgLGsmjGuGTD0ppvGzBWtkRT2KQgjuyKX74p7VyzJ19zGZPh6SlNn8Hq-ZqmhZk2B6kaaEZOuPbEpXeRVS3aQ_GkyxnKbv_JePykf6DGN2TI9GVH6ztM48e-hsQ',
+        //         // 'crm_user' => $data['data']['name'],
+        //     ]);
         $request->validate([
             'user_name' => 'required|string',
             'password' => 'required|string',
@@ -32,6 +36,7 @@ class CRMLoginController extends Controller
                 'crm_token' => $data['data']['token'],
                 'crm_user' => $data['data']['name'],
             ]);
+
             return response()->json(['status' => true, 'message' => 'Login successful', 'data' => $data]);
         }
 
@@ -39,6 +44,7 @@ class CRMLoginController extends Controller
             'status' => false,
             'message' => $data['message'] ?? 'Login failed'
         ], 401);
+        return;
     }
 
     public function logout(){
