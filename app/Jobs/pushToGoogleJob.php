@@ -22,18 +22,18 @@ class pushToGoogleJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $ceateDataList;
+    protected $createDataList;
     protected $GoogleToken;
     protected $updateIdDataList;
-    protected $clientSyncHistoyEmptyRowId;
+    protected $syncHistoryEmptyRowId;
     protected $apiToken;
 
-    public function __construct($GoogleToken, $ceateIdDataList=[],$updateDataList=[],$clientSyncHistoyEmptyRowId=null,$apiToken)
+    public function __construct($GoogleToken, $createDataList=[],$updateDataList=[],$syncHistoryEmptyRowId=null,$apiToken)
     {
         $this->GoogleToken = $GoogleToken;
-        $this->ceateDataList = $ceateIdDataList;
+        $this->createDataList = $createDataList;
         $this->updateIdDataList = $updateDataList;
-        $this->clientSyncHistoyEmptyRowId = $clientSyncHistoyEmptyRowId;
+        $this->syncHistoryEmptyRowId = $syncHistoryEmptyRowId;
         $this->apiToken=$apiToken;
 
     }
@@ -41,10 +41,10 @@ class pushToGoogleJob implements ShouldQueue
     public function handle()
     {
         sleep(5);
-        $syncHistory = clientContatSyncHistory::find($this->clientSyncHistoyEmptyRowId);
+        $syncHistory = clientContatSyncHistory::find($this->syncHistoryEmptyRowId);
 
         if (!$syncHistory) {
-            Log::error("Sync history record not found: ID {$this->clientSyncHistoyEmptyRowId}");
+            Log::error("Sync history record not found: ID {$this->syncHistoryEmptyRowId}");
             return;
         }
 
@@ -56,8 +56,8 @@ class pushToGoogleJob implements ShouldQueue
         $peopleService = new PeopleService($client);
 
         // === BATCH CREATE ===
-        if (!empty($this->ceateDataList)) {
-            $contacts = $this->ceateDataList;
+        if (!empty($this->createDataList)) {
+            $contacts = $this->createDataList;
             $requests = [];
             $contactId = [];
             foreach ($contacts as $index => $contact) {

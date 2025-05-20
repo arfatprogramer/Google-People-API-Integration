@@ -47,7 +47,7 @@
                 <div class="w-8 h-8  bg-purple-500 text-white rounded-full flex items-center justify-center font-semibold border-2 p-1">MA</div>
                 <span class=" font-sm ">{{session('crm_user')}}</span>
             </div> --}}
-            
+
 
 <div x-data="{ open: false }" class="relative">
     <div @click="open = !open" class="flex items-center space-x-4 border-l px-4 cursor-pointer">
@@ -80,12 +80,12 @@
 
         </div>
     </nav>
- 
+
     <div class="flex h-[calc(100vh-75px)] relative shadow-lg">
         <!-- Sidebar -->
         <aside class=" w-12 bg-white border-r border-gray-300  shadow-lg absolute h-full overflow-hidden hover:w-fit z-50">
 
-                            <a class="flex items-center  hover:bg-gray-200" href="{{route('client.list')}}">
+                            <a class="flex items-center  hover:bg-gray-200" href="#">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-red-500 flex items-center justify-center text-white m-2">C</span>
                                 <span class="pr-4">Clients</span>
                             </a>
@@ -95,17 +95,17 @@
                                 <span class="pr-4">Create</span>
                             </a>
 
-                            <a class="flex items-center hover:bg-gray-200" href="{{route('client.list')}}">
+                            <a class="flex items-center hover:bg-gray-200" href="#">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-green-500 flex items-center justify-center text-white m-2">FO</span>
                                 <span class="pr-4">Organization</span>
                             </a>
 
-                            <a class="flex items-center hover:bg-gray-200" href="{{route('client.list')}}">
+                            <a class="flex items-center hover:bg-gray-200" href="#">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-pink-500 flex items-center justify-center text-white m-2">R</span>
                                 <span class="pr-4">Reports</span>
                             </a>
 
-                            <a class="flex items-center hover:bg-gray-200" href="{{route('client.list')}}">
+                            <a class="flex items-center hover:bg-gray-200" href="#">
                                 <span class="shrink-0 h-8 w-8 rounded-full border-amber-50 bg-yellow-500 flex items-center justify-center text-white m-2">L</span>
                                 <span class="pr-4">Lead</span>
                             </a>

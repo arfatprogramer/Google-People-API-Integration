@@ -13,27 +13,19 @@ use App\Services\GoogleService;
 use Google\Service\PeopleService;
 
 Route::get('crm/login',[CRMLoginController::class,'ViewcrmLogin'])->name('login');
-
 Route::post('/crmlogin',[CRMLoginController::class,'login']);
-
 
 //--login---auth--miggleware--route
 Route::middleware(loginAuthMiddleware::class)->group(function(){
 //logout--route----
 Route::post('/logout',[CRMLoginController::class,'logout'])->name('logout');
-// Route::get('/', function () {
-//     return view('ajax.index');
-// });
 
-Route::post('/create',[clientController::class, 'create'])->name('client.create');
 Route::get('/create',[clientController::class, 'createForm'])->name('client.createForm');
+Route::post('/create',[clientController::class, 'create'])->name('client.create');
 Route::get('/edit/{id}',[clientController::class, 'editContact'])->name('client.edit');
 Route::put('/ContactUpdate',[clientController::class, 'UpdateFormContact'])->name('client.ContactUpdate');
-//soft-delete---or-----google--delete---contact----------
-Route::post('/contacts/soft-delete',[AjaxRequestController::class, 'softDeletOrGoogleContact'])->name('client.softDelete');
 
-
-
+// for google SignUp
 Route::get('google/redirect',[AjaxRequestController::class, 'redirectToGoogle'])->name('client.redirect');
 Route::get('google/sync/callback',[AjaxRequestController::class, 'handleGoogleCallback'])->name('client.callback');
 
@@ -53,7 +45,7 @@ Route::get('sync-history-data', [clietsSyncedHistoryDataTable::class, 'ajax'])->
 Route::get('sync-contacts-data', [SyncContactsDataTable::class, 'ajax'])->name('sync.contacts.data');
 
 
-Route::get('getClinetSyncHistory',[AjaxRequestController::class,'getClinetSyncHistory'])->name('ajax.getClinetSyncHistory');
+// Route::get('getClinetSyncHistory',[AjaxRequestController::class,'getClinetSyncHistory'])->name('ajax.getClinetSyncHistory');
 Route::get('/crm/delete',[AjaxRequestController::class,'deleteDataFromCRm'])->name('ajax.deleteDataFromCRm');
 
 }); //login middleware end

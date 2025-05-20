@@ -2,23 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\client;
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Carbon;
 use App\Services\CrmApiServices;
-use Illuminate\Support\Facades\Log;
-use Yajra\DataTables\Facades\DataTables;
 
 
 class clientController extends Controller
 {
-
-    function __construct()
-    {
-        Log::info('Client controller Constructor Method: ' . (memory_get_usage(true) / 1024 / 1024) . " MB");
-    }
-
 
     function createForm()
     {
@@ -194,7 +184,7 @@ class clientController extends Controller
                     "hiddenPhone" => $phone_json,
                     "hiddenEmail" => $email_json,
                     "hiddenAddress" => $address,
-                    "sync_status_c" => $request->sync_status_c === 'Synced' ? 'Pending' : ($request->sync_status_c ?? 'Not Synced'),
+                    "sync_status_c" => $request->sync_status_c === 'Synced' ? 'pending' : ($request->sync_status_c ?? 'Not Synced'),
                     "birth_date" => $request->birth_date,
                     "occupation_c" => $request->occupation_c,
                     "adhaar_card_c" => $request->adhaar_card_c,
@@ -210,9 +200,9 @@ class clientController extends Controller
                     "anniversary" => $request->anniversary,
                     "protfolio_no_c" => $request->protfolio_no_c,
                     "gender_c" => $request->gender_c,
-                    "hierarchy" => "03",
-                    "assigned_user_id" => "",
-                    "teamsSet" => "1"
+                    // "hierarchy" => "03",
+                    // "assigned_user_id" => "",
+                    // "teamsSet" => "1"
                 ]
             ]
         ];
