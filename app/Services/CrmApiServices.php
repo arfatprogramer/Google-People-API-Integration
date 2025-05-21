@@ -2,21 +2,19 @@
 
 namespace App\Services;
 
-use App\Models\Client;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Session;
-
 
 class CrmApiServices
 {
-    protected string $baseUrl = 'https://uat.sanchaycrm.com/api';
+    protected string $baseUrl;
     protected string  $token='';
 
      public function __construct($token=''){
         $this->token= $token;
+        $this->baseUrl = env('SANCHAY_CRM_URL') . '/api';
      }
 
     public function login($username, $password)
@@ -117,7 +115,7 @@ class CrmApiServices
                 "name_value_list"=> [
                     "etag_c"=>$etag,
                     "resource_name_c"=>$resourceName,
-                    "last_sync_c"=>$lastSync??Carbon::now(),
+                    "last_sync_c"=>$lastSync==null? (null):(Carbon::now()),
                     "sync_status_c"=>$status
                 ]
             ]

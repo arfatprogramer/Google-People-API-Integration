@@ -4,6 +4,10 @@ $(function () {
     let isProcessingSync = false;
 
     SyncStatus();
+    setInterval(() => {
+        refresh();
+        console.log("auto Refresh Is Runnig in Refresh Function every 30seconds");
+    }, 30000);
 
     $.ajaxSetup({
         headers: {
@@ -150,6 +154,7 @@ $(function () {
             error: function (error) {
                 console.log(error);
 
+
             }
         })
     });
@@ -184,10 +189,10 @@ $(function () {
                     $('#lastSyncChangesDeteted').text(result?.data?.lastSyncChangesDeteted);
 
                     loader(); // hide Loder
-                    setTimeout(() => {
-                        refresh();
-                        console.log("auto Refresh Is Runnig in Refresh Function every 30seconds");
-                    }, 30000);
+                    // setTimeout(() => {
+                    //     refresh();
+                    //     console.log("auto Refresh Is Runnig in Refresh Function every 30seconds");
+                    // }, 30000);
                 }
             },
             error: function (error) {
@@ -358,6 +363,7 @@ $(function () {
                     if (response.error) {
                         console.log("Error fetching sync status:");
                         clearInterval(interval);
+                        loader();
                         $("#pushToGoogle").prop("disabled", false);
                         $("#importFromGoogle").prop("disabled", false);
                         $(".syncNow").prop("disabled", false);
@@ -366,8 +372,12 @@ $(function () {
                 },
                 error: function (error) {
                     console.log("Error fetching sync status:", error);
+                     loader();
                     clearInterval(interval);
-                    SyncButtonEnableDisAble(true)
+                     $("#pushToGoogle").prop("disabled", false);
+                        $("#importFromGoogle").prop("disabled", false);
+                        $(".syncNow").prop("disabled", false);
+                    // SyncButtonEnableDisAble(false)
                 },
             });
         }, 4000);

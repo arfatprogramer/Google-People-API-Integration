@@ -32,6 +32,7 @@ class CRMLoginController extends Controller
                 'crm_token' => $data['data']['token'],
                 'crm_user' => $data['data']['name'],
             ]);
+
             return response()->json(['status' => true, 'message' => 'Login successful', 'data' => $data]);
         }
 
@@ -39,6 +40,7 @@ class CRMLoginController extends Controller
             'status' => false,
             'message' => $data['message'] ?? 'Login failed'
         ], 401);
+        return;
     }
 
     public function logout(){
