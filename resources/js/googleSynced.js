@@ -1,7 +1,12 @@
+import $ from 'jquery';
+import './bootstrap';
+import toastr from 'toastr';
+window.toastr = toastr;
+window.$ = window.jQuery = $;
 
 $(function () {
     const synccontacts = $('#synccontacts-table').DataTable();
-    let isProcessingSync = false;
+    const syncContactsHistory = $('#clietssyncedhistory-table').DataTable();
 
     SyncStatus();
     setInterval(() => {
@@ -19,6 +24,11 @@ $(function () {
     // syncContacts table  Buttons
     $('#synccontacts-reload').on('click', function () {
         synccontacts.ajax.reload(null, false); // Reloads data without resetting pagination
+    });
+
+     // syncContacts table  Buttons
+    $('#reload-Hystory-table').on('click', function () {
+        syncContactsHistory.ajax.reload(null, false); // Reloads data without resetting pagination
     });
 
     // this function update data to google single
@@ -39,7 +49,6 @@ $(function () {
                     deletedReSync: DeletedConfirmation,
                 },
                 success: function (response) {
-                    console.log(response);
                     if (response.status) {
                         toastr.success(response.message);
                         setTimeout(() => {
@@ -116,19 +125,17 @@ $(function () {
 
     // for Refreh data
     $("#refresh").click(function () {
-        console.log("Refresh Button was Clicked");
+
         refresh()
         loader(true);
     });
 
 
     $("#pushToGoogle").click(function () {
-        console.log("pushToGoogle Button was Clicked");
         pushToGoogle()
     });
 
     $("#importFromGoogle").click(function () {
-        console.log("importFromGoogle Button was Clicked");
 
         importFromGoogle();
 
@@ -147,7 +154,7 @@ $(function () {
             success: function (response) {
                 if (response.status) {
                     toastr.success(response.message);
-                    console.log(response);
+
                 }
 
             },
@@ -168,7 +175,7 @@ $(function () {
             url: "/refreshUrl",
             // method:'post',
             success: function (result) {
-                console.log(result);
+
                 if (result.status) {
                     $("#refresh").attr('disabled', false);
                     $('#contactsInCrm').text(result?.data?.crm);
@@ -206,7 +213,7 @@ $(function () {
          $("#pushToGoogle").prop("disabled", true);
         $("#importFromGoogle").prop("disabled", true);
         $(".syncNow").prop("disabled", true);
-        console.log("pushToGoogle Started");
+
         $.ajax({
             url: 'pushToGoogle',
             method: 'get',
@@ -229,7 +236,7 @@ $(function () {
          $("#pushToGoogle").prop("disabled", true);
         $("#importFromGoogle").prop("disabled", true);
         $(".syncNow").prop("disabled", true);
-        console.log("importFromGoogle Started");
+
         $.ajax({
             url: 'importFromGoogle',
             method: 'get',
@@ -253,7 +260,7 @@ $(function () {
          $("#pushToGoogle").prop("disabled", true);
         $("#importFromGoogle").prop("disabled", true);
         $(".syncNow").prop("disabled", true);
-        console.log("SynNow Started");
+
         $.ajax({
             url: 'synNow',
             method: 'get',
@@ -285,7 +292,7 @@ $(function () {
 
         // Set interval to fetch status
         const interval = setInterval(async () => {
-            console.log("Progress Bar Running");
+
 
             $.ajax({
                 url: "syncStatus",
@@ -296,7 +303,7 @@ $(function () {
                         let processing = response.data?.processing;
                         let width = response.data.progress;
                         let extimatedTime = response.data.extimetedTime;
-                        console.log(processing);
+
                         loader();
 
                         // Animate the progress bar width with CSS transition
@@ -338,7 +345,7 @@ $(function () {
                             $('#cancelProcessing').attr('hidden', true)
 
                             let lastSynced = response.data.lastSync?.created_at ?? null;
-                            console.log(lastSynced);
+                           
 
                             if (lastSynced == null) {
                                 $("#processBarText").text("Never Syned");

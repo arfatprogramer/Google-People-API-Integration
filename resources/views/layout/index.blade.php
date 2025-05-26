@@ -7,10 +7,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @vite([ 'resources/css/app.css', 'resources/js/app.js'])
-
     <link rel="stylesheet" href="{{ asset('asset/dataTableCss.css') }}">
-    <!-- <script  src="asset/jquery.js"></script> -->
-    <script src="asset/toastr.js"></script>
+    <link rel="stylesheet" href="{{ asset('asset/toaster.css') }}">
+
     <title>CRM</title>
 </head>
 
@@ -109,44 +108,6 @@
     </footer>
 
     @stack('scripts')
-
-    <!-- <script>
-
-        toastr.info('Are you the 6 fingered man?')
-
-        toastr.options = {
-            "positionClass": "toast-top-center",
-            "closeButton": true,
-            "progressBar": true,
-            "timeOut": "4000",
-            "showDuration": "300",
-            "hideDuration": "1000",
-            "extendedTimeOut": "1000",
-            "showEasing": "swing",
-            "hideEasing": "linear",
-            "showMethod": "fadeIn",
-            "hideMethod": "fadeOut"
-        };
-
-        function showToastr(type, message) {
-
-            if (type === 'success') toastr.success(message);
-            if (type === 'error') toastr.error(message);
-            if (type === 'warning') toastr.warning(message);
-            if (type === 'info') toastr.info(message);
-        }
-
-        // @if(session('success'))
-        //     showToastr('success', @json(session('success')));
-        // @elseif(session('error'))
-        //     showToastr('error', @json(session('error')));
-        // @elseif(session('warning'))
-        //     showToastr('warning', @json(session('warning')));
-        // @elseif(session('info'))
-        //     showToastr('info', @json(session('info')));
-        // @endif
-    </script> -->
-
 
 </body>
 

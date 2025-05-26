@@ -1,11 +1,14 @@
-import jQuery from 'jquery';
-window.$ = jQuery;
-
-// Import our custom CSS
-import './bootstrap'
+import 'bootstrap'; // if using Bootstrap JS
+import 'datatables.net';
+import 'datatables.net-bs5';
 
 
+import toastr from 'toastr';
+import Alpine from 'alpinejs';
 
-// Import all of Bootstrap’s JS
-// import * as bootstrap from 'bootstrap'
+window.toastr = toastr;
+window.Alpine = Alpine;
+Alpine.start();
 
+// Import your custom script
+import './googleSynced.js';
