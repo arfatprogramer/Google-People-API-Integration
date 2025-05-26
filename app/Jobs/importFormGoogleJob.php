@@ -23,9 +23,7 @@ class importFormGoogleJob implements ShouldQueue
     protected $GoogleResourceName = [];
     protected $apiToken;
     protected $data;
-    /**
-     * Create a new job instance.
-     */
+
     public function __construct($data, $id, $apiToken)
     {
         $this->id = $id;

@@ -1,82 +1,5 @@
 @extends('layout.index')
 
-@push('styles')
-<style>
-    .dt-length {
-        padding: 10px 20px;
-    }
-
-    th {
-        background-color: #d0d0d0;
-        font-weight: 400;
-    }
-
-    tr {
-        border-bottom: 1px solid gray;
-    }
-
-    .rowHoverClass:hover {
-        background-color: #e2e2e2;
-    }
-
-    .pagination {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .first,
-    .last {
-        display: none;
-        border: none;
-    }
-
-    .active {
-        color: blue;
-        font-weight: 500;
-    }
-
-    .next,
-    .previous {
-        border: 1px solid black;
-        border-radius: 5px;
-        padding: 7px 15px;
-        font-weight: 500;
-    }
-
-    .disabled {
-        color: gray;
-
-    }
-
-    .dt-search {
-        width: 100%;
-    }
-
-    .dt-search input {
-        width: 100%;
-        border: 1px solid black;
-        border-radius: 10px;
-        padding: 7px 12px 7px 31px;
-    }
-
-
-    @keyframes spin {
-        from {
-            transform: rotate(0deg);
-        }
-
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    div.dataTables_filter {
-        display: none;
-    }
-</style>
-@endpush
-
 @section('container')
 
 <div id="loader" class="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50">
@@ -152,7 +75,7 @@
                 <div class="cancileBtn flex justify-between">
                     <div>
                         <div id="processPersentage" class="text-2xl font-bold">100%</div>
-                        <p id="processBarText" class="text-xs text-muted-foreground"></p>
+                        <p id="processBarText" class="text-xs text-muted-foreground">Status</p>
                     </div>
                     <button hidden type="button" id="cancelProcessing"
                         class="bg-red-500 rounded-md px-3 h-8 text-white border-white shadow-md border hover:bg-red-600 hover:border-gray-700 hover:font-semibold">Cancel</button>
@@ -617,10 +540,5 @@
 @push('scripts')
     {!! $contactsTable->scripts() !!}
     {!! $historyTable->scripts() !!}
-    @vite(['resources/js/app.js'])
     @vite(['resources/js/googleSynced.js'])
 @endpush
-
-@section('script')
-<!-- can youwrite Some Scripts Here -->
-@endsection

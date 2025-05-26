@@ -140,6 +140,7 @@ class pushToGoogleJob implements ShouldQueue
                 } catch (\Exception $e) {
 
                     $message=json_decode($e->getMessage());
+                    dump($message);
                     $Resoucres=$message->error->details[0]->fieldViolations[0]->field;
                     $resourceName = Str::between($Resoucres, 'contacts[', ']');
                     if (!empty($resourceName)) {

@@ -1,4 +1,4 @@
-/* Hover effect on entire row */
+Hover effect on entire row
 table.dataTable tbody tr:hover {
     background-color: #f1f5f9; /* light gray-blue */
     transition: background-color 0.3s ease;
@@ -23,6 +23,85 @@ table.dataTable tbody tr:hover td {
  text-align: center !important;
  justify-content: end;
  background-color: blue;
+    }
+
+
+    /* Custom css for data table*/
+
+    .dt-length {
+        padding: 10px 20px;
+    }
+
+    th {
+        background-color: #d0d0d0;
+        font-weight: 400;
+    }
+
+    tr {
+        border-bottom: 1px solid gray;
+    }
+    th{
+        font-weight: 600;
+    }
+
+    .rowHoverClass:hover {
+        background-color: #e2e2e2;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .first,
+    .last {
+        display: none;
+        border: none;
+    }
+
+    .active {
+        color: blue;
+        font-weight: 500;
+    }
+
+    .next,
+    .previous {
+        border: 1px solid black;
+        border-radius: 5px;
+        padding: 7px 15px;
+        font-weight: 500;
+    }
+
+    .disabled {
+        color: gray;
+
+    }
+
+    .dt-search {
+        width: 100%;
+    }
+
+    .dt-search input {
+        width: 100%;
+        border: 1px solid black;
+        border-radius: 10px;
+        padding: 7px 12px 7px 31px;
+    }
+
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    div.dataTables_filter {
+        display: none;
     }
 
 

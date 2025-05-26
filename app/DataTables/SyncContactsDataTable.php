@@ -5,6 +5,7 @@ namespace App\DataTables;
 use App\Models\clientContatSyncHistory;
 use App\Services\CrmApiServices;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
+use Illuminate\Support\Facades\Cache;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
 use Yajra\DataTables\Html\Button;
@@ -27,23 +28,27 @@ class SyncContactsDataTable extends DataTable
         // // Optionally get search keyword from the request (if any)
         // $search = request()->get('search', '');
 
-         $res = (new CrmApiServices(session('crm_token')))->getContacts();
-            $datas=$res['data']??[];
-            // $totalCount = $res['total_count'];
-            $contacts=[];
-            foreach($datas as $data){
-                $tempData=[];
-                $tempData['id']=$data['id'];
-                $tempData['firstName']=$data['name'];
-                $tempData['number']=$data['phone_primary'];
-                $tempData['email']=$data['email_primary'];
-                $tempData['syncStatus']=$data['sync_status_c'];
-                $tempData['lastSync']=$data['last_sync_c'];
-                $tempData['updated_at']=$data['updated_at'];
-                $contacts[]=$tempData;
-            }
+    //   $contacts = Cache::rememberForever('clients',10, function () {
+            $res = (new CrmApiServices(session('crm_token')))->getContacts();
+            $datas = $res['data'] ?? [];
 
-        return (new CollectionDataTable(collect($contacts)))
+            $transformedContacts = [];
+            foreach ($datas as $data) {
+                $tempData = [];
+                $tempData['id'] = $data['id'];
+                $tempData['firstName'] = $data['name'];
+                $tempData['number'] = $data['phone_primary'];
+                $tempData['email'] = $data['email_primary'];
+                $tempData['syncStatus'] = $data['sync_status_c'];
+                $tempData['lastSync'] = $data['last_sync_c'];
+                $tempData['updated_at'] = $data['updated_at'];
+                $transformedContacts[] = $tempData;
+            }
+            // return $transformedContacts;
+        // });
+
+        // return (new CollectionDataTable(collect($contacts)))
+        return (new CollectionDataTable(collect($transformedContacts)))
             // ->addIndexColumn()
             // ->filterColumn('syncStatus', function($query, $keyword) {
             //     $query->where('syncStatus', 'like', "%{$keyword}%");

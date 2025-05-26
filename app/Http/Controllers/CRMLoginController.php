@@ -24,7 +24,9 @@ class CRMLoginController extends Controller
             'user_name' => 'required|string',
             'password' => 'required|string',
         ]);
-
+        $token=env('SANCHAY_CRM_LOGIN_TOKEN');
+        // dd($token);
+        session(["crm_token"=>$token]);
         $data = $this->crm->login($request->user_name, $request->password);
 
         if ($data && isset($data['status']) && $data['status'] === 200 && isset($data['data']['token'])) {
