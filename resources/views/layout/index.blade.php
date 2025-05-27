@@ -108,6 +108,7 @@
     </footer>
 
     @stack('scripts')
+    @stack('script')
 
 </body>
 

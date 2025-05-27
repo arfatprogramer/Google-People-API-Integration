@@ -5,6 +5,7 @@ namespace App\DataTables;
 use App\Models\clientContatSyncHistory;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
 use Yajra\DataTables\Html\Button;
@@ -49,6 +50,7 @@ class clietsSyncedHistoryDataTable extends DataTable
      */
     public function query(clientContatSyncHistory $model): QueryBuilder
     {
+
         return $model->orderBy('created_at','desc')->newQuery();
     }
 

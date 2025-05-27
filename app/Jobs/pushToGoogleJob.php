@@ -97,6 +97,7 @@ class pushToGoogleJob implements ShouldQueue
                     }
                 } catch (\Exception $e) {
                     $message=json_decode($e->getMessage());
+                    dump($message);
                     $errorCode=$message->error->code;
                     if ($errorCode==429) {
                         $syncHistory->error +=count($contactId);

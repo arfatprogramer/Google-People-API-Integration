@@ -28,7 +28,7 @@ class SyncContactsDataTable extends DataTable
         // // Optionally get search keyword from the request (if any)
         // $search = request()->get('search', '');
 
-    //   $contacts = Cache::rememberForever('clients',10, function () {
+      $contacts = Cache::rememberForever('clients', function () {
             $res = (new CrmApiServices(session('crm_token')))->getContacts();
             $datas = $res['data'] ?? [];
 
@@ -44,11 +44,11 @@ class SyncContactsDataTable extends DataTable
                 $tempData['updated_at'] = $data['updated_at'];
                 $transformedContacts[] = $tempData;
             }
-            // return $transformedContacts;
-        // });
+            return $transformedContacts;
+        });
 
-        // return (new CollectionDataTable(collect($contacts)))
-        return (new CollectionDataTable(collect($transformedContacts)))
+        return (new CollectionDataTable(collect($contacts)))
+        // return (new CollectionDataTable(collect($transformedContacts)))
             // ->addIndexColumn()
             // ->filterColumn('syncStatus', function($query, $keyword) {
             //     $query->where('syncStatus', 'like', "%{$keyword}%");

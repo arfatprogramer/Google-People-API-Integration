@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\clientContatSyncHistory;
 use App\DataTables\SyncContactsDataTable;
 use App\DataTables\clietsSyncedHistoryDataTable;
+use Illuminate\Support\Facades\Cache;
 
 class AjaxRequestController extends Controller
 {
@@ -60,26 +61,59 @@ class AjaxRequestController extends Controller
     public function refreshReq()
     {
         try {
+            $res = (new CrmApiServices(session('crm_token')))->getClietsList(1, 1, "sync_status_c='Pending' OR sync_status_c is null OR sync_status_c='Not Synced'");
+            $pending = $res->meta->total ?? 0;
+
+            $pending_value_in_cahce = Cache::get("crm_total_pending");
+            if ($pending != $pending_value_in_cahce) {
+                Cache::forget('crm_total_pending');
+                Cache::forget('crm_total_clients');
+                Cache::forget('crm_total_synced');
+                Cache::forget('clients');
+            }
+            $pendingChangesOnCRM = Cache::rememberForever('crm_total_pending', function () use ($pending) {
+                return $pending;
+            });
+
 
             $lastSync = $this->clientContactSyncHistoryTable::orderBy('created_at', 'desc')->first();
             $lastSyncChangesDeteted = ($lastSync->createdAtGoogle ?? 0) + ($lastSync->updatedAtGoogle ?? 0) + ($lastSync->created ?? 0) + ($lastSync->updated ?? 0) + ($lastSync->deleted ?? 0);
 
             $nextSynToken = clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
-            $TotalcontactInGoogle = (new GoogleService())->getContacts($this->googleToken, 10, ['names']);
-            $pendingChangesOnGoogle = (new GoogleService())->getContacts($this->googleToken, 10, ['names'], null, $nextSynToken->synToken ?? null);
-            // dd($TotalcontactInGoogle);
 
-            $res = (new CrmApiServices(session('crm_token')))->getContacts();
-            $crmTotalClient = $res['meta']['total'] ?? 0;
+            $pending = (new GoogleService())->getContacts($this->googleToken, 10, ['names'], null, $nextSynToken->synToken ?? null);
+            $pending = $pending->totalPeople ?? 0;
+            $pending_on_google = cache()->get('pending_on_google');
+            if ($pending != $pending_on_google) {
+                Cache::forget('pending_on_google');
+                Cache::forget('total_contacts_on_google');
+                 Cache::forget('crm_total_pending');
+                Cache::forget('crm_total_clients');
+                Cache::forget('crm_total_synced');
+                Cache::forget('clients');
+            }
+            $pendingChangesOnGoogle = Cache::rememberForever("pending_on_google", function () use ($pending) {
+                return $pending;
+            });
 
-            $res = (new CrmApiServices(session('crm_token')))->getClietsList(1, 1, "sync_status_c= 'Synced'");
-            $crmTotalClientSynced = $res->meta->total ?? 0;
-            $res = (new CrmApiServices(session('crm_token')))->getClietsList(1, 1, "sync_status_c='Pending' OR sync_status_c is null OR sync_status_c='Not Synced'");
-            $pendingChangesOnCRM = $res->meta->total ?? 0;
+
+            $TotalcontactInGoogle = Cache::rememberForever("total_contacts_on_google", function () {
+                $TotalcontactInGoogle = (new GoogleService())->getContacts($this->googleToken, 10, ['names']);
+                return  $TotalcontactInGoogle->totalPeople ?? 0;
+            });
 
 
-            $TotalcontactInGoogle = $TotalcontactInGoogle->totalPeople ?? 0;
-            $pendingChangesOnGoogle = $pendingChangesOnGoogle->totalPeople ?? 0;
+            $crmTotalClient = Cache::rememberForever('crm_total_clients', function () {
+                $res = (new CrmApiServices(session('crm_token')))->getContacts();
+                return $res['meta']['total'] ?? 0;
+            });
+            $crmTotalClientSynced = Cache::rememberForever('crm_total_synced', function () {
+                $res = (new CrmApiServices(session('crm_token')))->getClietsList(1, 1, "sync_status_c= 'Synced'");
+                return $res->meta->total ?? 0;
+            });
+
+
+
             $remanigToImportFromGoogle = ($TotalcontactInGoogle - $crmTotalClient) > 0 ? ($TotalcontactInGoogle - $crmTotalClient) : (0);
 
             $data = [
@@ -125,19 +159,19 @@ class AjaxRequestController extends Controller
 
             $createPages = 1;
             do {
-                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 100, "sync_status_c is null OR sync_status_c='Not Synced'");
+                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 20, "sync_status_c is null OR sync_status_c = 'not synced'");
                 $createData = $res->data ?? [];
                 $pendingToCreate = $res->meta->total ?? 0;
                 $next = isset($res->links->next);
 
-                 if (count($createData)==0) {
+                if (count($createData) == 0) {
                     continue;
                 }
+
 
                 $batches->add(new pushToGoogleJob($this->googleToken, [], [], $syncHistory->id, $this->apiToken));
                 $batches->add(new pushToGoogleJob($this->googleToken, $createData, [], $syncHistory->id, $this->apiToken));
                 $createPages++;
-
             } while ($next);
             $updatePages = 1;
             do {
@@ -145,40 +179,39 @@ class AjaxRequestController extends Controller
                 $updatedData = $response->data ?? [];
                 $nextUpdate = isset($response->links->next);
                 $pendingToUpdate = $response->meta->total ?? 0;
-                if (count($updatedData)==0) {
+                if (count($updatedData) == 0) {
                     continue;
                 }
                 $batches->add(new pushToGoogleJob($this->googleToken, [], $updatedData, $syncHistory->id, $this->apiToken));
                 $updatePages++;
-
             } while ($nextUpdate);
             $totalPending = ($pendingToUpdate + $pendingToCreate);
 
             // import form Google Job
             $nextSynToken = clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
             $personFields = ['names,phoneNumbers,emailAddresses,userDefined,organizations,biographies,addresses,birthdays,urls,relations'];
-            $nextPageToken=false;
+            $nextPageToken = false;
             do {
-                $googleContacts = (new GoogleService())->getContacts($this->googleToken, 1000, $personFields, $nextPageToken, $nextSynToken->synToken??null);
+                $googleContacts = (new GoogleService())->getContacts($this->googleToken, 1000, $personFields, $nextPageToken, $nextSynToken->synToken ?? null);
                 $nextPageToken = $googleContacts->nextPageToken ?? false;
 
-                $DataFromGoogle=$googleContacts->connections??[];
-                 if (count($DataFromGoogle)==0) {
+                $DataFromGoogle = $googleContacts->connections ?? [];
+                if (count($DataFromGoogle) == 0) {
                     continue;
                 }
                 sleep(1);
-                $totalPending+=count($DataFromGoogle);
-                $batches->add( new importFormGoogleJob($DataFromGoogle, $syncHistory->id, $this->apiToken));
+                $totalPending += count($DataFromGoogle);
+                $batches->add(new importFormGoogleJob($DataFromGoogle, $syncHistory->id, $this->apiToken));
             } while ($nextPageToken);
 
 
 
             // Update the batches count
-            $syncHistory->extimetedTime = $totalPending * 5 ;
+            $syncHistory->extimetedTime = $totalPending * 5;
             $syncHistory->pending = $totalPending;
             $syncHistory->save();
 
-             if ($totalPending == 0) {
+            if ($totalPending == 0) {
                 $this->isProcessing = false;
                 return response()->json([
                     'status' => true,
@@ -224,17 +257,17 @@ class AjaxRequestController extends Controller
 
             $createPages = 1;
             do {
-                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 200, "sync_status_c is null OR sync_status_c='Not Synced' ");
+                $res = (new CrmApiServices($this->apiToken))->getClietsList($createPages, 100, "sync_status_c is null OR sync_status_c='Not Synced' ");
                 $createdData = $res->data ?? [];
                 $next = isset($res->links->next);
                 $pendingToCreate = $res->meta->total ?? 0;
-                 if (count($createdData)==0) {
+                if (count($createdData) == 0) {
                     continue;
                 }
                 $batches->add(new pushToGoogleJob($googleToken, [], [], $syncHistory->id, $this->apiToken));
                 $batches->add(new pushToGoogleJob($googleToken, $createdData, [], $syncHistory->id, $this->apiToken));
                 $createPages++;
-                $extimetedTime += ($pendingToCreate *5); // 15 sec take to process
+                $extimetedTime += ($pendingToCreate * 5); // 15 sec take to process
 
             } while ($next);
             $updatePages = 1;
@@ -243,13 +276,12 @@ class AjaxRequestController extends Controller
                 $updatedData = $response->data ?? [];
                 $nextUpdate = isset($response->links->next);
                 $pendingToUpdate = $response->meta->total ?? 0;
-                if (count($updatedData)==0) {
+                if (count($updatedData) == 0) {
                     continue;
                 }
                 $batches->add(new pushToGoogleJob($googleToken, [], $updatedData, $syncHistory->id, $this->apiToken));
-                $extimetedTime += ($pendingToUpdate *5); // 15 sec take to process
+                $extimetedTime += ($pendingToUpdate * 5); // 15 sec take to process
                 $updatePages++;
-
             } while ($nextUpdate);
             $totalPending = ($pendingToUpdate + $pendingToCreate);
 
@@ -260,7 +292,7 @@ class AjaxRequestController extends Controller
             $syncHistory->extimetedTime = $extimetedTime;
             $syncHistory->save();
 
-             if ($totalPending == 0) {
+            if ($totalPending == 0) {
                 $this->isProcessing = false;
                 return response()->json([
                     'status' => true,
@@ -302,7 +334,7 @@ class AjaxRequestController extends Controller
         try {
             Log::info('Import Form Google Function ');
 
-            $pendingOnGoogle=0;
+            $pendingOnGoogle = 0;
             $syncHistory = new clientContatSyncHistory();
             $syncHistory->save();
 
@@ -310,18 +342,18 @@ class AjaxRequestController extends Controller
             $nextSynToken = clientContatSyncHistory::orderBy('id', 'desc')->get('synToken')->first();
 
             $batches = Bus::batch([
-                new pushToGoogleJob($googleToken, [], [],null, $this->apiToken)
+                new pushToGoogleJob($googleToken, [], [], null, $this->apiToken)
             ])->name('Import From Google')->dispatch();
 
             $personFields = ['names,phoneNumbers,emailAddresses,userDefined,organizations,biographies,addresses,birthdays,urls,relations'];
-            $nextPageToken=false;
+            $nextPageToken = false;
             do {
-                $googleContacts = (new GoogleService())->getContacts($this->googleToken, 1000, $personFields, $nextPageToken, $nextSynToken->synToken??null);
+                $googleContacts = (new GoogleService())->getContacts($this->googleToken, 1000, $personFields, $nextPageToken, $nextSynToken->synToken ?? null);
                 $nextPageToken = $googleContacts->nextPageToken ?? false;
                 sleep(1);
-                $DataFromGoogle=$googleContacts->connections??[];
-                $pendingOnGoogle=count($DataFromGoogle);
-                $batches->add( new importFormGoogleJob($DataFromGoogle, $syncHistory->id, $this->apiToken));
+                $DataFromGoogle = $googleContacts->connections ?? [];
+                $pendingOnGoogle = count($DataFromGoogle);
+                $batches->add(new importFormGoogleJob($DataFromGoogle, $syncHistory->id, $this->apiToken));
             } while ($nextPageToken);
 
 
@@ -331,7 +363,7 @@ class AjaxRequestController extends Controller
             $syncHistory->extimetedTime = $pendingOnGoogle * 5;
             $syncHistory->save();
 
-              if ($pendingOnGoogle == 0) {
+            if ($pendingOnGoogle == 0) {
                 $this->isProcessing = false;
                 return response()->json([
                     'status' => true,
@@ -503,7 +535,7 @@ class AjaxRequestController extends Controller
             $startTime = $lastSync->startTime ?? null;
             $remainingTime = 0;
             if ($startTime && $estimatedTime > 0) {
-                $elapsedTime = time()-$startTime;
+                $elapsedTime = time() - $startTime;
                 $remainingTime = max(0, $estimatedTime - $elapsedTime); // never negative
             }
             // Format to MM:SS Min
@@ -543,7 +575,7 @@ class AjaxRequestController extends Controller
         $client = new Google_Client();
         $client->setClientId(config('services.google.client_id'));
         $client->setRedirectUri(config('services.google.redirect'));
-                $client->addScope([
+        $client->addScope([
             // 'https://www.googleapis.com/auth/userinfo.profile',
             'https://www.googleapis.com/auth/contacts',
             'https://www.googleapis.com/auth/contacts.other.readonly' //  Required for otherContacts
@@ -614,16 +646,19 @@ class AjaxRequestController extends Controller
     {
         try {
 
-            $response = (new CrmApiServices($this->apiToken))->getClietsList(1, 20,"sync_status_c = 'pending'");
-            // $response = (new CrmApiServices($this->apiToken))->getClietsList(1, 200,"sync_status_c is null OR sync_status_c='Not Synced'");
+            // $response = (new CrmApiServices($this->apiToken))->getClietsList(1,500,null);
+            $response = (new CrmApiServices($this->apiToken))->getClietsList(1, 20, "sync_status_c = 'synced'");
+            // $response = (new CrmApiServices($this->apiToken))->getClietsList(1, 20,"sync_status_c is null OR sync_status_c='Not Synced'");
             $resData = $response->data ?? [];
             $ids = [];
             foreach ($resData as $data) {
+
                 $ids[] = $data->id;
             }
+
             foreach ($ids as $id) {
                 // $res = (new CrmApiServices($this->apiToken))->deleteFromCRM($id);
-                $res = (new CrmApiServices($this->apiToken))->updateSyncStatus($id,null,null,null,null);
+                $res = (new CrmApiServices($this->apiToken))->updateSyncStatus($id, null, null, null, null);
             }
 
             return response()->json([
@@ -633,6 +668,7 @@ class AjaxRequestController extends Controller
                 'data' => [],
             ]);
         } catch (Exception $e) {
+            dd($e);
             return response()->json([
                 'status' => false,
                 'error' => true,

@@ -176,22 +176,15 @@ class GoogleService
 
             'PAN card'                => $contact->pancard_c ?? '',
             'Adhaar card'             => $contact->adhaar_card_c ?? '',
-            'kyc status'             => $contact->kyc_status_c ?? '',
+            'kyc status'              => $contact->kyc_status_c ?? '',
             'designation'             => $contact->designation ?? '',
             'anniversary'             => $contact->anniversary ?? '',
-            'birth_date'              => $contact->birth_date ?? '',
-            'account_id'              => $contact->account_id ?? '',
             'account_id_name'         => $contact->account_id_name ?? '',
             'customer_type'           => $contact->customer_type ?? '',
             'hierarchy'               => $contact->hierarchy ?? '',
             'department'              => $contact->department ?? '',
             'lead_source'             => $contact->lead_source ?? '',
-            'created_at'              => $contact->created_at ?? '',
-            'updated_at'              => $contact->updated_at ?? '',
-            'tag'                     => $contact->tag ?? '',
-            'created_by'              => $contact->created_by ?? '',
             'created_by_name'         => $contact->created_by_name ?? '',
-            'assigned_user_id'        => $contact->assigned_user_id ?? '',
             'assigned_user_id_name'   => $contact->assigned_user_id_name ?? '',
         ];
 

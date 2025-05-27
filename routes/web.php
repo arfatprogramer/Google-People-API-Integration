@@ -9,8 +9,11 @@ use App\Http\Middleware\loginAuthMiddleware;
 use App\Http\Controllers\AjaxRequestController;
 use App\DataTables\clietsSyncedHistoryDataTable;
 use App\Models\GoogleAuth;
+use App\Services\CrmApiServices;
 use App\Services\GoogleService;
 use Google\Service\PeopleService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 Route::get('crm/login',[CRMLoginController::class,'ViewcrmLogin'])->name('login');
 Route::post('/crmlogin',[CRMLoginController::class,'login']);
@@ -61,44 +64,71 @@ Route::get('/test',function(){
         // ]);
         // $otherContact=$response->otherContacts??[];
 
-        $personFields=['names,phoneNumbers,emailAddresses,userDefined,organizations,biographies,addresses,birthdays,urls,relations'];
-            $pageSize=1000;
-           $googleToken= GoogleAuth::orderBy('id', 'desc')->get()->first();
+        // $personFields=['names,phoneNumbers,emailAddresses,userDefined,organizations,biographies,addresses,birthdays,urls,relations'];
+        //     $pageSize=1000;
+        //    $googleToken= GoogleAuth::orderBy('id', 'desc')->get()->first();
 
-            $googleContacts = (new GoogleService())->getContacts($googleToken, $pageSize, $personFields);
-            return response()->json($googleContacts);
-            foreach($googleContacts->connections as $data){
+        //     $googleContacts = (new GoogleService())->getContacts($googleToken, $pageSize, $personFields);
+        //     return response()->json($googleContacts);
+        //     foreach($googleContacts->connections as $data){
 
                 // dump($data->birthdays[0]->date??'');
                 // dump($data->userDefined??'');
-                $userDefined=collect($data->userDefined??[]);
-                $arrayKeys=['pan'=>'pancard_c',
-                            'pancard '=>'pancard_c',
-                            'pan card'=>'pancard_c',
-                            'pan card no'=>'pancard_c',
-                            'pan card number'=>'pancard_c',
-                            'pen'=>'pancard_c',
-                            'aadhar'=>'adhaar_card_c',
-                            'aadhaar card'=>'adhaar_card_c',
-                            'adhaar card'=>'adhaar_card_c'
-                        ];
-                $userDefindArray=[];
-                foreach($userDefined as $data){
+                // $userDefined=collect($data->userDefined??[]);
+                // $arrayKeys=['pan'=>'pancard_c',
+                //             'pancard '=>'pancard_c',
+                //             'pan card'=>'pancard_c',
+                //             'pan card no'=>'pancard_c',
+                //             'pan card number'=>'pancard_c',
+                //             'pen'=>'pancard_c',
+                //             'aadhar'=>'adhaar_card_c',
+                //             'aadhaar card'=>'adhaar_card_c',
+                //             'adhaar card'=>'adhaar_card_c'
+                //         ];
+                // $userDefindArray=[];
+                // foreach($userDefined as $data){
 
-                    $key=strtolower($data->key);
-                   $newKey=$arrayKeys[$key]??null;
-                    $value=$data->value;
-                    if (!empty($newKey)) {
-                        $userDefindArray[$newKey]=$value;
-                    }
-                }
+                //     $key=strtolower($data->key);
+                //    $newKey=$arrayKeys[$key]??null;
+                //     $value=$data->value;
+                //     if (!empty($newKey)) {
+                //         $userDefindArray[$newKey]=$value;
+                //     }
+                // }
+
+
+
+      $contacts = Cache::rememberForever('clients', function () {
+            $res = (new CrmApiServices(session('crm_token')))->getContacts();
+            $datas = $res['data'] ?? [];
+            Cache::rememberForever("total_in_crm",function()use($res){return $res['meta']['total']??0;});
+            Log::info("Not calling ");
+            $transformedContacts = [];
+            foreach ($datas as $data) {
+                $tempData = [];
+                $tempData['id'] = $data['id'];
+                $tempData['firstName'] = $data['name'];
+                $tempData['number'] = $data['phone_primary'];
+                $tempData['email'] = $data['email_primary'];
+                $tempData['syncStatus'] = $data['sync_status_c'];
+                $tempData['lastSync'] = $data['last_sync_c'];
+                $tempData['updated_at'] = $data['updated_at'];
+                $transformedContacts[] = $tempData;
+            }
+            return $transformedContacts;
+        });
+
+        $value = cache('total_in_crm');
+
+        dump($value);
+
 
 
 
                 // dump(preg_replace('/[^0-9]/','',$data->phoneNumbers[0]->value??''));
                 // dump($data->addresses[0]??'');
 
-            }
+            // }
             return;
     } catch (\Throwable $th) {
             throw $th;
